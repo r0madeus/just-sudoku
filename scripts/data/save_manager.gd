@@ -38,9 +38,12 @@ static func safe_write_active(data_dict: Dictionary) -> bool:
 	if FileAccess.file_exists(ACTIVE_GAME_FILE):
 		DirAccess.copy_absolute(ACTIVE_GAME_FILE, BACKUP_1_FILE)
 
-	# Atomic rename/replace
-	DirAccess.copy_absolute(tmp_file, ACTIVE_GAME_FILE)
-	DirAccess.remove_absolute(tmp_file)
+	# Atomic replace: a crash mid-write can never leave a half-written active save
+	if DirAccess.rename_absolute(tmp_file, ACTIVE_GAME_FILE) != OK:
+		if DirAccess.copy_absolute(tmp_file, ACTIVE_GAME_FILE) != OK:
+			printerr("SaveManager: Failed to replace active save")
+			return false
+		DirAccess.remove_absolute(tmp_file)
 	return true
 
 ## Saves the currently active game and updates index

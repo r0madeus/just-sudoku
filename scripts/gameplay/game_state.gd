@@ -207,10 +207,10 @@ func toggle_candidate(idx: int, num: int) -> bool:
 	return true
 
 func can_undo() -> bool:
-	return not is_completed and not undo_stack.is_empty()
+	return not is_completed and not is_paused and not undo_stack.is_empty()
 
 func can_redo() -> bool:
-	return not is_completed and not redo_stack.is_empty()
+	return not is_completed and not is_paused and not redo_stack.is_empty()
 
 func undo() -> bool:
 	if not can_undo():
@@ -219,8 +219,10 @@ func undo() -> bool:
 	var move: Dictionary = undo_stack.pop_back()
 	var idx: int = int(move["cell"])
 
-	current_board.set_cell(idx, int(move["prev_val"]), false)
-	current_board.candidates[idx] = int(move["prev_cands"])
+	# cell is -1 for moves that only remove notes (elimination hints)
+	if idx >= 0:
+		current_board.set_cell(idx, int(move["prev_val"]), false)
+		current_board.candidates[idx] = int(move["prev_cands"])
 
 	# Restore any auto-removed candidates from peers
 	var auto_removed: Dictionary = move.get("auto_removed", {})
@@ -233,7 +235,8 @@ func undo() -> bool:
 	redo_stack.append(move)
 	undo_count += 1
 
-	cell_changed.emit(idx, current_board.get_cell(idx), current_board.candidates[idx])
+	if idx >= 0:
+		cell_changed.emit(idx, current_board.get_cell(idx), current_board.candidates[idx])
 	return true
 
 func redo() -> bool:
@@ -243,8 +246,9 @@ func redo() -> bool:
 	var move: Dictionary = redo_stack.pop_back()
 	var idx: int = int(move["cell"])
 
-	current_board.set_cell(idx, int(move["new_val"]), false)
-	current_board.candidates[idx] = int(move["new_cands"])
+	if idx >= 0:
+		current_board.set_cell(idx, int(move["new_val"]), false)
+		current_board.candidates[idx] = int(move["new_cands"])
 
 	# Re-apply auto-removals
 	var auto_removed: Dictionary = move.get("auto_removed", {})
@@ -254,7 +258,8 @@ func redo() -> bool:
 		cell_changed.emit(peer_idx, current_board.get_cell(peer_idx), current_board.candidates[peer_idx])
 
 	undo_stack.append(move)
-	cell_changed.emit(idx, current_board.get_cell(idx), current_board.candidates[idx])
+	if idx >= 0:
+		cell_changed.emit(idx, current_board.get_cell(idx), current_board.candidates[idx])
 	check_completion()
 	return true
 
@@ -317,11 +322,25 @@ func apply_hint(specific_step: SudokuSolver.SolveStep = null) -> SudokuSolver.So
 		if step.digit != 0 and step.cells.size() == 1:
 			set_number(step.cells[0], step.digit, true)
 		elif not step.eliminations.is_empty():
+			# Record only the notes actually removed, so Undo brings back exactly those
+			var removed: Dictionary = {}
 			for idx_key in step.eliminations.keys():
 				var idx: int = int(idx_key)
 				for d in step.eliminations[idx_key]:
-					current_board.remove_candidate(idx, d)
+					if current_board.remove_candidate(idx, d):
+						removed[idx] = int(removed.get(idx, 0)) | (1 << d)
 				cell_changed.emit(idx, current_board.get_cell(idx), current_board.candidates[idx])
+			if not removed.is_empty():
+				undo_stack.append({
+					"action": "hint_eliminate",
+					"cell": -1,
+					"prev_val": 0,
+					"new_val": 0,
+					"prev_cands": 0,
+					"new_cands": 0,
+					"auto_removed": removed
+				})
+				redo_stack.clear()
 	return step
 
 func serialize() -> Dictionary:
