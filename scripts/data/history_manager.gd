@@ -59,7 +59,8 @@ static func add_record(summary: Dictionary) -> void:
 	var records := load_all_records()
 	var record := {
 		"game_id": summary.get("game_id", ""),
-		"seed": summary.get("seed", 0),
+		# Stored as text: JSON numbers are doubles and seeds exceed 2^53
+		"seed": str(int(summary.get("seed", 0))),
 		"difficulty": summary.get("difficulty", DifficultyAnalyzer.LEVEL_MEDIUM),
 		"difficulty_score": summary.get("difficulty_score", 50),
 		"score": summary.get("score", 0),

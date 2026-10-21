@@ -217,16 +217,16 @@ func undo() -> bool:
 		return false
 
 	var move: Dictionary = undo_stack.pop_back()
-	var idx: int = move["cell"]
+	var idx: int = int(move["cell"])
 
-	current_board.set_cell(idx, move["prev_val"], false)
-	current_board.candidates[idx] = move["prev_cands"]
+	current_board.set_cell(idx, int(move["prev_val"]), false)
+	current_board.candidates[idx] = int(move["prev_cands"])
 
 	# Restore any auto-removed candidates from peers
 	var auto_removed: Dictionary = move.get("auto_removed", {})
 	for peer_str in auto_removed.keys():
 		var peer_idx: int = int(peer_str)
-		current_board.candidates[peer_idx] |= auto_removed[peer_str]
+		current_board.candidates[peer_idx] |= int(auto_removed[peer_str])
 		cell_changed.emit(peer_idx, current_board.get_cell(peer_idx), current_board.candidates[peer_idx])
 
 	checked_wrong_indices.erase(idx)
@@ -241,16 +241,16 @@ func redo() -> bool:
 		return false
 
 	var move: Dictionary = redo_stack.pop_back()
-	var idx: int = move["cell"]
+	var idx: int = int(move["cell"])
 
-	current_board.set_cell(idx, move["new_val"], false)
-	current_board.candidates[idx] = move["new_cands"]
+	current_board.set_cell(idx, int(move["new_val"]), false)
+	current_board.candidates[idx] = int(move["new_cands"])
 
 	# Re-apply auto-removals
 	var auto_removed: Dictionary = move.get("auto_removed", {})
 	for peer_str in auto_removed.keys():
 		var peer_idx: int = int(peer_str)
-		current_board.candidates[peer_idx] &= ~auto_removed[peer_str]
+		current_board.candidates[peer_idx] &= ~int(auto_removed[peer_str])
 		cell_changed.emit(peer_idx, current_board.get_cell(peer_idx), current_board.candidates[peer_idx])
 
 	undo_stack.append(move)
@@ -328,7 +328,8 @@ func serialize() -> Dictionary:
 	return {
 		"version": SAVE_VERSION,
 		"game_id": game_id,
-		"seed": seed_value,
+		# Stored as text: JSON numbers are doubles and seeds exceed 2^53
+		"seed": str(seed_value),
 		"difficulty": difficulty,
 		"difficulty_score": difficulty_score,
 		"estimated_seconds": estimated_seconds,
@@ -355,6 +356,7 @@ func deserialize(data: Dictionary) -> bool:
 	seed_value = int(data.get("seed", 0))
 	difficulty = data.get("difficulty", DifficultyAnalyzer.LEVEL_MEDIUM)
 	difficulty_score = int(data.get("difficulty_score", 50))
+	estimated_seconds = int(data.get("estimated_seconds", 600))
 	top_techniques.clear()
 	for t in data.get("top_techniques", []):
 		top_techniques.append(str(t))

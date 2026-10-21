@@ -128,7 +128,7 @@ func test_dimension_1_atomic_save_slots_snapshot() -> void:
 	var index_data := SaveManager.get_games_index()
 	assert_true(index_data.has(state.game_id), "games_index.json içerisinde game_id girişi mevcut")
 	var entry: Dictionary = index_data[state.game_id]
-	assert_true(entry.get("seed", 0) == state.seed_value, "İndeks seed verisi doğru")
+	assert_true(int(entry.get("seed", 0)) == state.seed_value, "İndeks seed verisi doğru")
 	assert_true(entry.has("progress_percentage"), "İlerletme yüzdesi indekste hesaplandı")
 
 	var active_list := SaveManager.list_active_games()

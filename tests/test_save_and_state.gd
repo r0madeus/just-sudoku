@@ -197,6 +197,73 @@ func _init() -> void:
 		return true
 	)
 
+	# --- Test 7: Large seeds and score inputs survive a JSON round trip ---
+	run_test.call("Seed above 2^53 and estimated time survive save/load", func() -> bool:
+		var big_seed: int = 117480873763307211
+		var gen := SudokuGenerator.generate(big_seed, DifficultyAnalyzer.LEVEL_EASY)
+		var state := GameState.new()
+		state.init_from_puzzle(gen)
+		state.estimated_seconds = 690
+
+		var loaded := SaveManager.import_game_from_string(SaveManager.export_game_to_string(state))
+		if loaded == null or loaded.seed_value != big_seed:
+			printerr("Seed changed on reload: %d" % (loaded.seed_value if loaded else 0))
+			return false
+		if loaded.estimated_seconds != 690:
+			printerr("estimated_seconds not restored: %d" % loaded.estimated_seconds)
+			return false
+
+		SaveManager.save_active_game(state)
+		var entry: Dictionary = SaveManager.get_games_index().get(state.game_id, {})
+		if int(entry.get("seed", 0)) != big_seed:
+			printerr("Index seed changed on reload")
+			return false
+
+		HistoryManager.add_record({ "game_id": "big_seed_game", "seed": big_seed })
+		if HistoryManager.load_all_records(true).filter(
+			func(r): return int(r.get("seed", 0)) == big_seed).is_empty():
+			printerr("History seed changed on reload")
+			return false
+		return true
+	)
+
+	# --- Test 8: Undo/Redo of auto-removed notes after a reload ---
+	run_test.call("Undo/Redo restores auto-removed notes on a reloaded game", func() -> bool:
+		var gen := SudokuGenerator.generate(55667788, DifficultyAnalyzer.LEVEL_EASY)
+		var state := GameState.new()
+		state.init_from_puzzle(gen)
+
+		var target: int = -1
+		var peer: int = -1
+		for i in range(81):
+			if state.current_board.get_cell(i) != 0:
+				continue
+			for p in SudokuBoard.PEERS[i]:
+				if state.current_board.get_cell(p) == 0:
+					target = i
+					peer = p
+					break
+			if target != -1:
+				break
+		var digit: int = state.solution.get_cell(target)
+		state.current_board.clear_candidates(peer)
+		state.toggle_candidate(peer, digit)
+		state.set_number(target, digit)
+
+		var loaded := SaveManager.import_game_from_string(SaveManager.export_game_to_string(state))
+		if not loaded.undo():
+			return false
+		if loaded.current_board.get_cell(target) != 0 or not loaded.current_board.has_candidate(peer, digit):
+			printerr("Undo did not restore the cell and its peer note")
+			return false
+		if loaded.redo_stack.size() != 1 or not loaded.redo():
+			return false
+		if loaded.current_board.get_cell(target) != digit or loaded.current_board.has_candidate(peer, digit):
+			printerr("Redo did not re-apply the move")
+			return false
+		return true
+	)
+
 	print("\n=== TEST RESULTS: %d/%d PASSED ===" % [stats.passed, stats.total])
 	if stats.passed == stats.total:
 		print(">>> ALL GAMEPLAY & DATA LAYER TESTS PASSED SUCCESSFULLY! <<<\n")
