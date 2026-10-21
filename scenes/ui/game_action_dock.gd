@@ -181,7 +181,15 @@ func _update_notes_visuals() -> void:
 		notes_btn.add_theme_stylebox_override("pressed", sb_act)
 		notes_btn.add_theme_color_override("font_color", Color.WHITE)
 	else:
-		notes_btn.remove_theme_stylebox_override("normal")
+		# Off state: outlined pill, so it reads as a toggle next to the plain action buttons
+		var sb_off := ThemeManager.create_flat_stylebox(
+			Color.TRANSPARENT,
+			ThemeManager.RADIUS_PILL_SM,
+			ThemeManager.BORDER_HAIRLINE,
+			ThemeManager.get_color("border_subtle"),
+			10, 4
+		)
+		notes_btn.add_theme_stylebox_override("normal", sb_off)
 		notes_btn.remove_theme_stylebox_override("hover")
 		notes_btn.remove_theme_stylebox_override("pressed")
 		notes_btn.remove_theme_color_override("font_color")
@@ -201,8 +209,9 @@ func _apply_theme_style() -> void:
 	var is_dark := ThemeManager.get_color("bg").get_luminance() < 0.5
 
 	var glass_bg: Color = Color(surface_col.r, surface_col.g, surface_col.b, 0.55 if is_dark else 0.68)
-	var specular_border: Color = Color(1.0, 1.0, 1.0, 0.28 if is_dark else 0.70)
-	var shadow_col: Color = Color(0.0, 0.0, 0.0, 0.45) if is_dark else Color(0.08, 0.12, 0.20, 0.18)
+	# Light rim in dark mode; on a light page a white rim vanishes, so use a soft dark hairline instead
+	var specular_border: Color = Color(1.0, 1.0, 1.0, 0.28) if is_dark else Color(ThemeManager.get_color("border_subtle"), 0.9)
+	var shadow_col: Color = Color(0.0, 0.0, 0.0, 0.30) if is_dark else Color(0.08, 0.12, 0.20, 0.10)
 
 	var sb_dock := StyleBoxFlat.new()
 	sb_dock.bg_color = glass_bg
@@ -211,8 +220,8 @@ func _apply_theme_style() -> void:
 	sb_dock.set_border_width_all(ThemeManager.BORDER_HAIRLINE)
 	sb_dock.border_color = specular_border
 	sb_dock.shadow_color = shadow_col
-	sb_dock.shadow_size = 18
-	sb_dock.shadow_offset = Vector2(0, 6)
+	sb_dock.shadow_size = 10
+	sb_dock.shadow_offset = Vector2(0, 3)
 	sb_dock.content_margin_left = 12
 	sb_dock.content_margin_right = 12
 	sb_dock.content_margin_top = 4

@@ -412,6 +412,26 @@ static func get_icon(icon_name: String) -> Texture2D:
 	_icon_cache[icon_name] = raw_tex
 	return raw_tex
 
+## Icon rendered at an exact pixel size, for theme slots (like the OptionButton arrow) that
+## draw the texture at its native size instead of honouring icon_max_width
+static func get_icon_sized(icon_name: String, px: int) -> Texture2D:
+	var key: String = "%s@%d" % [icon_name, px]
+	if _icon_cache.has(key):
+		return _icon_cache[key]
+	var base: Texture2D = get_icon(icon_name)
+	if base == null:
+		return null
+	var img: Image = base.get_image()
+	if img == null:
+		return base
+	img = img.duplicate()
+	if img.is_compressed():
+		img.decompress()
+	img.resize(px, px, Image.INTERPOLATE_LANCZOS)
+	var tex := ImageTexture.create_from_image(img)
+	_icon_cache[key] = tex
+	return tex
+
 # Control Heights (Touch ergonomics with precision feel)
 const HEIGHT_TOUCH_MIN: int = 44
 const HEIGHT_BUTTON_PRIMARY: int = 44
@@ -980,8 +1000,8 @@ static func build_godot_theme() -> Theme:
 	theme.set_color("font_pressed_color", "OptionButton", text_primary)
 	theme.set_color("font_disabled_color", "OptionButton", btn_text_disabled)
 	theme.set_font_size("font_size", "OptionButton", FONT_SIZE_BODY)
-	theme.set_icon("arrow", "OptionButton", get_icon("chevron-down"))
-	theme.set_constant("arrow_margin", "OptionButton", 14)
+	theme.set_icon("arrow", "OptionButton", get_icon_sized("chevron-down", 16))
+	theme.set_constant("arrow_margin", "OptionButton", 10)
 
 	# PopupMenu (Elevated floating surface with hairline borders and refined item states)
 	var sb_popup_panel := create_flat_stylebox(
@@ -1143,7 +1163,11 @@ static func apply_numpad_button_style(btn: Button, corner_radius: int = -1, is_s
 	var sb_n := create_flat_stylebox(norm_bg, radius, norm_border_w, norm_border, 0, 0)
 	var sb_h := create_flat_stylebox(get_color("button_hover"), radius, BORDER_HAIRLINE, get_color("border_focus"), 0, 0)
 	var sb_p := create_flat_stylebox(get_color("button_pressed"), radius, BORDER_HAIRLINE, get_color("border_focus"), 0, 0)
-	var sb_d := create_flat_stylebox(get_color("button_disabled"), radius, BORDER_HAIRLINE, get_color("border_subtle").darkened(0.2), 0, 0)
+	# Translucent fills on a full-radius (circular) StyleBoxFlat leave a visible seam through the
+	# middle, so the disabled fill is flattened onto the background into an opaque colour
+	var dis_fill: Color = get_color("button_disabled")
+	dis_fill = get_color("bg").lerp(Color(dis_fill, 1.0), dis_fill.a)
+	var sb_d := create_flat_stylebox(dis_fill, radius, BORDER_HAIRLINE, get_color("border_subtle").darkened(0.2), 0, 0)
 
 	btn.add_theme_stylebox_override("normal", sb_n)
 	btn.add_theme_stylebox_override("hover", sb_h)
