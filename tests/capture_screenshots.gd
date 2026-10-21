@@ -4,6 +4,7 @@ extends SceneTree
 ## It seeds demo history and switches themes, so run it with a throwaway user dir:
 ##   APPDATA=/tmp/fakeappdata godot --path . -s res://tests/capture_screenshots.gd
 
+const SaveManager = preload("res://scripts/data/save_manager.gd")
 const OUT: String = "res://screenshots/"
 var app: AppRoot
 
@@ -49,6 +50,7 @@ func _run() -> void:
 	var gen := SudokuGenerator.generate(123456789, DifficultyAnalyzer.LEVEL_MEDIUM)
 	var state := GameState.new()
 	state.init_from_puzzle(gen)
+	SaveManager.save_active_game(state)
 	app._start_game_session(state)
 	await _wait(10)
 	for idx in range(81):
@@ -73,8 +75,11 @@ func _run() -> void:
 	app._show_screen(app.load_game_screen)
 	await _shot("08_load_game.png")
 	ThemeManager.set_theme(ThemeManager.THEME_LIGHT)
+	app.main_menu.refresh_buttons()
 	app._show_screen(app.main_menu)
 	await _shot("09_main_menu_light.png")
+	ThemeManager.set_theme(ThemeManager.THEME_DARK)
+	await _shot("11_main_menu_resume_dark.png")
 
 	# Desktop landscape
 	ThemeManager.set_theme(ThemeManager.THEME_DARK)

@@ -21,6 +21,8 @@ signal statistics_requested()
 signal settings_requested()
 
 const AmbientBackdrop = preload("res://scenes/ui/ambient_backdrop.gd")
+const GlassPanel = preload("res://scenes/ui/glass_panel.gd")
+const ResumeCard = preload("res://scenes/menus/resume_card.gd")
 
 var bg: ColorRect
 var margin_container: MarginContainer
@@ -36,6 +38,8 @@ var subtitle_label: Label
 var masthead_separator: HSeparator
 
 # 2. Hero & Puzzle Actions
+var resume_holder: VBoxContainer
+var resume_card: ResumeCard
 var actions_vbox: VBoxContainer
 var hero_vbox: VBoxContainer
 var continue_btn: Button
@@ -54,6 +58,7 @@ var load_game_btn: Button
 
 # 5. Baseline Utility Navigation
 var nav_separator: HSeparator
+var nav_glass: GlassPanel
 var nav_hbox: HBoxContainer
 var history_btn: Button
 var stats_btn: Button
@@ -107,6 +112,10 @@ func refresh_buttons() -> void:
 		new_game_btn.theme_type_variation = "PrimaryButton"
 		if continue_meta_label != null:
 			continue_meta_label.visible = false
+
+	if resume_card != null:
+		var active_state: GameState = SaveManager.load_active_game() if has_active else null
+		resume_card.set_game(active_state)
 
 	var is_daily_done := DailyManager.is_today_completed()
 	var has_daily_game := DailyManager.has_today_game()
@@ -179,10 +188,19 @@ func _build_ui() -> void:
 	masthead_separator = HSeparator.new()
 	header_vbox.add_child(masthead_separator)
 
-	# --- 3. Mid Spacer (Expands vertically to position action cluster in thumb reach zone) ---
+	# --- 3. Resume card: live miniature of the unfinished game, centred in the free space ---
+	resume_holder = VBoxContainer.new()
+	resume_holder.alignment = BoxContainer.ALIGNMENT_CENTER
+	resume_holder.size_flags_horizontal = SIZE_EXPAND_FILL
+	resume_holder.size_flags_vertical = SIZE_EXPAND_FILL
+	root_vbox.add_child(resume_holder)
+
+	resume_card = ResumeCard.new()
+	resume_card.pressed.connect(func(): continue_pressed.emit())
+	resume_holder.add_child(resume_card)
+
 	mid_spacer = Control.new()
-	mid_spacer.custom_minimum_size = Vector2(0, 36)
-	mid_spacer.size_flags_vertical = SIZE_EXPAND_FILL
+	mid_spacer.custom_minimum_size = Vector2(0, 20)
 	root_vbox.add_child(mid_spacer)
 
 	# --- 4. Main Puzzle Actions (Distinct Daily + Continue + New Game + Saved Games in Lower Ergonomic Thumb Zone) ---
@@ -193,7 +211,14 @@ func _build_ui() -> void:
 	root_vbox.add_child(actions_vbox)
 
 	# 1. Action: Günün Sudokusu Strip (Restrained, distinct editorial card - Placed at Top of Action Group)
-	daily_panel = PanelContainer.new()
+	var daily_glass := GlassPanel.new()
+	daily_glass.elevated = false
+	daily_glass.corner_radius = 20.0
+	daily_glass.pad_h = 16
+	daily_glass.pad_v = 10
+	daily_glass.shadow_size = 10
+	daily_glass.shadow_offset = Vector2(0, 3)
+	daily_panel = daily_glass
 	daily_panel.size_flags_horizontal = SIZE_EXPAND_FILL
 	daily_panel.mouse_filter = MOUSE_FILTER_PASS
 	actions_vbox.add_child(daily_panel)
@@ -301,13 +326,24 @@ func _build_ui() -> void:
 	root_vbox.add_child(nav_section_vbox)
 
 	nav_separator = HSeparator.new()
+	nav_separator.visible = false
 	nav_section_vbox.add_child(nav_separator)
+
+	nav_glass = GlassPanel.new()
+	nav_glass.elevated = false
+	nav_glass.corner_radius = 26.0
+	nav_glass.pad_h = 10
+	nav_glass.pad_v = 4
+	nav_glass.shadow_size = 12
+	nav_glass.shadow_offset = Vector2(0, 4)
+	nav_glass.size_flags_horizontal = SIZE_EXPAND_FILL
+	nav_section_vbox.add_child(nav_glass)
 
 	nav_hbox = HBoxContainer.new()
 	nav_hbox.size_flags_horizontal = SIZE_EXPAND_FILL
 	nav_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	nav_hbox.add_theme_constant_override("separation", 8)
-	nav_section_vbox.add_child(nav_hbox)
+	nav_glass.add_child(nav_hbox)
 
 	history_btn = Button.new()
 	history_btn.size_flags_horizontal = SIZE_EXPAND_FILL
@@ -351,18 +387,6 @@ func _apply_theme_polish() -> void:
 		subtitle_label.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
 	if continue_meta_label != null:
 		continue_meta_label.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
-	if daily_panel != null:
-		# Distinct, restrained hairline frame for the daily strip
-		var border_col: Color = ThemeManager.get_color("border_subtle")
-		var surf_col: Color = ThemeManager.get_color("surface")
-		var sb_daily := ThemeManager.create_flat_stylebox(
-			surf_col,
-			ThemeManager.RADIUS_MD,
-			ThemeManager.BORDER_HAIRLINE,
-			border_col,
-			14, 10
-		)
-		daily_panel.add_theme_stylebox_override("panel", sb_daily)
 	if daily_icon_tex != null:
 		daily_icon_tex.modulate = ThemeManager.get_color("text_secondary")
 	if daily_title_label != null:

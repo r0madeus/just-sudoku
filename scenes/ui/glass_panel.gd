@@ -15,7 +15,11 @@ shader_type canvas_item;
 
 uniform sampler2D screen_tex : hint_screen_texture, filter_linear_mipmap;
 uniform vec2 rect_size = vec2(300.0, 200.0);
+uniform vec2 quad_size = vec2(300.0, 200.0);
 uniform float radius = 22.0;
+uniform float shadow_size = 18.0;
+uniform vec2 shadow_offset = vec2(0.0, 6.0);
+uniform vec4 shadow_color : source_color = vec4(0.0, 0.0, 0.0, 0.4);
 uniform float blur_lod = 2.5;
 uniform vec3 tint_color : source_color = vec3(0.1);
 uniform float tint_amount = 0.6;
@@ -39,9 +43,13 @@ float hash(vec2 p) {
 }
 
 void fragment() {
-	vec2 p = (UV - 0.5) * rect_size;
+	// The quad is larger than the panel so the drop shadow can be drawn here too: a stylebox
+	// shadow would sit under the glass and get blurred into it, darkening the glass
+	vec2 p = (UV - 0.5) * quad_size;
 	float d = sd_round_box(p, rect_size * 0.5, radius);
 	float mask = 1.0 - smoothstep(-0.75, 0.25, d);
+	float ds = sd_round_box(p - shadow_offset, rect_size * 0.5, radius);
+	float shadow_a = shadow_color.a * (1.0 - smoothstep(-shadow_size * 0.35, shadow_size, ds));
 
 	// Lens: near the rim the backdrop is sampled from further inside, so it appears bent
 	float edge = clamp(1.0 + d / edge_width, 0.0, 1.0);
@@ -62,7 +70,9 @@ void fragment() {
 	col += rim_light * (1.0 - UV.y) * (1.0 - UV.y) * sheen;
 
 	col += (hash(FRAGCOORD.xy) - 0.5) * (2.0 / 255.0);
-	COLOR = vec4(col, mask);
+	vec3 out_rgb = mix(shadow_color.rgb, col, mask);
+	float out_a = mix(shadow_a * (1.0 - mask), 1.0, mask);
+	COLOR = vec4(out_rgb, out_a);
 }
 """
 
@@ -125,13 +135,24 @@ func _notification(what: int) -> void:
 	elif what == NOTIFICATION_SORT_CHILDREN and glass_rect != null:
 		# PanelContainer squeezes every child into its padded content rect; the glass has to
 		# cover the whole panel, padding included
-		fit_child_in_rect(glass_rect, Rect2(Vector2.ZERO, size))
+		var m: float = _quad_margin()
+		fit_child_in_rect(glass_rect, Rect2(Vector2(-m, -m), size + Vector2(m, m) * 2.0))
+
+## Extra room around the panel for the shadow drawn by the glass shader
+func _quad_margin() -> float:
+	if shadow_size <= 0:
+		return 2.0
+	return float(shadow_size) + maxf(absf(shadow_offset.x), absf(shadow_offset.y)) + 4.0
 
 func _update_geometry() -> void:
 	if _material == null:
 		return
 	var has_size: bool = size.x > 0.0 and size.y > 0.0
-	_material.set_shader_parameter("rect_size", size if has_size else custom_minimum_size)
+	var panel_size: Vector2 = size if has_size else custom_minimum_size
+	_material.set_shader_parameter("rect_size", panel_size)
+	_material.set_shader_parameter("quad_size", panel_size + Vector2(_quad_margin(), _quad_margin()) * 2.0)
+	_material.set_shader_parameter("shadow_size", float(shadow_size))
+	_material.set_shader_parameter("shadow_offset", shadow_offset)
 	_material.set_shader_parameter("radius", minf(corner_radius, minf(size.x, size.y) * 0.5) if has_size else corner_radius)
 
 func _refresh() -> void:
@@ -154,14 +175,12 @@ func _refresh() -> void:
 	_material.set_shader_parameter("sheen", 0.04 if is_dark else 0.10)
 	_update_geometry()
 
-	# Transparent panel style: only supplies the shadow and the content margins
+	# Transparent panel style: only supplies the content margins (the shadow is in the shader)
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color(0, 0, 0, 0)
 	sb.set_corner_radius_all(int(corner_radius))
 	sb.corner_detail = 16
-	sb.shadow_color = Color(0, 0, 0, 0.42) if is_dark else Color(0.08, 0.12, 0.20, 0.16)
-	sb.shadow_size = shadow_size
-	sb.shadow_offset = shadow_offset
+	_material.set_shader_parameter("shadow_color", Color(0, 0, 0, 0.45) if is_dark else Color(0.08, 0.12, 0.20, 0.20))
 	sb.content_margin_left = pad_h
 	sb.content_margin_right = pad_h
 	sb.content_margin_top = pad_v
