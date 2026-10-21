@@ -102,6 +102,15 @@ func _exit_tree() -> void:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_RESIZED:
 		_apply_responsive_layout()
+	elif what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_APPLICATION_PAUSED:
+		# Leaving the app pauses the clock and saves, as the OS may kill a backgrounded app
+		if visible and game_state != null and not game_state.is_completed:
+			if not game_state.is_paused:
+				toggle_pause()
+			_save_progress()
+	elif what == NOTIFICATION_WM_CLOSE_REQUEST:
+		if visible and game_state != null and not game_state.is_completed:
+			_save_progress()
 
 func _ready() -> void:
 	_apply_responsive_layout()
@@ -499,6 +508,9 @@ func setup_game(state: GameState) -> void:
 		info_label.text = diff_text
 	if seed_btn != null:
 		seed_btn.text = "Seed: %d" % game_state.seed_value
+	# A pause overlay left open by the previous game must not cover the new one
+	if pause_overlay != null and pause_overlay.visible:
+		_hide_pause_overlay()
 	game_timer.start(game_state.elapsed_time)
 
 	# GDD §17: Candidate clutter check
@@ -542,12 +554,15 @@ func toggle_pause() -> void:
 			pause_overlay.visible = true
 	else:
 		game_timer.resume()
-		if pause_btn != null:
-			pause_btn.icon = ThemeManager.get_icon("pause")
-		if pause_overlay is AppModal:
-			(pause_overlay as AppModal).close_modal()
-		else:
-			pause_overlay.visible = false
+		_hide_pause_overlay()
+
+func _hide_pause_overlay() -> void:
+	if pause_btn != null:
+		pause_btn.icon = ThemeManager.get_icon("pause")
+	if pause_overlay is AppModal:
+		(pause_overlay as AppModal).close_modal()
+	else:
+		pause_overlay.visible = false
 
 func _show_pause_toast(msg: String) -> void:
 	if pause_toast_label == null:
@@ -596,9 +611,7 @@ func _on_seed_btn_pressed() -> void:
 
 func _on_pause_settings_pressed() -> void:
 	if game_state != null and not game_state.is_completed:
-		SaveManager.save_active_game(game_state)
-		if game_state.seed_value == DailyManager.get_today_seed():
-			DailyManager.save_today_game(game_state)
+		_save_progress()
 	settings_requested.emit()
 
 func _on_grid_cell_selected(idx: int, val: int) -> void:
@@ -702,8 +715,16 @@ func _after_player_move() -> void:
 	_update_action_buttons()
 	numpad.update_smart_states(game_state.current_board, sudoku_grid.selected_idx)
 	# Auto-save immediately (GDD §30: crash recovery & persistence)
+	_save_progress()
+
+## Saves the game with the clock's exact time (the state only syncs once per second)
+func _save_progress() -> void:
+	if game_state == null:
+		return
+	if not game_state.is_completed:
+		game_state.elapsed_time = game_timer.elapsed_time
 	SaveManager.save_active_game(game_state)
-	if game_state != null and game_state.seed_value == DailyManager.get_today_seed():
+	if game_state.seed_value == DailyManager.get_today_seed():
 		DailyManager.save_today_game(game_state)
 
 func _update_action_buttons() -> void:
@@ -908,9 +929,9 @@ func _on_complete_custom_action(action: String) -> void:
 
 func _on_back_pressed() -> void:
 	if game_state != null and not game_state.is_completed:
-		SaveManager.save_active_game(game_state)
-		if game_state.seed_value == DailyManager.get_today_seed():
-			DailyManager.save_today_game(game_state)
+		_save_progress()
+	# The screen stays in the tree behind the menu; its clock must not keep running there
+	game_timer.stop()
 	back_to_menu_requested.emit()
 
 # Desktop Keyboard Support (GDD §42)
