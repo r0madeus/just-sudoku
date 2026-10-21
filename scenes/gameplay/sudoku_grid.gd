@@ -17,6 +17,8 @@ var cells: Array[SudokuCell] = []
 var selected_idx: int = -1
 var game_state: GameState = null
 var lines_overlay: GridOverlay = null
+## Unit (SudokuSolver.ALL_UNITS index) outlined by a first-level hint, -1 for none
+var hint_focus_unit: int = -1
 
 const MAJOR_LINE_WIDTH: float = 2.5
 const MINOR_LINE_WIDTH: float = 1.0
@@ -193,6 +195,40 @@ func _draw_grid_lines(overlay: Control) -> void:
 	outer_sb.set_corner_radius_all(ThemeManager.RADIUS_MD)
 	overlay.draw_style_box(outer_sb, Rect2(ox, oy, grid_size, grid_size))
 
+	# 4. Hint focus: accent frame around the row, column or box the hint points at
+	if hint_focus_unit >= 0:
+		var r0: int = 0
+		var c0: int = 0
+		var rows: int = 9
+		var cols: int = 9
+		if hint_focus_unit < 9:
+			r0 = hint_focus_unit
+			rows = 1
+		elif hint_focus_unit < 18:
+			c0 = hint_focus_unit - 9
+			cols = 1
+		else:
+			var b: int = hint_focus_unit - 18
+			r0 = (b / 3) * 3
+			c0 = (b % 3) * 3
+			rows = 3
+			cols = 3
+		var accent: Color = ThemeManager.get_color("accent")
+		var focus_sb := StyleBoxFlat.new()
+		focus_sb.bg_color = Color(accent, 0.12)
+		focus_sb.border_color = accent
+		focus_sb.set_border_width_all(3)
+		focus_sb.set_corner_radius_all(ThemeManager.RADIUS_SM)
+		overlay.draw_style_box(focus_sb, Rect2(
+			ox + c0 * cell_size, oy + r0 * cell_size, cols * cell_size, rows * cell_size))
+
+func set_hint_focus(unit_idx: int) -> void:
+	if hint_focus_unit == unit_idx:
+		return
+	hint_focus_unit = unit_idx
+	if lines_overlay != null:
+		lines_overlay.queue_redraw()
+
 func play_victory_wave(on_finished: Callable = Callable()) -> void:
 	if not SettingsScreen.animations_enabled or cells.size() != SudokuBoard.CELL_COUNT:
 		if on_finished.is_valid():
@@ -222,6 +258,21 @@ func play_victory_wave(on_finished: Callable = Callable()) -> void:
 	else:
 		if on_finished.is_valid():
 			on_finished.call()
+
+## Light sweep over each completed row/column/box, rippling out from the cell just filled
+func play_units_completed(origin_idx: int, units: Array) -> void:
+	if not SettingsScreen.animations_enabled or cells.size() != SudokuBoard.CELL_COUNT:
+		return
+	var o_r: int = SudokuBoard.CELL_ROW[origin_idx]
+	var o_c: int = SudokuBoard.CELL_COL[origin_idx]
+	var flashed: Dictionary = {}
+	for unit in units:
+		for idx in unit:
+			if flashed.has(idx):
+				continue
+			flashed[idx] = true
+			var dist: int = absi(SudokuBoard.CELL_ROW[idx] - o_r) + absi(SudokuBoard.CELL_COL[idx] - o_c)
+			cells[idx].animate_unit_completed(dist * 0.035)
 
 func play_digit_completed_pulse(digit: int) -> void:
 	if not SettingsScreen.animations_enabled or cells.size() != SudokuBoard.CELL_COUNT:

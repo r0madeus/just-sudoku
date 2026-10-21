@@ -24,6 +24,8 @@ var note_labels: Array[Label] = []
 
 var _shake_tween: Tween = null
 var _scale_tween: Tween = null
+var _flash_rect: ColorRect = null
+var _flash_tween: Tween = null
 var _original_pos_x: float = 0.0
 var _is_shaking: bool = false
 
@@ -32,6 +34,8 @@ func _exit_tree() -> void:
 		_shake_tween.kill()
 	if _scale_tween != null and _scale_tween.is_valid():
 		_scale_tween.kill()
+	if _flash_tween != null and _flash_tween.is_valid():
+		_flash_tween.kill()
 
 func _ready() -> void:
 	mouse_filter = MOUSE_FILTER_PASS
@@ -204,6 +208,28 @@ func animate_wave(delay: float) -> void:
 	if delay > 0.0:
 		_scale_tween.tween_interval(delay)
 	_scale_tween.tween_property(self, "scale", Vector2.ONE, 0.08).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+
+## Accent wash that fades in and out, used when this cell's row, column or box is completed
+func animate_unit_completed(delay: float = 0.0) -> void:
+	if not SettingsScreen.animations_enabled or not is_inside_tree() or bg_panel == null:
+		return
+	if _flash_rect == null:
+		_flash_rect = ColorRect.new()
+		_flash_rect.set_anchors_preset(PRESET_FULL_RECT)
+		_flash_rect.mouse_filter = MOUSE_FILTER_IGNORE
+		add_child(_flash_rect)
+		# Above the cell background, below the digit and notes
+		move_child(_flash_rect, bg_panel.get_index() + 1)
+	_flash_rect.color = Color(ThemeManager.get_color("accent"), 0.0)
+	if _flash_tween != null and _flash_tween.is_valid():
+		_flash_tween.kill()
+	_flash_tween = create_tween()
+	if _flash_tween == null:
+		return
+	if delay > 0.0:
+		_flash_tween.tween_interval(delay)
+	_flash_tween.tween_property(_flash_rect, "color:a", 0.32, 0.12).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	_flash_tween.tween_property(_flash_rect, "color:a", 0.0, 0.38).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
 
 func animate_digit_completed(delay: float = 0.0) -> void:
 	if not SettingsScreen.animations_enabled:

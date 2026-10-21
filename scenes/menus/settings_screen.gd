@@ -24,6 +24,7 @@ static var smart_candidates_enabled: bool = false
 static var show_conflicts: bool = true
 static var animations_enabled: bool = true
 static var sounds_enabled: bool = true
+static var haptics_enabled: bool = true
 
 static var _config_listeners: Array[Callable] = []
 
@@ -68,6 +69,7 @@ var smart_cand_row: SettingRow
 var conflict_row: SettingRow
 var anim_row: SettingRow
 var sound_row: SettingRow
+var haptics_row: SettingRow
 
 # Appearance Controls
 var lang_label: Label
@@ -137,7 +139,8 @@ static func save_config() -> void:
 		"smart_candidates": smart_candidates_enabled,
 		"show_conflicts": show_conflicts,
 		"animations": animations_enabled,
-		"sounds": sounds_enabled
+		"sounds": sounds_enabled,
+		"haptics": haptics_enabled
 	}
 	var file := FileAccess.open(CONFIG_PATH, FileAccess.WRITE)
 	if file != null:
@@ -167,6 +170,7 @@ static func load_config() -> void:
 		show_conflicts = json.data.get("show_conflicts", true)
 		animations_enabled = json.data.get("animations", true)
 		sounds_enabled = json.data.get("sounds", true)
+		haptics_enabled = json.data.get("haptics", true)
 
 func _build_ui() -> void:
 	# Soft accent glows behind the content, so glass cards have something to refract
@@ -435,6 +439,15 @@ func _build_ui() -> void:
 	sound_lbl = sound_row.title_label
 	feed_vbox.add_child(sound_row)
 
+	# Vibration (phones only)
+	if Haptics.is_available():
+		feed_vbox.add_child(_create_divider())
+		var haptics_check := CheckBox.new()
+		haptics_check.button_pressed = haptics_enabled
+		haptics_check.toggled.connect(func(v): haptics_enabled = v; save_config())
+		haptics_row = SettingRow.new("", "", haptics_check)
+		feed_vbox.add_child(haptics_row)
+
 func _create_divider() -> HSeparator:
 	var div := HSeparator.new()
 	div.add_theme_constant_override("separation", 2)
@@ -594,3 +607,7 @@ func _update_locale_texts() -> void:
 		sound_row.set_description(LocalizationManager.translate("SETTING_DESC_SOUNDS"))
 	elif sound_lbl != null:
 		sound_lbl.text = LocalizationManager.translate("SETTING_SOUNDS")
+
+	if haptics_row != null:
+		haptics_row.set_title(LocalizationManager.translate("SETTING_HAPTICS"))
+		haptics_row.set_description(LocalizationManager.translate("SETTING_DESC_HAPTICS"))
