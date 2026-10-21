@@ -176,7 +176,8 @@ static func _update_index(game_state: GameState) -> void:
 
 	index_data[game_state.game_id] = {
 		"game_id": game_state.game_id,
-		"seed": game_state.seed_value,
+		# Stored as text: JSON numbers are doubles and seeds exceed 2^53
+		"seed": str(game_state.seed_value),
 		"difficulty": game_state.difficulty,
 		"difficulty_score": game_state.difficulty_score,
 		"progress_percentage": roundf(pct),
