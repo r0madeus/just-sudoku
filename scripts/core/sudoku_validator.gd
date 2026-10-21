@@ -62,6 +62,10 @@ class SolutionCounter extends RefCounted:
 	var limit: int = 2
 	var count: int = 0
 
+	## Builds the shared popcount table; call once before using counters from several threads
+	static func warm_up() -> void:
+		_ensure_popcount()
+
 	static func _ensure_popcount() -> void:
 		if _popcount.size() == 512:
 			return

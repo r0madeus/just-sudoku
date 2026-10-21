@@ -55,6 +55,8 @@ static func generate_new_seed() -> int:
 
 ## Max carve attempts per request before settling for the closest level found
 const MAX_ATTEMPTS: int = 14
+## Upper bound for parallel attempt threads
+const MAX_WORKERS: int = 6
 ## Cap on extra clues removed after attempts that came out easier than requested
 const MAX_CLUE_BIAS: int = 3
 ## Max remove/add-back nudges per attempt when steering toward the requested level
@@ -70,57 +72,133 @@ const LEVEL_ORDER: Array[String] = [
 	DifficultyAnalyzer.LEVEL_EXPERT
 ]
 
+## One independent generation attempt; attempts only depend on (seed, attempt index), which is
+## what lets them run in parallel and still reproduce the sequential result exactly.
+class AttemptResult extends RefCounted:
+	var puzzle: GeneratedPuzzle = null
+	var distance: int = 1 << 30
+	var cancelled: bool = false
+
+class StopFlag extends RefCounted:
+	var stopped: bool = false
+
+## Worker threads used when a caller asks for parallel attempts but gives no explicit count
+static func default_worker_count() -> int:
+	return clampi(OS.get_processor_count() - 1, 1, MAX_WORKERS)
+
 ## Generates a puzzle deterministically for the given seed and difficulty.
-## Each attempt draws a fresh board from the same RNG stream, and a puzzle is only
-## accepted when the analyzer rates it at the requested level. If no attempt
-## matches, the attempt closest to the target is returned with its true score.
+## Attempt k draws its own RNG stream from (seed, k). A puzzle is only accepted when the
+## analyzer rates it at the requested level; if no attempt matches, the attempt closest to the
+## target is returned with its true score. With workers > 1 the attempts run in batches on
+## the worker thread pool; the result is identical to workers = 1, only faster.
 static func generate(
 	seed_val: int,
 	target_difficulty: String = DifficultyAnalyzer.LEVEL_MEDIUM,
-	is_cancelled_callback: Callable = Callable()
+	is_cancelled_callback: Callable = Callable(),
+	workers: int = 1
 ) -> GeneratedPuzzle:
-	var rng := DeterministicRNG.new(seed_val)
 	var best: GeneratedPuzzle = null
 	var best_distance: int = 1 << 30
-	var clue_bias: int = 0
+	workers = clampi(workers, 1, MAX_WORKERS)
+	if workers > 1:
+		# Shared lazy tables must exist before threads start touching them
+		SudokuValidator.SolutionCounter.warm_up()
 
-	for attempt in range(MAX_ATTEMPTS):
-		if is_cancelled_callback.is_valid() and is_cancelled_callback.call():
-			return null
+	if workers == 1:
+		for attempt in range(MAX_ATTEMPTS):
+			var single := AttemptResult.new()
+			_run_attempt(single, seed_val, attempt, target_difficulty, is_cancelled_callback)
+			if single.cancelled:
+				return null
+			if single.puzzle != null and single.distance < best_distance:
+				best_distance = single.distance
+				best = single.puzzle
+			if single.distance == 0:
+				return best
+		return best
 
-		var full_board := _generate_full_board(rng)
-		if full_board == null:
-			continue
+	# Rolling window: keep `workers` attempts in flight, but fold results strictly in attempt
+	# order, so the outcome never depends on which thread finishes first. Once the earliest
+	# success is folded, the still-running later attempts are told to stop.
+	var stop := StopFlag.new()
+	var guarded_cancel := func() -> bool:
+		return stop.stopped or (is_cancelled_callback.is_valid() and is_cancelled_callback.call())
+	var results: Array[AttemptResult] = []
+	var task_ids: Array[int] = []
+	var next_launch: int = 0
+	var cancelled: bool = false
+	var waited: int = -1
 
-		var puzzle := _carve_clues(full_board, target_difficulty, rng, is_cancelled_callback, clue_bias)
-		if puzzle == null:
-			return null
+	for fold in range(MAX_ATTEMPTS):
+		while next_launch < MAX_ATTEMPTS and next_launch < fold + workers:
+			var res := AttemptResult.new()
+			var idx: int = next_launch
+			results.append(res)
+			task_ids.append(WorkerThreadPool.add_task(func() -> void:
+				_run_attempt(res, seed_val, idx, target_difficulty, guarded_cancel)
+			))
+			next_launch += 1
 
-		var analysis: DifficultyAnalyzer.AnalysisResult = _steer_to_level(
-			puzzle, full_board, target_difficulty, rng, is_cancelled_callback)
-		if analysis == null:
-			return null
-
-		var distance: int = absi(LEVEL_ORDER.find(analysis.level) - LEVEL_ORDER.find(target_difficulty))
-		if distance < best_distance:
-			best_distance = distance
-			best = GeneratedPuzzle.new()
-			best.puzzle = puzzle
-			best.solution = full_board
-			best.seed_value = seed_val
-			best.difficulty = target_difficulty
-			best.difficulty_score = analysis.difficulty_score
-			best.estimated_seconds = analysis.estimated_seconds
-			best.top_techniques = analysis.top_techniques
-		if distance == 0:
+		WorkerThreadPool.wait_for_task_completion(task_ids[fold])
+		waited = fold
+		var done: AttemptResult = results[fold]
+		if done.cancelled:
+			cancelled = true
 			break
-		# Too easy: remove more clues next time; too hard: keep more
-		if LEVEL_ORDER.find(analysis.level) < LEVEL_ORDER.find(target_difficulty):
-			clue_bias = mini(clue_bias + 1, MAX_CLUE_BIAS)
-		else:
-			clue_bias = maxi(clue_bias - 1, -MAX_CLUE_BIAS)
+		if done.puzzle != null and done.distance < best_distance:
+			best_distance = done.distance
+			best = done.puzzle
+		if done.distance == 0:
+			break
 
-	return best
+	stop.stopped = true
+	for i in range(waited + 1, task_ids.size()):
+		WorkerThreadPool.wait_for_task_completion(task_ids[i])
+	return null if cancelled else best
+
+static func _run_attempt(
+	out: AttemptResult,
+	seed_val: int,
+	attempt: int,
+	target_difficulty: String,
+	is_cancelled_callback: Callable
+) -> void:
+	if is_cancelled_callback.is_valid() and is_cancelled_callback.call():
+		out.cancelled = true
+		return
+
+	var rng := DeterministicRNG.new(_attempt_seed(seed_val, attempt))
+	var full_board := _generate_full_board(rng)
+	if full_board == null:
+		return
+
+	# Later attempts remove extra clues up front; steering handles the other direction
+	var clue_bias: int = mini(attempt / 2, MAX_CLUE_BIAS)
+	var puzzle := _carve_clues(full_board, target_difficulty, rng, is_cancelled_callback, clue_bias)
+	if puzzle == null:
+		out.cancelled = true
+		return
+
+	var analysis: DifficultyAnalyzer.AnalysisResult = _steer_to_level(
+		puzzle, full_board, target_difficulty, rng, is_cancelled_callback)
+	if analysis == null:
+		out.cancelled = true
+		return
+
+	var gen := GeneratedPuzzle.new()
+	gen.puzzle = puzzle
+	gen.solution = full_board
+	gen.seed_value = seed_val
+	gen.difficulty = target_difficulty
+	gen.difficulty_score = analysis.difficulty_score
+	gen.estimated_seconds = analysis.estimated_seconds
+	gen.top_techniques = analysis.top_techniques
+	out.puzzle = gen
+	out.distance = absi(LEVEL_ORDER.find(analysis.level) - LEVEL_ORDER.find(target_difficulty))
+
+static func _attempt_seed(seed_val: int, attempt: int) -> int:
+	# Golden-ratio stride spreads consecutive attempts across the RNG state space
+	return (seed_val + attempt * 0x1E3779B97F4A7C15) & 0x7FFFFFFFFFFFFFFF
 
 static func _analyze(puzzle: SudokuBoard) -> DifficultyAnalyzer.AnalysisResult:
 	for idx in range(SudokuBoard.CELL_COUNT):

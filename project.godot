@@ -42,6 +42,6 @@ enabled=PackedStringArray("res://addons/godot_mcp/plugin.cfg")
 [rendering]
 
 rendering_device/driver.windows="d3d12"
-environment/defaults/default_clear_color=Color(0.067, 0.078, 0.102, 1)
 anti_aliasing/quality/msaa_2d=2
 anti_aliasing/quality/use_debanding=true
+environment/defaults/default_clear_color=Color(0.067, 0.078, 0.102, 1)

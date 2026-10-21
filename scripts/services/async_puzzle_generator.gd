@@ -25,7 +25,7 @@ static func request_puzzle_async(
 		var is_cancelled_check := func() -> bool:
 			return _active_tasks.get(req_id, false) == true
 
-		var result = SudokuGenerator.generate(seed_val, difficulty, is_cancelled_check)
+		var result = SudokuGenerator.generate(seed_val, difficulty, is_cancelled_check, SudokuGenerator.default_worker_count())
 		_dispatch_completion.call_deferred(req_id, result, callback)
 
 	WorkerThreadPool.add_task(task_callable, true)
