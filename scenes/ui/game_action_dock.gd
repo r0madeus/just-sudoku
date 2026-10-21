@@ -28,6 +28,9 @@ func _init() -> void:
 	_build_ui()
 	_update_locale_texts()
 	_apply_theme_style()
+
+# Registered on enter (not _init) so re-parenting, which fires _exit_tree, keeps the listeners
+func _enter_tree() -> void:
 	ThemeManager.add_listener(_on_theme_changed)
 	LocalizationManager.add_listener(_update_locale_texts)
 

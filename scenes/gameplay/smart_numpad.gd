@@ -23,6 +23,9 @@ var is_compact_mode: bool = false
 func _init() -> void:
 	custom_minimum_size = Vector2(0, 242)
 	_build_ui()
+
+# Registered on enter (not _init) so re-parenting, which fires _exit_tree, keeps the listener
+func _enter_tree() -> void:
 	ThemeManager.add_listener(_on_theme_changed)
 
 func _exit_tree() -> void:
