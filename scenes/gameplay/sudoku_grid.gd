@@ -1,0 +1,234 @@
+class_name SudokuGrid
+extends Control
+
+## 9x9 Responsive Sudoku Grid component
+## Positions 81 SudokuCells, draws crisp 3x3 block & cell borders, and manages highlights.
+
+signal cell_selected(idx: int, val: int)
+
+class GridOverlay extends Control:
+	var grid_ref: SudokuGrid = null
+
+	func _draw() -> void:
+		if grid_ref != null:
+			grid_ref._draw_grid_lines(self)
+
+var cells: Array[SudokuCell] = []
+var selected_idx: int = -1
+var game_state: GameState = null
+var lines_overlay: GridOverlay = null
+
+const MAJOR_LINE_WIDTH: float = 2.5
+const MINOR_LINE_WIDTH: float = 1.0
+
+func _ready() -> void:
+	custom_minimum_size = Vector2.ZERO
+	clip_contents = false
+	_create_cells()
+
+func _create_cells() -> void:
+	if lines_overlay != null and is_instance_valid(lines_overlay):
+		lines_overlay.queue_free()
+		lines_overlay = null
+
+	for c in cells:
+		c.queue_free()
+	cells.clear()
+
+	for i in range(SudokuBoard.CELL_COUNT):
+		var cell := SudokuCell.new()
+		cell.cell_index = i
+		cell.cell_clicked.connect(_on_cell_clicked)
+		add_child(cell)
+		cells.append(cell)
+
+	# Dedicated lines overlay rendering ON TOP of cells so highlights never occlude 3x3 boundaries
+	lines_overlay = GridOverlay.new()
+	lines_overlay.grid_ref = self
+	lines_overlay.mouse_filter = MOUSE_FILTER_IGNORE
+	add_child(lines_overlay)
+
+	_layout_cells()
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_RESIZED:
+		_layout_cells()
+		queue_redraw()
+
+func _layout_cells() -> void:
+	if cells.size() != SudokuBoard.CELL_COUNT:
+		return
+
+	var grid_size: float = minf(size.x, size.y)
+	var cell_w: float = grid_size / 9.0
+	var cell_h: float = grid_size / 9.0
+
+	var offset_x: float = (size.x - grid_size) * 0.5
+	var offset_y: float = (size.y - grid_size) * 0.5
+
+	for idx in range(SudokuBoard.CELL_COUNT):
+		var r: int = SudokuBoard.CELL_ROW[idx]
+		var c: int = SudokuBoard.CELL_COL[idx]
+		var cell: SudokuCell = cells[idx]
+		cell.position = Vector2(offset_x + c * cell_w, offset_y + r * cell_h)
+		cell.size = Vector2(cell_w, cell_h)
+
+	if lines_overlay != null:
+		lines_overlay.position = Vector2.ZERO
+		lines_overlay.size = size
+		lines_overlay.queue_redraw()
+
+func bind_game_state(p_state: GameState) -> void:
+	if game_state != null and game_state.cell_changed.is_connected(_on_cell_changed):
+		game_state.cell_changed.disconnect(_on_cell_changed)
+	game_state = p_state
+	if game_state != null and not game_state.cell_changed.is_connected(_on_cell_changed):
+		game_state.cell_changed.connect(_on_cell_changed)
+	refresh_all_cells()
+
+func _on_cell_changed(idx: int, _val: int, _mask: int) -> void:
+	refresh_highlights()
+
+func select_cell(idx: int) -> void:
+	if idx < 0 or idx >= SudokuBoard.CELL_COUNT:
+		selected_idx = -1
+	else:
+		selected_idx = idx
+
+	refresh_highlights()
+
+	var val: int = 0
+	if game_state != null and selected_idx != -1:
+		val = game_state.current_board.get_cell(selected_idx)
+	cell_selected.emit(selected_idx, val)
+
+func _on_cell_clicked(idx: int) -> void:
+	select_cell(idx)
+
+func move_selection(d_row: int, d_col: int) -> void:
+	if selected_idx == -1:
+		select_cell(0)
+		return
+
+	var r: int = SudokuBoard.CELL_ROW[selected_idx] + d_row
+	var c: int = SudokuBoard.CELL_COL[selected_idx] + d_col
+	r = clampi(r, 0, 8)
+	c = clampi(c, 0, 8)
+	select_cell(SudokuBoard.get_index(r, c))
+
+func refresh_all_cells() -> void:
+	refresh_highlights()
+
+func refresh_highlights() -> void:
+	if game_state == null or cells.size() != SudokuBoard.CELL_COUNT:
+		return
+
+	var conflicts: Array[int] = SudokuValidator.get_conflicts(game_state.current_board)
+	var sel_val: int = 0
+	var sel_peers: Array = []
+
+	if selected_idx != -1:
+		sel_val = game_state.current_board.get_cell(selected_idx)
+		sel_peers = SudokuBoard.PEERS[selected_idx]
+
+	for idx in range(SudokuBoard.CELL_COUNT):
+		var val: int = game_state.current_board.get_cell(idx)
+		var is_given: bool = game_state.initial_puzzle.is_given(idx)
+		var cands: int = game_state.current_board.candidates[idx]
+
+		var is_sel: bool = (idx == selected_idx)
+		var is_peer: bool = (idx != selected_idx and sel_peers.has(idx))
+		var is_same: bool = (idx != selected_idx and sel_val != 0 and val == sel_val)
+		var is_conf: bool = conflicts.has(idx) and SettingsScreen.show_conflicts
+		var is_wrong: bool = game_state.checked_wrong_indices.has(idx)
+
+		cells[idx].set_cell_data(val, is_given, cands, is_sel, is_peer, is_same, is_conf, is_wrong)
+
+	if lines_overlay != null:
+		lines_overlay.queue_redraw()
+	queue_redraw()
+
+func _draw() -> void:
+	# Draw clean board background with rounded corners behind all cells
+	var grid_size: float = minf(size.x, size.y)
+	var ox: float = (size.x - grid_size) * 0.5
+	var oy: float = (size.y - grid_size) * 0.5
+	var bg_sb := StyleBoxFlat.new()
+	bg_sb.bg_color = ThemeManager.get_color("cell_bg")
+	bg_sb.set_corner_radius_all(ThemeManager.RADIUS_MD)
+	draw_style_box(bg_sb, Rect2(ox, oy, grid_size, grid_size))
+
+func _draw_grid_lines(overlay: Control) -> void:
+	if overlay == null:
+		return
+	var grid_size: float = minf(size.x, size.y)
+	var cell_size: float = grid_size / 9.0
+	var ox: float = (size.x - grid_size) * 0.5
+	var oy: float = (size.y - grid_size) * 0.5
+
+	var minor_col: Color = ThemeManager.get_color("grid_minor")
+	var major_col: Color = ThemeManager.get_color("grid_major")
+
+	# 1. Minor cell lines (subtle, delicate 1px hairlines)
+	for i in range(1, 9):
+		if i % 3 == 0:
+			continue
+		var x: float = ox + i * cell_size
+		overlay.draw_line(Vector2(x, oy), Vector2(x, oy + grid_size), minor_col, MINOR_LINE_WIDTH, true)
+		var y: float = oy + i * cell_size
+		overlay.draw_line(Vector2(ox, y), Vector2(ox + grid_size, y), minor_col, MINOR_LINE_WIDTH, true)
+
+	# 2. Major 3x3 block boundaries (prominent, strong 2.5px solid dividing lines)
+	for i in [3, 6]:
+		var x: float = ox + i * cell_size
+		overlay.draw_line(Vector2(x, oy), Vector2(x, oy + grid_size), major_col, MAJOR_LINE_WIDTH, true)
+		var y: float = oy + i * cell_size
+		overlay.draw_line(Vector2(ox, y), Vector2(ox + grid_size, y), major_col, MAJOR_LINE_WIDTH, true)
+
+	# 3. Clean outer frame with gently rounded corners (RADIUS_MD)
+	var outer_sb := StyleBoxFlat.new()
+	outer_sb.draw_center = false
+	outer_sb.border_color = major_col
+	outer_sb.set_border_width_all(int(MAJOR_LINE_WIDTH))
+	outer_sb.set_corner_radius_all(ThemeManager.RADIUS_MD)
+	overlay.draw_style_box(outer_sb, Rect2(ox, oy, grid_size, grid_size))
+
+func play_victory_wave(on_finished: Callable = Callable()) -> void:
+	if not SettingsScreen.animations_enabled or cells.size() != SudokuBoard.CELL_COUNT:
+		if on_finished.is_valid():
+			on_finished.call()
+		return
+
+	var step_delay: float = 0.02
+	for idx in range(SudokuBoard.CELL_COUNT):
+		var r: int = SudokuBoard.CELL_ROW[idx]
+		var c: int = SudokuBoard.CELL_COL[idx]
+		var diag: int = r + c
+		var delay: float = diag * step_delay
+		cells[idx].animate_wave(delay)
+
+	if not is_inside_tree():
+		if on_finished.is_valid():
+			on_finished.call()
+		return
+
+	var t := create_tween()
+	if t != null:
+		t.tween_interval(0.38)
+		t.tween_callback(func():
+			if on_finished.is_valid():
+				on_finished.call()
+		)
+	else:
+		if on_finished.is_valid():
+			on_finished.call()
+
+func play_digit_completed_pulse(digit: int) -> void:
+	if not SettingsScreen.animations_enabled or cells.size() != SudokuBoard.CELL_COUNT:
+		return
+	var ripple_delay: float = 0.015
+	var count: int = 0
+	for idx in range(SudokuBoard.CELL_COUNT):
+		if cells[idx].value == digit:
+			cells[idx].animate_digit_completed(count * ripple_delay)
+			count += 1
