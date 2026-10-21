@@ -11,12 +11,15 @@ signal undo_pressed()
 signal redo_pressed()
 signal notes_toggled(active: bool)
 signal hint_pressed()
+signal fill_notes_pressed()
 
 var action_bar: HBoxContainer
 var undo_btn: Button
 var redo_btn: Button
 var notes_btn: Button
 var hint_btn: Button
+## Icon button next to Notes, shown only in notes mode
+var fill_notes_btn: Button
 
 var is_notes_mode: bool = false
 var is_compact: bool = false
@@ -95,6 +98,19 @@ func _build_ui() -> void:
 	)
 	action_bar.add_child(notes_btn)
 
+	# 3b. Fill Notes (notes mode only)
+	fill_notes_btn = Button.new()
+	fill_notes_btn.size_flags_vertical = SIZE_EXPAND_FILL
+	fill_notes_btn.custom_minimum_size = Vector2(40, 36)
+	fill_notes_btn.theme_type_variation = "GhostButton"
+	fill_notes_btn.icon = ThemeManager.get_icon("grid-3x3")
+	fill_notes_btn.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	fill_notes_btn.add_theme_constant_override("icon_max_width", 18)
+	fill_notes_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	fill_notes_btn.visible = false
+	fill_notes_btn.pressed.connect(func(): fill_notes_pressed.emit())
+	action_bar.add_child(fill_notes_btn)
+
 	# 4. Hint Button
 	hint_btn = Button.new()
 	hint_btn.size_flags_horizontal = SIZE_EXPAND_FILL
@@ -145,6 +161,11 @@ func set_can_redo(enabled: bool) -> void:
 func set_notes_active(active: bool) -> void:
 	is_notes_mode = active
 	_update_notes_visuals()
+	if fill_notes_btn != null and fill_notes_btn.visible != active:
+		fill_notes_btn.visible = active
+		# The extra button changes the dock's width
+		if _available_width > 0.0:
+			fit_to_width(_available_width)
 
 func set_hint_enabled(enabled: bool) -> void:
 	if hint_btn != null:
@@ -194,6 +215,8 @@ func _update_locale_texts() -> void:
 	if hint_btn != null:
 		hint_btn.text = "" if is_compact else LocalizationManager.translate("BTN_HINT")
 		hint_btn.tooltip_text = LocalizationManager.translate("BTN_HINT")
+	if fill_notes_btn != null:
+		fill_notes_btn.tooltip_text = LocalizationManager.translate("BTN_FILL_NOTES")
 	_update_notes_visuals()
 	# Other languages have other label lengths, so re-check the fit
 	if _available_width > 0.0:

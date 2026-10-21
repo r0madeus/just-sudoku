@@ -22,6 +22,7 @@ static var smart_numpad_enabled: bool = true
 static var auto_remove_notes: bool = true
 static var smart_candidates_enabled: bool = false
 static var show_conflicts: bool = true
+static var show_wrong_immediately: bool = false
 static var animations_enabled: bool = true
 static var sounds_enabled: bool = true
 static var haptics_enabled: bool = true
@@ -67,6 +68,7 @@ var auto_notes_row: SettingRow
 var smart_cand_row: SettingRow
 
 var conflict_row: SettingRow
+var wrong_row: SettingRow
 var anim_row: SettingRow
 var sound_row: SettingRow
 var haptics_row: SettingRow
@@ -138,6 +140,7 @@ static func save_config() -> void:
 		"auto_notes": auto_remove_notes,
 		"smart_candidates": smart_candidates_enabled,
 		"show_conflicts": show_conflicts,
+		"show_wrong": show_wrong_immediately,
 		"animations": animations_enabled,
 		"sounds": sounds_enabled,
 		"haptics": haptics_enabled
@@ -168,6 +171,7 @@ static func load_config() -> void:
 		auto_remove_notes = json.data.get("auto_notes", true)
 		smart_candidates_enabled = json.data.get("smart_candidates", false)
 		show_conflicts = json.data.get("show_conflicts", true)
+		show_wrong_immediately = json.data.get("show_wrong", false)
 		animations_enabled = json.data.get("animations", true)
 		sounds_enabled = json.data.get("sounds", true)
 		haptics_enabled = json.data.get("haptics", true)
@@ -419,6 +423,15 @@ func _build_ui() -> void:
 
 	feed_vbox.add_child(_create_divider())
 
+	# Show wrong digits right away (off by default: GDD §18 reveals them with Check)
+	var wrong_check := CheckBox.new()
+	wrong_check.button_pressed = show_wrong_immediately
+	wrong_check.toggled.connect(func(v): show_wrong_immediately = v; save_config())
+	wrong_row = SettingRow.new("", "", wrong_check)
+	feed_vbox.add_child(wrong_row)
+
+	feed_vbox.add_child(_create_divider())
+
 	# UI Animations
 	anim_check = CheckBox.new()
 	anim_check.button_pressed = animations_enabled
@@ -595,6 +608,10 @@ func _update_locale_texts() -> void:
 		conflict_row.set_description(LocalizationManager.translate("SETTING_DESC_SHOW_CONFLICTS"))
 	elif conflict_lbl != null:
 		conflict_lbl.text = LocalizationManager.translate("SETTING_SHOW_CONFLICTS")
+
+	if wrong_row != null:
+		wrong_row.set_title(LocalizationManager.translate("SETTING_SHOW_WRONG"))
+		wrong_row.set_description(LocalizationManager.translate("SETTING_DESC_SHOW_WRONG"))
 
 	if anim_row != null:
 		anim_row.set_title(LocalizationManager.translate("SETTING_ANIMATIONS"))

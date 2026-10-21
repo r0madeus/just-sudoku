@@ -148,6 +148,11 @@ func set_number(idx: int, num: int, auto_remove_notes: bool = true) -> bool:
 	if new_val != 0 and not SudokuValidator.is_valid_placement(current_board, idx, new_val):
 		mistakes_count += 1
 		is_placement_valid = false
+	elif new_val != 0 and SettingsScreen.show_wrong_immediately and new_val != solution.get_cell(idx):
+		# Same as a Check of this one cell: marked and counted once, and not celebrated below
+		mistakes_count += 1
+		checked_wrong_indices.append(idx)
+		is_placement_valid = false
 
 	# Emit digit_completed when all 9 copies are placed without conflict
 	if new_val != 0 and is_placement_valid and prev_digit_count < 9 and current_board.get_digit_count(new_val) == 9:
@@ -251,6 +256,41 @@ func toggle_candidate(idx: int, num: int) -> bool:
 	cell_changed.emit(idx, 0, new_cands)
 	return true
 
+## Writes every possible candidate into empty cells without notes; cells that already have notes
+## keep the player's eliminations and only lose candidates that are no longer possible.
+## One undoable move; returns false when nothing changed.
+func fill_notes() -> bool:
+	if is_completed or is_paused:
+		return false
+	var possible := current_board.clone()
+	possible.reset_candidates_from_grid()
+	var changes: Dictionary = {}
+	for idx in range(SudokuBoard.CELL_COUNT):
+		if current_board.get_cell(idx) != 0:
+			continue
+		var prev: int = current_board.candidates[idx]
+		var next: int = possible.candidates[idx] if prev == 0 else prev & possible.candidates[idx]
+		if next != prev:
+			changes[idx] = [prev, next]
+			current_board.candidates[idx] = next
+	if changes.is_empty():
+		return false
+
+	undo_stack.append({
+		"action": "fill_notes",
+		"cell": -1,
+		"prev_val": 0,
+		"new_val": 0,
+		"prev_cands": 0,
+		"new_cands": 0,
+		"auto_removed": {},
+		"cand_changes": changes
+	})
+	redo_stack.clear()
+	for idx in changes.keys():
+		cell_changed.emit(idx, 0, current_board.candidates[idx])
+	return true
+
 func can_undo() -> bool:
 	return not is_completed and not is_paused and not undo_stack.is_empty()
 
@@ -275,6 +315,7 @@ func undo() -> bool:
 		var peer_idx: int = int(peer_str)
 		current_board.candidates[peer_idx] |= int(auto_removed[peer_str])
 		cell_changed.emit(peer_idx, current_board.get_cell(peer_idx), current_board.candidates[peer_idx])
+	_apply_cand_changes(move, 0)
 
 	checked_wrong_indices.erase(idx)
 	redo_stack.append(move)
@@ -301,12 +342,21 @@ func redo() -> bool:
 		var peer_idx: int = int(peer_str)
 		current_board.candidates[peer_idx] &= ~int(auto_removed[peer_str])
 		cell_changed.emit(peer_idx, current_board.get_cell(peer_idx), current_board.candidates[peer_idx])
+	_apply_cand_changes(move, 1)
 
 	undo_stack.append(move)
 	if idx >= 0:
 		cell_changed.emit(idx, current_board.get_cell(idx), current_board.candidates[idx])
 	check_completion()
 	return true
+
+## Sets each cell in a move's cand_changes ({idx: [prev, next]}) to side 0 (prev) or 1 (next)
+func _apply_cand_changes(move: Dictionary, side: int) -> void:
+	var changes: Dictionary = move.get("cand_changes", {})
+	for idx_key in changes.keys():
+		var idx: int = int(idx_key)
+		current_board.candidates[idx] = int(changes[idx_key][side])
+		cell_changed.emit(idx, current_board.get_cell(idx), current_board.candidates[idx])
 
 func check_board() -> Array[int]:
 	var wrong_cells: Array[int] = []
@@ -443,6 +493,7 @@ func serialize() -> Dictionary:
 		"mistakes": mistakes_count,
 		"hints": hints_used,
 		"hint_cost": hint_cost,
+		"checked_wrong": checked_wrong_indices,
 		"undo_count": undo_count,
 		"is_completed": is_completed,
 		"is_replay": is_replay,
@@ -482,6 +533,9 @@ func deserialize(data: Dictionary) -> bool:
 	mistakes_count = int(data.get("mistakes", 0))
 	hints_used = int(data.get("hints", 0))
 	hint_cost = int(data.get("hint_cost", 0))
+	checked_wrong_indices.clear()
+	for w in data.get("checked_wrong", []):
+		checked_wrong_indices.append(int(w))
 	undo_count = int(data.get("undo_count", 0))
 	is_completed = bool(data.get("is_completed", false))
 	is_replay = bool(data.get("is_replay", false))
