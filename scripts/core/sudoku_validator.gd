@@ -48,52 +48,102 @@ static func is_board_complete_and_valid(board: SudokuBoard) -> bool:
 		return false
 	return get_conflicts(board).is_empty()
 
-## Fast backtracking solution counter with MRV (Minimum Remaining Values) heuristic
-static func count_solutions(board: SudokuBoard, max_solutions: int = 2) -> int:
-	var working_board := board.clone()
-	working_board.reset_candidates_from_grid()
-	var count_ref := [0]
-	_backtrack_count(working_board, max_solutions, count_ref)
-	return count_ref[0]
+## Bitmask backtracking counter with MRV; keeps row/column/box masks incrementally
+## instead of recomputing every candidate at each node
+class SolutionCounter extends RefCounted:
+	const ALL_DIGITS: int = 0x1FF
 
-static func _backtrack_count(board: SudokuBoard, max_solutions: int, count_ref: Array) -> void:
-	if count_ref[0] >= max_solutions:
-		return
+	static var _popcount: PackedInt32Array = PackedInt32Array()
 
-	# Find empty cell with minimum remaining candidates (MRV)
-	var best_idx: int = -1
-	var min_candidates: int = 10
+	var cells: PackedInt32Array = PackedInt32Array()
+	var row_used: PackedInt32Array = PackedInt32Array()
+	var col_used: PackedInt32Array = PackedInt32Array()
+	var box_used: PackedInt32Array = PackedInt32Array()
+	var limit: int = 2
+	var count: int = 0
 
-	for idx in range(SudokuBoard.CELL_COUNT):
-		if board.get_cell(idx) == 0:
-			var c_count: int = board.get_candidate_count(idx)
-			if c_count == 0:
-				# Dead end, cannot solve this branch
+	static func _ensure_popcount() -> void:
+		if _popcount.size() == 512:
+			return
+		_popcount.resize(512)
+		for m in range(1, 512):
+			_popcount[m] = _popcount[m >> 1] + (m & 1)
+
+	## Returns false when the givens already contradict each other
+	func load_board(board: SudokuBoard) -> bool:
+		_ensure_popcount()
+		cells.resize(SudokuBoard.CELL_COUNT)
+		row_used.resize(9)
+		col_used.resize(9)
+		box_used.resize(9)
+		row_used.fill(0)
+		col_used.fill(0)
+		box_used.fill(0)
+		for idx in range(SudokuBoard.CELL_COUNT):
+			var v: int = board.get_cell(idx)
+			cells[idx] = v
+			if v == 0:
+				continue
+			var bit: int = 1 << (v - 1)
+			var r: int = SudokuBoard.CELL_ROW[idx]
+			var c: int = SudokuBoard.CELL_COL[idx]
+			var b: int = SudokuBoard.CELL_BOX[idx]
+			if (row_used[r] | col_used[c] | box_used[b]) & bit != 0:
+				return false
+			row_used[r] |= bit
+			col_used[c] |= bit
+			box_used[b] |= bit
+		return true
+
+	func search() -> void:
+		if count >= limit:
+			return
+		var best_idx: int = -1
+		var best_mask: int = 0
+		var best_n: int = 10
+		for idx in range(SudokuBoard.CELL_COUNT):
+			if cells[idx] != 0:
+				continue
+			var mask: int = ~(row_used[SudokuBoard.CELL_ROW[idx]] | col_used[SudokuBoard.CELL_COL[idx]] | box_used[SudokuBoard.CELL_BOX[idx]]) & ALL_DIGITS
+			var n: int = _popcount[mask]
+			if n == 0:
 				return
-			if c_count < min_candidates:
-				min_candidates = c_count
+			if n < best_n:
+				best_n = n
 				best_idx = idx
-				if min_candidates == 1:
+				best_mask = mask
+				if n == 1:
 					break
-
-	if best_idx == -1:
-		# Solved one solution!
-		count_ref[0] += 1
-		return
-
-	var possible: Array[int] = board.get_candidates(best_idx)
-	for num in possible:
-		var saved_candidates: PackedInt32Array = board.candidates.duplicate()
-		board.set_cell(best_idx, num, false)
-		board.reset_candidates_from_grid()
-
-		_backtrack_count(board, max_solutions, count_ref)
-		if count_ref[0] >= max_solutions:
+		if best_idx == -1:
+			count += 1
 			return
 
-		# Restore
-		board.set_cell(best_idx, 0, false)
-		board.candidates = saved_candidates
+		var r: int = SudokuBoard.CELL_ROW[best_idx]
+		var c: int = SudokuBoard.CELL_COL[best_idx]
+		var b: int = SudokuBoard.CELL_BOX[best_idx]
+		var remaining: int = best_mask
+		while remaining != 0:
+			var bit: int = remaining & -remaining
+			remaining ^= bit
+			cells[best_idx] = bit
+			row_used[r] |= bit
+			col_used[c] |= bit
+			box_used[b] |= bit
+			search()
+			row_used[r] ^= bit
+			col_used[c] ^= bit
+			box_used[b] ^= bit
+			cells[best_idx] = 0
+			if count >= limit:
+				return
+
+static func count_solutions(board: SudokuBoard, max_solutions: int = 2) -> int:
+	var counter := SolutionCounter.new()
+	if not counter.load_board(board):
+		return 0
+	counter.limit = max_solutions
+	counter.search()
+	return counter.count
 
 static func has_unique_solution(board: SudokuBoard) -> bool:
 	return count_solutions(board, 2) == 1

@@ -54,9 +54,11 @@ static func generate_new_seed() -> int:
 	return abs((sys_time ^ (unix_time << 16)) & 0x7FFFFFFFFFFFFFFF)
 
 ## Max carve attempts per request before settling for the closest level found
-const MAX_ATTEMPTS: int = 6
+const MAX_ATTEMPTS: int = 14
 ## Cap on extra clues removed after attempts that came out easier than requested
 const MAX_CLUE_BIAS: int = 3
+## Max remove/add-back nudges per attempt when steering toward the requested level
+const STEER_ITERATIONS: int = 60
 const LEVEL_ORDER: Array[String] = [
 	DifficultyAnalyzer.LEVEL_EASY,
 	DifficultyAnalyzer.LEVEL_MEDIUM,
@@ -90,11 +92,11 @@ static func generate(
 		if puzzle == null:
 			return null
 
-		for idx in range(SudokuBoard.CELL_COUNT):
-			puzzle.givens[idx] = (puzzle.get_cell(idx) != 0)
-		puzzle.reset_candidates_from_grid()
+		var analysis: DifficultyAnalyzer.AnalysisResult = _steer_to_level(
+			puzzle, full_board, target_difficulty, rng, is_cancelled_callback)
+		if analysis == null:
+			return null
 
-		var analysis: DifficultyAnalyzer.AnalysisResult = DifficultyAnalyzer.analyze(puzzle)
 		var distance: int = absi(LEVEL_ORDER.find(analysis.level) - LEVEL_ORDER.find(target_difficulty))
 		if distance < best_distance:
 			best_distance = distance
@@ -108,11 +110,69 @@ static func generate(
 			best.top_techniques = analysis.top_techniques
 		if distance == 0:
 			break
-		# Too easy: remove more clues on the next attempt
+		# Too easy: remove more clues next time; too hard: keep more
 		if LEVEL_ORDER.find(analysis.level) < LEVEL_ORDER.find(target_difficulty):
 			clue_bias = mini(clue_bias + 1, MAX_CLUE_BIAS)
+		else:
+			clue_bias = maxi(clue_bias - 1, -MAX_CLUE_BIAS)
 
 	return best
+
+static func _analyze(puzzle: SudokuBoard) -> DifficultyAnalyzer.AnalysisResult:
+	for idx in range(SudokuBoard.CELL_COUNT):
+		puzzle.givens[idx] = (puzzle.get_cell(idx) != 0)
+	puzzle.reset_candidates_from_grid()
+	return DifficultyAnalyzer.analyze(puzzle)
+
+## Nudges a carved puzzle (in place) until the analyzer rates it at the target level:
+## too easy -> remove one more clue that keeps the solution unique,
+## too hard -> give a removed clue back. Returns the final analysis, or null if cancelled.
+static func _steer_to_level(
+	puzzle: SudokuBoard,
+	solution: SudokuBoard,
+	target_difficulty: String,
+	rng: DeterministicRNG,
+	is_cancelled_callback: Callable
+) -> DifficultyAnalyzer.AnalysisResult:
+	var target_idx: int = LEVEL_ORDER.find(target_difficulty)
+	var analysis := _analyze(puzzle)
+
+	for _step in range(STEER_ITERATIONS):
+		if is_cancelled_callback.is_valid() and is_cancelled_callback.call():
+			return null
+		var delta: int = LEVEL_ORDER.find(analysis.level) - target_idx
+		if delta == 0:
+			break
+
+		var filled: Array[int] = []
+		var empty: Array[int] = []
+		for idx in range(SudokuBoard.CELL_COUNT):
+			if puzzle.get_cell(idx) != 0:
+				filled.append(idx)
+			else:
+				empty.append(idx)
+
+		if delta < 0:
+			rng.shuffle_array(filled)
+			var removed: bool = false
+			for idx in filled:
+				var saved: int = puzzle.get_cell(idx)
+				puzzle.set_cell(idx, 0, false)
+				if SudokuValidator.has_unique_solution(puzzle):
+					removed = true
+					break
+				puzzle.set_cell(idx, saved, false)
+			if not removed:
+				break
+		else:
+			if empty.is_empty():
+				break
+			var back: int = empty[rng.next_range(0, empty.size() - 1)]
+			puzzle.set_cell(back, solution.get_cell(back), false)
+
+		analysis = _analyze(puzzle)
+
+	return analysis
 
 static func _generate_full_board(rng: DeterministicRNG) -> SudokuBoard:
 	var board := SudokuBoard.new()
