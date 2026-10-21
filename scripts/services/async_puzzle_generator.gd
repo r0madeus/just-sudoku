@@ -11,25 +11,33 @@ static var _active_tasks: Dictionary = {}
 
 ## Requests puzzle generation in background thread.
 ## callback must have signature func(puzzle: SudokuGenerator.GeneratedPuzzle)
+## `workers` = attempt threads for this request (-1: as many as the device sensibly offers;
+## background prefetching passes 1 to stay gentle). The puzzle is the same either way.
 ## Returns unique request_id
 static func request_puzzle_async(
 	seed_val: int,
 	difficulty: String,
-	callback: Callable
+	callback: Callable,
+	workers: int = -1
 ) -> int:
 	_current_request_id += 1
 	var req_id: int = _current_request_id
 	_active_tasks[req_id] = false
 
+	var worker_count: int = SudokuGenerator.default_worker_count() if workers < 1 else workers
 	var task_callable := func():
 		var is_cancelled_check := func() -> bool:
 			return _active_tasks.get(req_id, false) == true
 
-		var result = SudokuGenerator.generate(seed_val, difficulty, is_cancelled_check, SudokuGenerator.default_worker_count())
+		var result = SudokuGenerator.generate(seed_val, difficulty, is_cancelled_check, worker_count)
 		_dispatch_completion.call_deferred(req_id, result, callback)
 
 	WorkerThreadPool.add_task(task_callable, true)
 	return req_id
+
+## True while the request is running and has not been cancelled
+static func is_request_active(req_id: int) -> bool:
+	return _active_tasks.has(req_id) and _active_tasks[req_id] == false
 
 ## Cancels a specific request if still running
 static func cancel_request(req_id: int) -> void:

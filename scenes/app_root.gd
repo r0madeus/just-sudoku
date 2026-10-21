@@ -3,6 +3,7 @@ extends Control
 
 const SoundManager = preload("res://scripts/services/sound_manager.gd")
 const AsyncPuzzleGenerator = preload("res://scripts/services/async_puzzle_generator.gd")
+const PuzzlePrefetcher = preload("res://scripts/services/puzzle_prefetcher.gd")
 const CustomThemeDialog = preload("res://scenes/menus/dialogs/custom_theme_dialog.gd")
 
 ## Main Application Root Controller
@@ -43,6 +44,10 @@ func _ready() -> void:
 	SoundManager.init_audio(self)
 
 	_connect_signals()
+
+	# Prepare puzzles in the background (no window, e.g. headless tests: nothing to wait for)
+	if DisplayServer.get_name() != "headless":
+		PuzzlePrefetcher.start()
 
 	# GDD §6: Launch behavior (Auto-open last active game if enabled)
 	if SettingsScreen.auto_open_last_game and SaveManager.has_active_game():
@@ -224,7 +229,17 @@ func _on_daily_sudoku_requested() -> void:
 			_start_game_session(active)
 			return
 
-	# 3. Otherwise generate fresh puzzle for today
+	# 3. Prepared in the background already? Start instantly
+	var prepared := PuzzlePrefetcher.take_daily(today_seed)
+	if prepared != null:
+		var prepared_state := GameState.new()
+		prepared_state.init_from_puzzle(prepared)
+		DailyManager.save_today_game(prepared_state)
+		SaveManager.save_active_game(prepared_state)
+		_start_game_session(prepared_state)
+		return
+
+	# 4. Otherwise generate fresh puzzle for today
 	main_menu.daily_btn.disabled = true
 	main_menu.daily_btn.text = LocalizationManager.translate("DAILY_PREPARING")
 	AsyncPuzzleGenerator.request_puzzle_async(

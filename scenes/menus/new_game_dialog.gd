@@ -5,6 +5,7 @@ const AsyncPuzzleGenerator = preload("res://scripts/services/async_puzzle_genera
 const PuzzleShareService = preload("res://scripts/services/puzzle_share_service.gd")
 const DifficultyAnalyzer = preload("res://scripts/core/difficulty_analyzer.gd")
 const SudokuGenerator = preload("res://scripts/core/sudoku_generator.gd")
+const PuzzlePrefetcher = preload("res://scripts/services/puzzle_prefetcher.gd")
 const SegmentedControl = preload("res://scenes/ui/segmented_control.gd")
 
 ## New Game Selection & Difficulty Preview Modal (GDD §13, §44)
@@ -18,6 +19,8 @@ var current_seed: int = 0
 var current_generated: SudokuGenerator.GeneratedPuzzle = null
 var active_req_id: int = 0
 var is_generating: bool = false
+## True once the previewed puzzle has been started, so it must not go back to the prefetch cache
+var _current_started: bool = false
 
 # Difficulty & Segmented Control
 var diff_lbl: Label
@@ -134,7 +137,7 @@ func _build_new_game_ui() -> void:
 	copy_seed_btn = Button.new()
 	copy_seed_btn.pressed.connect(_on_copy_seed_pressed)
 	regen_btn = Button.new()
-	regen_btn.pressed.connect(_generate_preview)
+	regen_btn.pressed.connect(func(): _generate_preview(true))
 	primary_btn.icon = ThemeManager.get_icon("play")
 	primary_btn.add_theme_constant_override("icon_max_width", 18)
 	import_btn = Button.new()
@@ -197,9 +200,22 @@ func _update_diff_buttons_state() -> void:
 			btn.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
 		btn.disabled = false
 
-func _generate_preview() -> void:
+func _generate_preview(force_new_seed: bool = false) -> void:
 	if active_req_id != 0:
 		AsyncPuzzleGenerator.cancel_request(active_req_id)
+		active_req_id = 0
+
+	# A previewed puzzle that was never started stays useful for later: give it back
+	if current_generated != null and not _current_started and not force_new_seed:
+		PuzzlePrefetcher.put_back(current_generated)
+	current_generated = null
+	_current_started = false
+
+	var prepared: SudokuGenerator.GeneratedPuzzle = PuzzlePrefetcher.take(current_difficulty)
+	if prepared != null:
+		current_seed = prepared.seed_value
+		_on_puzzle_generated(prepared)
+		return
 
 	is_generating = true
 	if primary_btn != null:
@@ -263,6 +279,7 @@ func _update_preview_display() -> void:
 func _on_confirmed() -> void:
 	if current_generated != null and not is_generating:
 		var gen := current_generated
+		_current_started = true
 		close_modal()
 		confirmed.emit()
 		start_game_requested.emit(gen)
