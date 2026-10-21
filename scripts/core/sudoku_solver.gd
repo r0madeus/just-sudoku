@@ -13,6 +13,7 @@ class SolveStep extends RefCounted:
 	var digit: int = 0 # If placing a number, 1..9, else 0
 	var eliminations: Dictionary = {} # cell_idx (int) -> Array[int] (eliminated digits)
 	var explanation: String = ""
+	var focus_unit: int = -1 # ALL_UNITS index the deduction happens in, -1 if not tied to one unit
 
 	func get_target_coord() -> String:
 		if cells.is_empty():
@@ -130,6 +131,7 @@ static func find_best_hint(board: SudokuBoard, focus_cell: int = -1, solution: S
 				step.difficulty_weight = 1
 				step.cells = [target_idx]
 				step.digit = missing_digit
+				step.focus_unit = u_idx
 				var coord := _format_coord(target_idx)
 				var unit_label := _get_unit_name(u_idx, is_tr)
 				if is_tr:
@@ -173,6 +175,7 @@ static func find_best_hint(board: SudokuBoard, focus_cell: int = -1, solution: S
 				step.difficulty_weight = 2
 				step.cells = [target_idx]
 				step.digit = d
+				step.focus_unit = u_idx
 				var coord := _format_coord(target_idx)
 				var unit_label := _get_unit_name(u_idx, is_tr)
 				if is_tr:
@@ -254,6 +257,24 @@ static func find_best_hint(board: SudokuBoard, focus_cell: int = -1, solution: S
 			return step
 
 	return null
+
+## Unit a first-level hint points at: the step's own unit, else the box of its first cell
+static func get_focus_unit(step: SolveStep) -> int:
+	if step == null:
+		return -1
+	if step.focus_unit >= 0:
+		return step.focus_unit
+	var idx: int = -1
+	if not step.cells.is_empty():
+		idx = step.cells[0]
+	elif not step.eliminations.is_empty():
+		idx = int(step.eliminations.keys()[0])
+	if idx < 0:
+		return -1
+	return 18 + SudokuBoard.CELL_BOX[idx]
+
+static func get_unit_name(unit_idx: int) -> String:
+	return _get_unit_name(unit_idx, LocalizationManager.get_locale() == LocalizationManager.LOCALE_TR)
 
 static func _get_unit_name(unit_idx: int, is_tr: bool) -> String:
 	if unit_idx < 9:

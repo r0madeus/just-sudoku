@@ -50,6 +50,10 @@ static func play_button_tap() -> void:
 static func play_conflict() -> void:
 	play_tone(196.00, 0.12, 0.28) # G3 alert buzz
 
+static func play_unit_complete() -> void:
+	play_tone(659.25, 0.05, 0.16) # E5
+	play_tone(880.00, 0.08, 0.18) # A5 soft rising chime
+
 static func play_complete() -> void:
 	# Rising major fanfare
 	play_tone(523.25, 0.08, 0.25) # C5

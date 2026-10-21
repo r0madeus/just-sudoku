@@ -500,6 +500,9 @@ func setup_game(state: GameState) -> void:
 		game_state.game_completed.connect(_on_game_completed)
 	if not game_state.digit_completed.is_connected(_on_digit_completed):
 		game_state.digit_completed.connect(_on_digit_completed)
+	if not game_state.units_completed.is_connected(_on_units_completed):
+		game_state.units_completed.connect(_on_units_completed)
+	sudoku_grid.set_hint_focus(-1)
 
 	var diff_text := LocalizationManager.get_difficulty_name(game_state.difficulty)
 	if game_state.seed_value == DailyManager.get_today_seed():
@@ -628,14 +631,17 @@ func _on_numpad_number_pressed(num: int) -> void:
 	if numpad.is_notes_mode:
 		game_state.toggle_candidate(idx, num)
 		SoundManager.play_number_placed()
+		Haptics.tap()
 	else:
 		var ok := game_state.set_number(idx, num, true)
 		if ok:
 			var conflicts := SudokuValidator.get_conflicts(game_state.current_board)
 			if conflicts.has(idx):
 				SoundManager.play_conflict()
+				Haptics.conflict()
 			else:
 				SoundManager.play_number_placed()
+				Haptics.tap()
 
 	_after_player_move()
 
@@ -644,6 +650,7 @@ func _on_erase_pressed() -> void:
 		return
 	game_state.clear_cell(sudoku_grid.selected_idx)
 	SoundManager.play_erase()
+	Haptics.tap()
 	_after_player_move()
 
 func _on_action_dock_notes_toggled(active: bool) -> void:
@@ -682,36 +689,63 @@ func _on_digit_completed(digit: int) -> void:
 	if sudoku_grid != null:
 		sudoku_grid.play_digit_completed_pulse(digit)
 
+func _on_units_completed(origin_idx: int, units: Array) -> void:
+	if sudoku_grid != null:
+		sudoku_grid.play_units_completed(origin_idx, units)
+	SoundManager.play_unit_complete()
+	Haptics.unit_completed()
+
+## Hints reveal in steps, each one costing a little more score: first only the area to look
+## at, then the technique and its explanation, and finally applying the move
 func _on_hint_pressed() -> void:
-	if game_state == null or game_state.is_completed:
+	if game_state == null or game_state.is_completed or game_state.is_paused:
 		return
 
 	var step := SudokuSolver.find_best_hint(game_state.current_board, sudoku_grid.selected_idx, game_state.solution)
-	if step != null:
+	if step == null:
+		game_state.apply_hint()
+		_after_player_move()
+		return
+
+	var level: int = mini(game_state.get_hint_level(step) + 1, GameState.HINT_LEVEL_TECHNIQUE)
+	if level == GameState.HINT_LEVEL_FOCUS and SudokuSolver.get_focus_unit(step) < 0:
+		level = GameState.HINT_LEVEL_TECHNIQUE
+	_show_hint_level(step, level)
+
+func _show_hint_level(step: SudokuSolver.SolveStep, level: int) -> void:
+	game_state.reveal_hint(step, level)
+	sudoku_grid.set_hint_focus(SudokuSolver.get_focus_unit(step))
+	hint_dialog.title = LocalizationManager.translate("HINT_DIALOG_TITLE")
+	hint_dialog.cancel_button_text = LocalizationManager.translate("BTN_CLOSE")
+
+	for conn in hint_dialog.confirmed.get_connections():
+		hint_dialog.confirmed.disconnect(conn.callable)
+
+	var captured_step := step
+	if level == GameState.HINT_LEVEL_FOCUS:
+		var unit_name := SudokuSolver.get_unit_name(SudokuSolver.get_focus_unit(step))
+		hint_dialog.dialog_text = LocalizationManager.translate("HINT_FOCUS_TEXT") % unit_name
+		# Drop the selection so its row/column tint does not compete with the outlined area
+		sudoku_grid.select_cell(-1)
+		hint_dialog.ok_button_text = LocalizationManager.translate("HINT_SHOW_TECHNIQUE")
+		hint_dialog.confirmed.connect(func():
+			_show_hint_level(captured_step, GameState.HINT_LEVEL_TECHNIQUE)
+		)
+	else:
 		if step.cells.size() > 0:
 			sudoku_grid.select_cell(step.cells[0])
-
 		var tech_tr := LocalizationManager.get_technique_title(step.technique)
-		hint_dialog.title = LocalizationManager.translate("HINT_DIALOG_TITLE")
 		hint_dialog.dialog_text = "%s\n\n%s" % [tech_tr, step.explanation]
 		hint_dialog.ok_button_text = LocalizationManager.translate("HINT_APPLY_MOVE")
-		hint_dialog.cancel_button_text = LocalizationManager.translate("BTN_CLOSE")
-
-		for conn in hint_dialog.confirmed.get_connections():
-			hint_dialog.confirmed.disconnect(conn.callable)
-
-		var captured_step := step
 		hint_dialog.confirmed.connect(func():
 			game_state.apply_hint(captured_step)
 			_after_player_move()
 		)
-		if is_inside_tree():
-			hint_dialog.open_modal()
-	else:
-		game_state.apply_hint()
-		_after_player_move()
+	if is_inside_tree():
+		hint_dialog.open_modal()
 
 func _after_player_move() -> void:
+	sudoku_grid.set_hint_focus(-1)
 	_update_action_buttons()
 	numpad.update_smart_states(game_state.current_board, sudoku_grid.selected_idx)
 	# Auto-save immediately (GDD §30: crash recovery & persistence)
@@ -878,6 +912,7 @@ func _on_solution_applied(solved: SudokuBoard) -> void:
 func _on_game_completed(summary: Dictionary) -> void:
 	game_timer.stop()
 	SoundManager.play_complete()
+	Haptics.game_completed()
 	SaveManager.clear_active_game()
 
 	var seed_val: int = int(summary.get("seed", 0))

@@ -9,8 +9,18 @@ signal cell_changed(idx: int, value: int, candidates_mask: int)
 signal game_completed(summary: Dictionary)
 signal game_paused(paused: bool)
 signal digit_completed(digit: int)
+## A move filled rows/columns/boxes with no conflict; units holds each one's cell indices
+signal units_completed(origin_idx: int, units: Array)
 
 const SAVE_VERSION: int = 1
+
+## Score cost of one hint, cumulative per level: show the area, explain the technique, apply it
+const HINT_COST_FOCUS: int = 3
+const HINT_COST_TECHNIQUE: int = 8
+const HINT_COST_APPLY: int = 12
+const HINT_LEVEL_FOCUS: int = 1
+const HINT_LEVEL_TECHNIQUE: int = 2
+const HINT_LEVEL_APPLY: int = 3
 
 var game_id: String = ""
 var seed_value: int = 0
@@ -26,6 +36,8 @@ var solution: SudokuBoard
 var elapsed_time: float = 0.0
 var mistakes_count: int = 0
 var hints_used: int = 0
+## Score points spent on hints, including ones only looked at
+var hint_cost: int = 0
 var undo_count: int = 0
 var is_completed: bool = false
 var is_paused: bool = false
@@ -35,6 +47,10 @@ var checked_wrong_indices: Array[int] = []
 
 var undo_stack: Array[Dictionary] = []
 var redo_stack: Array[Dictionary] = []
+
+# Hint currently being revealed level by level, so looking at it again costs nothing extra
+var _hint_key: String = ""
+var _hint_level: int = 0
 
 func _init() -> void:
 	initial_puzzle = SudokuBoard.new()
@@ -61,10 +77,12 @@ func init_from_puzzle(gen: SudokuGenerator.GeneratedPuzzle) -> void:
 	elapsed_time = 0.0
 	mistakes_count = 0
 	hints_used = 0
+	hint_cost = 0
 	undo_count = 0
 	is_completed = false
 	is_paused = false
 	is_replay = false
+	_reset_hint_progress()
 	checked_wrong_indices.clear()
 	undo_stack.clear()
 	redo_stack.clear()
@@ -81,10 +99,12 @@ func reset_for_replay() -> void:
 	elapsed_time = 0.0
 	mistakes_count = 0
 	hints_used = 0
+	hint_cost = 0
 	undo_count = 0
 	is_completed = false
 	is_paused = false
 	is_replay = true
+	_reset_hint_progress()
 	checked_wrong_indices.clear()
 	undo_stack.clear()
 	redo_stack.clear()
@@ -133,6 +153,12 @@ func set_number(idx: int, num: int, auto_remove_notes: bool = true) -> bool:
 	if new_val != 0 and is_placement_valid and prev_digit_count < 9 and current_board.get_digit_count(new_val) == 9:
 		digit_completed.emit(new_val)
 
+	# The last cell of the board gets the victory animation instead
+	if new_val != 0 and is_placement_valid and current_board.get_empty_cell_count() > 0:
+		var done_units: Array = _completed_units_at(idx)
+		if not done_units.is_empty():
+			units_completed.emit(idx, done_units)
+
 	var move: Dictionary = {
 		"action": "set_number",
 		"cell": idx,
@@ -148,6 +174,25 @@ func set_number(idx: int, num: int, auto_remove_notes: bool = true) -> bool:
 	cell_changed.emit(idx, new_val, current_board.candidates[idx])
 	check_completion()
 	return true
+
+## Row, column and box through idx that are full and conflict-free
+func _completed_units_at(idx: int) -> Array:
+	var done: Array = []
+	for unit in [
+		SudokuBoard.ROW_INDICES[SudokuBoard.CELL_ROW[idx]],
+		SudokuBoard.COL_INDICES[SudokuBoard.CELL_COL[idx]],
+		SudokuBoard.BOX_INDICES[SudokuBoard.CELL_BOX[idx]]
+	]:
+		var seen: int = 0
+		for cell in unit:
+			var v: int = current_board.get_cell(cell)
+			if v == 0 or (seen & (1 << v)) != 0:
+				seen = -1
+				break
+			seen |= 1 << v
+		if seen != -1:
+			done.append(unit)
+	return done
 
 func clear_cell(idx: int) -> bool:
 	if not can_edit_cell(idx):
@@ -291,7 +336,7 @@ func check_completion() -> bool:
 
 	is_completed = true
 	var score: int = PerformanceScorer.calculate_score(
-		difficulty, elapsed_time, estimated_seconds, mistakes_count, hints_used, undo_count
+		difficulty, elapsed_time, estimated_seconds, mistakes_count, hints_used, undo_count, hint_cost
 	)
 
 	var summary: Dictionary = {
@@ -309,6 +354,41 @@ func check_completion() -> bool:
 	game_completed.emit(summary)
 	return true
 
+static func hint_cost_for_level(level: int) -> int:
+	match level:
+		HINT_LEVEL_FOCUS:
+			return HINT_COST_FOCUS
+		HINT_LEVEL_TECHNIQUE:
+			return HINT_COST_TECHNIQUE
+		HINT_LEVEL_APPLY:
+			return HINT_COST_APPLY
+	return 0
+
+static func _hint_step_key(step: SudokuSolver.SolveStep) -> String:
+	return "%s|%s|%d|%s" % [step.technique, str(step.cells), step.digit, str(step.eliminations)]
+
+## How far this hint has already been revealed (0 when it is a different hint)
+func get_hint_level(step: SudokuSolver.SolveStep) -> int:
+	if step == null or _hint_step_key(step) != _hint_key:
+		return 0
+	return _hint_level
+
+## Reveals a hint up to level, charging only the part of its cost not paid yet
+func reveal_hint(step: SudokuSolver.SolveStep, level: int) -> void:
+	if step == null:
+		return
+	var key := _hint_step_key(step)
+	if key != _hint_key:
+		_hint_key = key
+		_hint_level = 0
+	if level > _hint_level:
+		hint_cost += hint_cost_for_level(level) - hint_cost_for_level(_hint_level)
+		_hint_level = level
+
+func _reset_hint_progress() -> void:
+	_hint_key = ""
+	_hint_level = 0
+
 func apply_hint(specific_step: SudokuSolver.SolveStep = null) -> SudokuSolver.SolveStep:
 	if is_completed:
 		return null
@@ -318,6 +398,8 @@ func apply_hint(specific_step: SudokuSolver.SolveStep = null) -> SudokuSolver.So
 		step = SudokuSolver.find_best_hint(current_board, -1, solution)
 
 	if step != null:
+		reveal_hint(step, HINT_LEVEL_APPLY)
+		_reset_hint_progress()
 		hints_used += 1
 		if step.digit != 0 and step.cells.size() == 1:
 			set_number(step.cells[0], step.digit, true)
@@ -360,6 +442,7 @@ func serialize() -> Dictionary:
 		"elapsed_time": elapsed_time,
 		"mistakes": mistakes_count,
 		"hints": hints_used,
+		"hint_cost": hint_cost,
 		"undo_count": undo_count,
 		"is_completed": is_completed,
 		"is_replay": is_replay,
@@ -398,6 +481,7 @@ func deserialize(data: Dictionary) -> bool:
 	elapsed_time = float(data.get("elapsed_time", 0.0))
 	mistakes_count = int(data.get("mistakes", 0))
 	hints_used = int(data.get("hints", 0))
+	hint_cost = int(data.get("hint_cost", 0))
 	undo_count = int(data.get("undo_count", 0))
 	is_completed = bool(data.get("is_completed", false))
 	is_replay = bool(data.get("is_replay", false))

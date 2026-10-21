@@ -10,7 +10,8 @@ static func calculate_score(
 	estimated_seconds: int,
 	mistakes: int,
 	hints: int,
-	undo_count: int = 0
+	undo_count: int = 0,
+	hint_cost: int = 0
 ) -> int:
 	# Base score according to difficulty tier
 	var base_score: float = 75.0
@@ -38,13 +39,14 @@ static func calculate_score(
 
 	# Deductions
 	var mistake_penalty: float = mistakes * 6.0
-	var hint_penalty: float = hints * 12.0
+	# hint_cost also counts hints only looked at; older saves only know the applied count
+	var hint_penalty: float = maxf(float(hint_cost), hints * 12.0)
 	var undo_penalty: float = minf(undo_count * 0.5, 8.0) # Gentle cap on undo penalty
 
 	var raw_score: float = base_score + time_bonus - mistake_penalty - hint_penalty - undo_penalty
 
 	# Perfect clean solve bonus (no mistakes, no hints)
-	if mistakes == 0 and hints == 0:
+	if mistakes == 0 and hints == 0 and hint_cost == 0:
 		raw_score += 5.0
 
 	return clampi(int(round(raw_score)), 0, 100)
