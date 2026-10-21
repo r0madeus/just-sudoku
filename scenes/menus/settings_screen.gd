@@ -6,6 +6,8 @@ const ThemeManager = preload("res://scripts/services/theme_manager.gd")
 const FontManager = preload("res://scripts/services/font_manager.gd")
 const SettingRow = preload("res://scenes/ui/setting_row.gd")
 const ResponsiveManager = preload("res://scripts/services/responsive_manager.gd")
+const AmbientBackdrop = preload("res://scenes/ui/ambient_backdrop.gd")
+const GlassPanel = preload("res://scenes/ui/glass_panel.gd")
 
 ## Settings Menu Screen (GDD §17, §19, §38, §40, §41, §44)
 ## Clean settings list with clear sections and aligned controls.
@@ -167,9 +169,11 @@ static func load_config() -> void:
 		sounds_enabled = json.data.get("sounds", true)
 
 func _build_ui() -> void:
-	bg = ColorRect.new()
-	bg.set_anchors_preset(PRESET_FULL_RECT)
-	bg.color = ThemeManager.get_color("bg")
+	# Soft accent glows behind the content, so glass cards have something to refract
+	var ambient_bg := AmbientBackdrop.new()
+	ambient_bg.intensity = 0.7
+	ambient_bg.color = ThemeManager.get_color("bg")
+	bg = ambient_bg
 	add_child(bg)
 
 	margin = MarginContainer.new()
@@ -238,10 +242,7 @@ func _build_ui() -> void:
 	var sep_app := HSeparator.new()
 	sec_app_group.add_child(sep_app)
 
-	card_appearance = PanelContainer.new()
-	card_appearance.mouse_filter = MOUSE_FILTER_PASS
-	var sb_empty_app := StyleBoxEmpty.new()
-	card_appearance.add_theme_stylebox_override("panel", sb_empty_app)
+	card_appearance = GlassPanel.card()
 	sec_app_group.add_child(card_appearance)
 
 	var app_vbox := VBoxContainer.new()
@@ -324,10 +325,7 @@ func _build_ui() -> void:
 	var sep_game := HSeparator.new()
 	sec_game_group.add_child(sep_game)
 
-	card_gameplay = PanelContainer.new()
-	card_gameplay.mouse_filter = MOUSE_FILTER_PASS
-	var sb_empty_game := StyleBoxEmpty.new()
-	card_gameplay.add_theme_stylebox_override("panel", sb_empty_game)
+	card_gameplay = GlassPanel.card()
 	sec_game_group.add_child(card_gameplay)
 
 	var game_vbox := VBoxContainer.new()
@@ -392,10 +390,7 @@ func _build_ui() -> void:
 	var sep_feed := HSeparator.new()
 	sec_feed_group.add_child(sep_feed)
 
-	card_feedback = PanelContainer.new()
-	card_feedback.mouse_filter = MOUSE_FILTER_PASS
-	var sb_empty_feed := StyleBoxEmpty.new()
-	card_feedback.add_theme_stylebox_override("panel", sb_empty_feed)
+	card_feedback = GlassPanel.card()
 	sec_feed_group.add_child(card_feedback)
 
 	var feed_vbox := VBoxContainer.new()

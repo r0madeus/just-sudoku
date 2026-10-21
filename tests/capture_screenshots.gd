@@ -81,6 +81,17 @@ func _run() -> void:
 	ThemeManager.set_theme(ThemeManager.THEME_DARK)
 	await _shot("11_main_menu_resume_dark.png")
 
+	# Other themes and the solution dialog (modal glass over the game)
+	for t in [ThemeManager.THEME_SEPIA, ThemeManager.THEME_FOREST]:
+		ThemeManager.set_theme(t)
+		await _shot("12_main_menu_%s.png" % t.to_lower())
+	ThemeManager.set_theme(ThemeManager.THEME_DARK)
+	app._show_screen(app.game_screen)
+	await _wait(10)
+	app.game_screen.solution_dialog.open_solution(state.initial_puzzle, state.current_board)
+	await _shot("13_solution_dialog.png")
+	app.game_screen.solution_dialog.close_modal()
+
 	# Desktop landscape
 	ThemeManager.set_theme(ThemeManager.THEME_DARK)
 	win.size = Vector2i(1280, 800)

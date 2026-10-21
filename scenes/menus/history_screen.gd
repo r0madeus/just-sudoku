@@ -5,6 +5,8 @@ const LocalizationManager = preload("res://scripts/services/localization_manager
 const ThemeManager = preload("res://scripts/services/theme_manager.gd")
 const GameRecordItem = preload("res://scenes/ui/game_record_item.gd")
 const ResponsiveManager = preload("res://scripts/services/responsive_manager.gd")
+const AmbientBackdrop = preload("res://scenes/ui/ambient_backdrop.gd")
+const GlassPanel = preload("res://scenes/ui/glass_panel.gd")
 
 ## Past Games History Screen with Swiss Editorial layout (GDD §32, §44)
 ## Clean filter bar with hairline dividers, compact data-dense list items,
@@ -96,9 +98,11 @@ func _ensure_ui() -> void:
 	_build_ui()
 
 func _build_ui() -> void:
-	bg = ColorRect.new()
-	bg.set_anchors_preset(PRESET_FULL_RECT)
-	bg.color = ThemeManager.get_color("bg")
+	# Soft accent glows behind the content, so glass cards have something to refract
+	var ambient_bg := AmbientBackdrop.new()
+	ambient_bg.intensity = 0.7
+	ambient_bg.color = ThemeManager.get_color("bg")
+	bg = ambient_bg
 	add_child(bg)
 
 	margin = MarginContainer.new()
@@ -140,10 +144,7 @@ func _build_ui() -> void:
 	root_vbox.add_child(header_sep)
 
 	# --- 2. Clean Editorial Filter Toolbar ---
-	filter_card = PanelContainer.new()
-	filter_card.mouse_filter = MOUSE_FILTER_PASS
-	var sb_flat := StyleBoxEmpty.new()
-	filter_card.add_theme_stylebox_override("panel", sb_flat)
+	filter_card = GlassPanel.card(20.0, 14, 10)
 	root_vbox.add_child(filter_card)
 
 	var filter_cols := HBoxContainer.new()

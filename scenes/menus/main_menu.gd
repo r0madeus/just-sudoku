@@ -133,7 +133,7 @@ func refresh_buttons() -> void:
 	var streak := DailyManager.get_current_streak()
 	if daily_meta_label != null:
 		if streak > 0:
-			daily_meta_label.text = LocalizationManager.translate("DAILY_STREAK_FORMAT") % streak
+			daily_meta_label.text = LocalizationManager.format_streak(streak)
 		else:
 			daily_meta_label.text = LocalizationManager.translate("DAILY_SUBTITLE")
 

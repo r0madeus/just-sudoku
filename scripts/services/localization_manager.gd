@@ -606,6 +606,18 @@ static func get_technique_title(tech: String) -> String:
 			return translate(tech)
 
 ## GDD §44: UI number, percentage, and date/time formatting per locale
+## "1 Day" / "5 Days" (Turkish has no plural form)
+static func format_days(count: int) -> String:
+	if current_locale == LOCALE_EN and count == 1:
+		return "1 Day"
+	return translate("STAT_DAYS") % count
+
+## "Streak: 1 Day" / "Streak: 5 Days"
+static func format_streak(count: int) -> String:
+	if current_locale == LOCALE_EN and count == 1:
+		return "Streak: 1 Day"
+	return translate("DAILY_STREAK_FORMAT") % count
+
 static func format_percentage(pct: int) -> String:
 	if current_locale == LOCALE_TR:
 		return "%%%d" % pct

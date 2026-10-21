@@ -219,6 +219,11 @@ static func is_dark_theme() -> bool:
 
 
 static func _sync_clear_color() -> void:
+	# Translucent fills on fully rounded (circular) StyleBoxFlat buttons leave a seam through the
+	# middle, so the disabled fill is flattened onto the background once per palette change
+	var dis: Color = current_palette.get("button_disabled", Color.TRANSPARENT)
+	if dis.a < 1.0 and current_palette.has("bg"):
+		current_palette["button_disabled"] = Color(current_palette["bg"]).lerp(Color(dis, 1.0), dis.a)
 	RenderingServer.set_default_clear_color(get_color("bg"))
 
 static func set_theme(theme_name: String) -> void:

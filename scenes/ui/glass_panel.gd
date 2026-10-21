@@ -123,6 +123,18 @@ func _init() -> void:
 	add_child(glass_rect)
 	_refresh()
 
+## Ready-made card for grouped content on screens (light chrome glass, modest shadow)
+static func card(radius: float = 20.0, horizontal: int = 16, vertical: int = 6) -> GlassPanel:
+	var panel := GlassPanel.new()
+	panel.elevated = false
+	panel.corner_radius = radius
+	panel.pad_h = horizontal
+	panel.pad_v = vertical
+	panel.shadow_size = 10
+	panel.shadow_offset = Vector2(0, 3)
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	return panel
+
 func _enter_tree() -> void:
 	ThemeManager.add_listener(_refresh)
 

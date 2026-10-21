@@ -6,6 +6,8 @@ const LocalizationManager = preload("res://scripts/services/localization_manager
 const ThemeManager = preload("res://scripts/services/theme_manager.gd")
 const GameRecordItem = preload("res://scenes/ui/game_record_item.gd")
 const ResponsiveManager = preload("res://scripts/services/responsive_manager.gd")
+const AmbientBackdrop = preload("res://scenes/ui/ambient_backdrop.gd")
+const GlassPanel = preload("res://scenes/ui/glass_panel.gd")
 
 ## Displays active, unfinished games with progress and time (GDD §5, §27, §31, §44)
 ## Redesigned with clean ListItem cards, responsive width, and no horizontal overflow.
@@ -58,9 +60,11 @@ func _on_theme_changed() -> void:
 		_list_dirty = true
 
 func _build_ui() -> void:
-	bg = ColorRect.new()
-	bg.set_anchors_preset(PRESET_FULL_RECT)
-	bg.color = ThemeManager.get_color("bg")
+	# Soft accent glows behind the content, so glass cards have something to refract
+	var ambient_bg := AmbientBackdrop.new()
+	ambient_bg.intensity = 0.7
+	ambient_bg.color = ThemeManager.get_color("bg")
+	bg = ambient_bg
 	add_child(bg)
 
 	margin = MarginContainer.new()

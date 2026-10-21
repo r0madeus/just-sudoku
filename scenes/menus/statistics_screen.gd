@@ -4,6 +4,8 @@ extends Control
 const LocalizationManager = preload("res://scripts/services/localization_manager.gd")
 const ThemeManager = preload("res://scripts/services/theme_manager.gd")
 const ResponsiveManager = preload("res://scripts/services/responsive_manager.gd")
+const AmbientBackdrop = preload("res://scenes/ui/ambient_backdrop.gd")
+const GlassPanel = preload("res://scenes/ui/glass_panel.gd")
 
 ## Performance and Progression Statistics Screen (GDD §33, §44)
 ## Swiss Editorial layout: High data-density typographic callouts and hairline dividers,
@@ -54,9 +56,11 @@ func _on_theme_changed() -> void:
 		_stats_dirty = true
 
 func _build_ui() -> void:
-	bg = ColorRect.new()
-	bg.set_anchors_preset(PRESET_FULL_RECT)
-	bg.color = ThemeManager.get_color("bg")
+	# Soft accent glows behind the content, so glass cards have something to refract
+	var ambient_bg := AmbientBackdrop.new()
+	ambient_bg.intensity = 0.7
+	ambient_bg.color = ThemeManager.get_color("bg")
+	bg = ambient_bg
 	add_child(bg)
 
 	margin = MarginContainer.new()
@@ -142,9 +146,11 @@ func refresh_stats() -> void:
 	# -------------------------------------------------------------------------
 	# 1. Section 1: Overview Callouts (Swiss Editorial, 4 Big Metrics)
 	# -------------------------------------------------------------------------
+	var hero_card := GlassPanel.card(20.0, 18, 14)
+	stats_vbox.add_child(hero_card)
 	var hero_vbox := VBoxContainer.new()
 	hero_vbox.add_theme_constant_override("separation", 12)
-	stats_vbox.add_child(hero_vbox)
+	hero_card.add_child(hero_vbox)
 
 	var hero_header_row := HBoxContainer.new()
 	hero_vbox.add_child(hero_header_row)
@@ -184,21 +190,7 @@ func refresh_stats() -> void:
 	# -------------------------------------------------------------------------
 	# 2. Section 2: Daily Challenge Streaks (Restrained Liquid Glass Panel)
 	# -------------------------------------------------------------------------
-	var streak_panel := PanelContainer.new()
-	var sb_streak := StyleBoxFlat.new()
-	sb_streak.bg_color = Color(surface_col.r, surface_col.g, surface_col.b, 0.55 if is_dark else 0.70)
-	sb_streak.set_corner_radius_all(18)
-	sb_streak.corner_detail = 16
-	sb_streak.set_border_width_all(ThemeManager.BORDER_HAIRLINE)
-	sb_streak.border_color = Color(1.0, 1.0, 1.0, 0.18 if is_dark else 0.40)
-	sb_streak.shadow_color = Color(0, 0, 0, 0.18 if is_dark else 0.06)
-	sb_streak.shadow_size = 10
-	sb_streak.shadow_offset = Vector2(0, 4)
-	sb_streak.content_margin_left = 18
-	sb_streak.content_margin_right = 18
-	sb_streak.content_margin_top = 14
-	sb_streak.content_margin_bottom = 14
-	streak_panel.add_theme_stylebox_override("panel", sb_streak)
+	var streak_panel := GlassPanel.card(20.0, 18, 14)
 	stats_vbox.add_child(streak_panel)
 
 	var streak_vbox := VBoxContainer.new()
@@ -234,14 +226,14 @@ func refresh_stats() -> void:
 
 	_add_stat_callout(
 		streak_metrics_row,
-		LocalizationManager.translate("STAT_DAYS") % cur_streak,
+		LocalizationManager.format_days(cur_streak),
 		LocalizationManager.translate("STAT_CURRENT_STREAK"),
 		"",
 		false
 	)
 	_add_stat_callout(
 		streak_metrics_row,
-		LocalizationManager.translate("STAT_DAYS") % long_streak,
+		LocalizationManager.format_days(long_streak),
 		LocalizationManager.translate("STAT_LONGEST_STREAK"),
 		"",
 		false
