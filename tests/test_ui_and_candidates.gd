@@ -98,7 +98,7 @@ func _init() -> void:
 	)
 
 	# 2. UI Layout & Scaling Tests
-	run_test.call("Smart Numpad buttons have zero min-width and expand fill", func() -> bool:
+	run_test.call("Smart Numpad buttons expand fill with a touch-sized minimum (>= 60px)", func() -> bool:
 		var numpad := SmartNumpad.new()
 		root.add_child(numpad)
 
@@ -107,7 +107,7 @@ func _init() -> void:
 			return false
 
 		for btn in numpad.num_buttons:
-			if btn.custom_minimum_size.x != 0 or btn.size_flags_horizontal != Control.SIZE_EXPAND_FILL:
+			if btn.custom_minimum_size.x < 60 or btn.size_flags_horizontal != Control.SIZE_EXPAND_FILL:
 				numpad.queue_free()
 				return false
 

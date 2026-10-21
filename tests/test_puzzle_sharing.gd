@@ -14,6 +14,9 @@ func _init() -> void:
 	print("   JUST SUDOKU - PUZZLE SHARING & IMPORT TEST  ")
 	print("==============================================")
 
+	# Assertions below match Turkish error text, so pin the locale instead of inheriting the system one
+	LocalizationManager.set_locale(LocalizationManager.LOCALE_TR)
+
 	var stats := { "total": 0, "passed": 0 }
 
 	var run_test := func(name: String, test_callable: Callable) -> void:
