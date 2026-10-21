@@ -5,6 +5,8 @@ const ThemeManager = preload("res://scripts/services/theme_manager.gd")
 const LocalizationManager = preload("res://scripts/services/localization_manager.gd")
 const SettingsScreen = preload("res://scenes/menus/settings_screen.gd")
 const ResponsiveManager = preload("res://scripts/services/responsive_manager.gd")
+const GlassPanel = preload("res://scenes/ui/glass_panel.gd")
+const AmbientBackdrop = preload("res://scenes/ui/ambient_backdrop.gd")
 
 ## Unified AppModal Component
 ## Standard in-engine modal dialog with dimming backdrop, responsive clamping,
@@ -34,12 +36,25 @@ var title_alignment: HorizontalAlignment = HORIZONTAL_ALIGNMENT_LEFT :
 		if title_label != null:
 			title_label.horizontal_alignment = val
 
-var blur_background: bool = false :
+## Frosts whatever is behind the modal (cheap mip-level blur) instead of only dimming it
+var blur_background: bool = true :
 	get:
 		return blur_background
 	set(val):
 		blur_background = val
 		_update_backdrop_material()
+
+## Replaces the scrim with a glowing AmbientBackdrop (for modals that cover content that must
+## stay hidden, like the paused grid) so the glass panel has something to refract
+var ambient_background: bool = false :
+	get:
+		return ambient_background
+	set(val):
+		ambient_background = val
+		if ambient != null:
+			ambient.visible = val
+		if backdrop != null:
+			backdrop.visible = not val
 
 # Backwards compatibility properties
 var title: String = "" :
@@ -77,6 +92,7 @@ var cancel_button_text: String = "" :
 
 # Core UI Nodes
 var backdrop: ColorRect
+var ambient: AmbientBackdrop
 var center_container: CenterContainer
 var modal_panel: PanelContainer
 var modal_vbox: VBoxContainer
@@ -226,16 +242,24 @@ func _build_base_ui() -> void:
 	)
 	add_child(backdrop)
 
+	ambient = AmbientBackdrop.new()
+	ambient.visible = ambient_background
+	ambient.mouse_filter = MOUSE_FILTER_STOP
+	add_child(ambient)
+
 	# 2. Centering Container
 	center_container = CenterContainer.new()
 	center_container.set_anchors_preset(PRESET_FULL_RECT)
 	center_container.mouse_filter = MOUSE_FILTER_IGNORE
 	add_child(center_container)
 
-	# 3. Modal Panel (ModalPanel theme variation: 8px radius, 1px hairline, subtle depth)
-	modal_panel = PanelContainer.new()
-	modal_panel.mouse_filter = MOUSE_FILTER_STOP
-	modal_panel.theme_type_variation = "ModalPanel"
+	# 3. Modal Panel: liquid glass over the frosted scrim
+	var glass := GlassPanel.new()
+	glass.corner_radius = 24.0
+	glass.pad_h = 20
+	glass.pad_v = 20
+	glass.mouse_filter = MOUSE_FILTER_STOP
+	modal_panel = glass
 	center_container.add_child(modal_panel)
 
 	modal_vbox = VBoxContainer.new()
@@ -317,32 +341,12 @@ func _update_backdrop_material() -> void:
 shader_type canvas_item;
 
 uniform sampler2D screen_texture : hint_screen_texture, filter_linear_mipmap;
-uniform float blur_amount : hint_range(0.0, 16.0) = 6.0;
-uniform vec4 dim_color : source_color = vec4(0.0, 0.0, 0.0, 0.72);
+uniform float blur_lod : hint_range(0.0, 8.0) = 3.0;
+uniform vec4 dim_color : source_color = vec4(0.0, 0.0, 0.0, 0.45);
 
 void fragment() {
-	vec2 ps = SCREEN_PIXEL_SIZE * blur_amount;
-	vec4 sum = vec4(0.0);
-	float total_weight = 0.0;
-	
-	const int SAMPLES = 32;
-	const float GOLDEN_ANGLE = 2.39996323;
-	float angle = fract(sin(dot(SCREEN_UV, vec2(12.9898, 78.233))) * 43758.5453) * 6.2831853;
-	
-	for (int i = 0; i < SAMPLES; i++) {
-		float r = sqrt(float(i + 1) / float(SAMPLES));
-		float a = float(i) * GOLDEN_ANGLE + angle;
-		vec2 offset = vec2(cos(a), sin(a)) * r * ps * 3.0;
-		float weight = 1.0 - r * 0.35;
-		sum += texture(screen_texture, SCREEN_UV + offset) * weight;
-		total_weight += weight;
-	}
-	
-	vec4 blurred = sum / total_weight;
-	vec4 lod_s = textureLod(screen_texture, SCREEN_UV, blur_amount * 0.7);
-	blurred = mix(blurred, lod_s, 0.45);
-
-	COLOR = vec4(mix(blurred.rgb, dim_color.rgb, dim_color.a), 1.0);
+	vec3 blurred = textureLod(screen_texture, SCREEN_UV, blur_lod).rgb;
+	COLOR = vec4(mix(blurred, dim_color.rgb, dim_color.a), 1.0);
 }
 """
 			var sh := Shader.new()
@@ -357,7 +361,12 @@ void fragment() {
 
 func _apply_base_theme_colors() -> void:
 	var is_dark := ThemeManager.get_color("bg").get_luminance() < 0.5
-	var dim_color: Color = Color(0, 0, 0, 0.72) if is_dark else Color(0.05, 0.08, 0.12, 0.65)
+	# Blurred scrims can be lighter than a flat one: the blur already pushes content back
+	var dim_color: Color
+	if blur_background:
+		dim_color = Color(0, 0, 0, 0.42) if is_dark else Color(0.05, 0.08, 0.12, 0.30)
+	else:
+		dim_color = Color(0, 0, 0, 0.72) if is_dark else Color(0.05, 0.08, 0.12, 0.65)
 	if backdrop != null:
 		backdrop.color = dim_color
 		if backdrop.material is ShaderMaterial:

@@ -1,11 +1,10 @@
 class_name GameActionDock
-extends PanelContainer
+extends "res://scenes/ui/glass_panel.gd"
 
 ## Unified GameActionDock Component
 ## Houses Undo, Redo, Notes, and Hint action buttons with consistent theme integration,
 ## state-driven styling, and decoupled signal emissions.
 
-const ThemeManager = preload("res://scripts/services/theme_manager.gd")
 const LocalizationManager = preload("res://scripts/services/localization_manager.gd")
 
 signal undo_pressed()
@@ -18,72 +17,35 @@ var undo_btn: Button
 var redo_btn: Button
 var notes_btn: Button
 var hint_btn: Button
-var blur_rect: ColorRect
 
 var is_notes_mode: bool = false
 
 func _init() -> void:
+	super()
+	# Light chrome glass: capsule, soft shadow, tight padding
+	elevated = false
+	corner_radius = 23.0
+	pad_h = 12
+	pad_v = 4
+	shadow_size = 10
+	shadow_offset = Vector2(0, 3)
 	custom_minimum_size = Vector2(310, 46)
 	size_flags_horizontal = SIZE_SHRINK_CENTER
 	_build_ui()
 	_update_locale_texts()
-	_apply_theme_style()
 
 # Registered on enter (not _init) so re-parenting, which fires _exit_tree, keeps the listeners
 func _enter_tree() -> void:
+	super()
 	ThemeManager.add_listener(_on_theme_changed)
 	LocalizationManager.add_listener(_update_locale_texts)
 
 func _exit_tree() -> void:
+	super()
 	ThemeManager.remove_listener(_on_theme_changed)
 	LocalizationManager.remove_listener(_update_locale_texts)
 
-func _notification(what: int) -> void:
-	if what == NOTIFICATION_RESIZED:
-		_update_blur_params()
-
-func _update_blur_params() -> void:
-	if blur_rect != null and blur_rect.material is ShaderMaterial:
-		var sm := blur_rect.material as ShaderMaterial
-		var sz := size if size.x > 0 else custom_minimum_size
-		sm.set_shader_parameter("rect_size", sz)
-		sm.set_shader_parameter("corner_radius", minf(23.0, sz.y * 0.5))
-
 func _build_ui() -> void:
-	# 1. Optical Backdrop Blur Filter (authentic physical glass refraction with SDF capsule mask)
-	var shader_code: String = """
-shader_type canvas_item;
-uniform sampler2D screen_texture : hint_screen_texture, filter_linear_mipmap;
-uniform float blur_amount : hint_range(0.0, 8.0) = 2.5;
-uniform vec2 rect_size = vec2(310.0, 46.0);
-uniform float corner_radius = 23.0;
-
-float rounded_rect_alpha(vec2 uv, vec2 sz, float r) {
-	vec2 pos = uv * sz;
-	vec2 center = sz * 0.5;
-	vec2 p = abs(pos - center) - (center - vec2(r));
-	float d = length(max(p, vec2(0.0))) - r;
-	return 1.0 - smoothstep(-0.5, 0.5, d);
-}
-
-void fragment() {
-	float a = rounded_rect_alpha(UV, rect_size, corner_radius);
-	vec4 col = textureLod(screen_texture, SCREEN_UV, blur_amount);
-	COLOR = vec4(col.rgb, a);
-}
-"""
-	var shader := Shader.new()
-	shader.code = shader_code
-	var smat := ShaderMaterial.new()
-	smat.shader = shader
-
-	blur_rect = ColorRect.new()
-	blur_rect.material = smat
-	blur_rect.mouse_filter = MOUSE_FILTER_IGNORE
-	blur_rect.show_behind_parent = true
-	blur_rect.set_anchors_preset(PRESET_FULL_RECT)
-	add_child(blur_rect)
-
 	action_bar = HBoxContainer.new()
 	action_bar.custom_minimum_size = Vector2(0, 36)
 	action_bar.size_flags_horizontal = SIZE_EXPAND_FILL
@@ -204,32 +166,8 @@ func _update_locale_texts() -> void:
 	_update_notes_visuals()
 
 func _apply_theme_style() -> void:
-	# Floating functional dock: genuine restrained liquid glass surface with specular highlight and ambient depth shadow
-	var surface_col := ThemeManager.get_color("surface")
-	var is_dark := ThemeManager.get_color("bg").get_luminance() < 0.5
-
-	var glass_bg: Color = Color(surface_col.r, surface_col.g, surface_col.b, 0.55 if is_dark else 0.68)
-	# Light rim in dark mode; on a light page a white rim vanishes, so use a soft dark hairline instead
-	var specular_border: Color = Color(1.0, 1.0, 1.0, 0.28) if is_dark else Color(ThemeManager.get_color("border_subtle"), 0.9)
-	var shadow_col: Color = Color(0.0, 0.0, 0.0, 0.30) if is_dark else Color(0.08, 0.12, 0.20, 0.10)
-
-	var sb_dock := StyleBoxFlat.new()
-	sb_dock.bg_color = glass_bg
-	sb_dock.set_corner_radius_all(23)
-	sb_dock.corner_detail = 16
-	sb_dock.set_border_width_all(ThemeManager.BORDER_HAIRLINE)
-	sb_dock.border_color = specular_border
-	sb_dock.shadow_color = shadow_col
-	sb_dock.shadow_size = 10
-	sb_dock.shadow_offset = Vector2(0, 3)
-	sb_dock.content_margin_left = 12
-	sb_dock.content_margin_right = 12
-	sb_dock.content_margin_top = 4
-	sb_dock.content_margin_bottom = 4
-
-	add_theme_stylebox_override("panel", sb_dock)
+	# The glass surface itself is GlassPanel's job; only the Notes toggle depends on the theme here
 	_update_notes_visuals()
-	_update_blur_params()
 
 func _on_theme_changed() -> void:
 	_apply_theme_style()

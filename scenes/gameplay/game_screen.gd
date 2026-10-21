@@ -11,6 +11,7 @@ const AppModal = preload("res://scenes/ui/app_modal.gd")
 const DailyManager = preload("res://scripts/data/daily_manager.gd")
 const GameActionDock = preload("res://scenes/ui/game_action_dock.gd")
 const ResponsiveManager = preload("res://scripts/services/responsive_manager.gd")
+const AmbientBackdrop = preload("res://scenes/ui/ambient_backdrop.gd")
 
 ## Main Gameplay Screen
 ## Orchestrates SudokuGrid, SmartNumpad, Timer, Input, and Dialogs.
@@ -174,9 +175,11 @@ func _set_landscape(on: bool) -> void:
 
 func _build_ui() -> void:
 	# Main background
-	bg = ColorRect.new()
-	bg.set_anchors_preset(PRESET_FULL_RECT)
-	bg.color = ThemeManager.get_color("bg")
+	# Soft glows behind the controls; kept faint so the grid stays the visual centre
+	var ambient_bg := AmbientBackdrop.new()
+	ambient_bg.intensity = 0.55
+	ambient_bg.color = ThemeManager.get_color("bg")
+	bg = ambient_bg
 	add_child(bg)
 
 	margin_container = MarginContainer.new()
@@ -357,7 +360,7 @@ func _build_ui() -> void:
 	pause_modal.cancel_btn.visible = false
 	pause_modal.show_close_button = false
 	pause_modal.title_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	pause_modal.blur_background = true
+	pause_modal.ambient_background = true
 	pause_modal.canceled.connect(toggle_pause)
 	add_child(pause_modal)
 

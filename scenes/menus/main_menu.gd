@@ -20,6 +20,8 @@ signal history_requested()
 signal statistics_requested()
 signal settings_requested()
 
+const AmbientBackdrop = preload("res://scenes/ui/ambient_backdrop.gd")
+
 var bg: ColorRect
 var margin_container: MarginContainer
 var root_vbox: VBoxContainer
@@ -127,8 +129,7 @@ func refresh_buttons() -> void:
 			daily_meta_label.text = LocalizationManager.translate("DAILY_SUBTITLE")
 
 func _build_ui() -> void:
-	bg = ColorRect.new()
-	bg.set_anchors_preset(PRESET_FULL_RECT)
+	bg = AmbientBackdrop.new()
 	bg.color = ThemeManager.get_color("bg")
 	add_child(bg)
 
