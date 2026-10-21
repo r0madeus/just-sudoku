@@ -59,6 +59,10 @@ const MAX_ATTEMPTS: int = 14
 const MAX_CLUE_BIAS: int = 3
 ## Max remove/add-back nudges per attempt when steering toward the requested level
 const STEER_ITERATIONS: int = 60
+## Removal candidates compared per steering step
+const STEER_CANDIDATES: int = 4
+## Board meta flag set by the carve when the puzzle cannot lose another clue
+const META_MINIMAL: String = "carve_minimal"
 const LEVEL_ORDER: Array[String] = [
 	DifficultyAnalyzer.LEVEL_EASY,
 	DifficultyAnalyzer.LEVEL_MEDIUM,
@@ -153,29 +157,160 @@ static func _steer_to_level(
 				empty.append(idx)
 
 		if delta < 0:
+			if puzzle.get_meta(META_MINIMAL, false):
+				break
+			# Too easy: try a few unique-preserving removals and keep the one that makes the
+			# puzzle hardest without overshooting the target level
 			rng.shuffle_array(filled)
-			var removed: bool = false
+			var best_idx: int = -1
+			var best_analysis: DifficultyAnalyzer.AnalysisResult = null
+			var tried: int = 0
 			for idx in filled:
 				var saved: int = puzzle.get_cell(idx)
 				puzzle.set_cell(idx, 0, false)
 				if SudokuValidator.has_unique_solution(puzzle):
-					removed = true
-					break
+					var cand := _analyze(puzzle)
+					if _is_harder_candidate(cand, best_analysis, target_idx):
+						best_idx = idx
+						best_analysis = cand
+					tried += 1
 				puzzle.set_cell(idx, saved, false)
-			if not removed:
+				if tried >= STEER_CANDIDATES:
+					break
+				if best_analysis != null and LEVEL_ORDER.find(best_analysis.level) == target_idx:
+					break
+			if best_idx == -1:
 				break
+			puzzle.set_cell(best_idx, 0, false)
+			analysis = best_analysis
+			continue
 		else:
+			# Too hard: give back the clue that lands on the target, else the one that stays
+			# closest above it (adding a clue never breaks uniqueness, so no solver check)
 			if empty.is_empty():
 				break
-			var back: int = empty[rng.next_range(0, empty.size() - 1)]
-			puzzle.set_cell(back, solution.get_cell(back), false)
+			rng.shuffle_array(empty)
+			var give_idx: int = -1
+			var give_analysis: DifficultyAnalyzer.AnalysisResult = null
+			var checked: int = 0
+			for idx in empty:
+				puzzle.set_cell(idx, solution.get_cell(idx), false)
+				var cand := _analyze(puzzle)
+				puzzle.set_cell(idx, 0, false)
+				if _is_closer_from_above(cand, give_analysis, target_idx):
+					give_idx = idx
+					give_analysis = cand
+				checked += 1
+				if checked >= STEER_CANDIDATES or LEVEL_ORDER.find(give_analysis.level) == target_idx:
+					break
+			puzzle.set_cell(give_idx, solution.get_cell(give_idx), false)
+			puzzle.set_meta(META_MINIMAL, false)
+			analysis = give_analysis
+			continue
 
 		analysis = _analyze(puzzle)
 
 	return analysis
 
+## Candidate ranking while climbing: landing on the target beats everything, then staying below
+## it with more total technique weight, and overshooting is the last resort (lowest overshoot first)
+static func _is_harder_candidate(
+	cand: DifficultyAnalyzer.AnalysisResult,
+	best: DifficultyAnalyzer.AnalysisResult,
+	target_idx: int
+) -> bool:
+	if best == null:
+		return true
+	var cl: int = LEVEL_ORDER.find(cand.level)
+	var bl: int = LEVEL_ORDER.find(best.level)
+	if cl == target_idx or bl == target_idx:
+		return cl == target_idx and bl != target_idx
+	if (cl < target_idx) != (bl < target_idx):
+		return cl < target_idx
+	if cl < target_idx:
+		return _total_weight(cand) > _total_weight(best)
+	return cl < bl
+
+## While adding clues back: hitting the target wins, otherwise stay at the lowest level above it
+## (overshooting below the target is the last resort)
+static func _is_closer_from_above(
+	cand: DifficultyAnalyzer.AnalysisResult,
+	best: DifficultyAnalyzer.AnalysisResult,
+	target_idx: int
+) -> bool:
+	if best == null:
+		return true
+	var cl: int = LEVEL_ORDER.find(cand.level)
+	var bl: int = LEVEL_ORDER.find(best.level)
+	if cl == target_idx or bl == target_idx:
+		return cl == target_idx and bl != target_idx
+	if (cl > target_idx) != (bl > target_idx):
+		return cl > target_idx
+	if cl > target_idx:
+		return cl < bl
+	return cl > bl
+
+static func _total_weight(a: DifficultyAnalyzer.AnalysisResult) -> int:
+	var w: int = 0
+	for st in a.steps:
+		w += st.difficulty_weight
+	return w
+
+## Bitmask backtracking filler: scans cells in order and tries shuffled digits
+class BoardFiller extends RefCounted:
+	var cells: PackedInt32Array = PackedInt32Array()
+	var row_used: PackedInt32Array = PackedInt32Array()
+	var col_used: PackedInt32Array = PackedInt32Array()
+	var box_used: PackedInt32Array = PackedInt32Array()
+	var rng: DeterministicRNG
+
+	func _init(p_rng: DeterministicRNG) -> void:
+		rng = p_rng
+		cells.resize(SudokuBoard.CELL_COUNT)
+		row_used.resize(9)
+		col_used.resize(9)
+		box_used.resize(9)
+
+	func place(idx: int, digit: int) -> void:
+		var bit: int = 1 << (digit - 1)
+		cells[idx] = digit
+		row_used[SudokuBoard.CELL_ROW[idx]] |= bit
+		col_used[SudokuBoard.CELL_COL[idx]] |= bit
+		box_used[SudokuBoard.CELL_BOX[idx]] |= bit
+
+	func fill(from_idx: int = 0) -> bool:
+		var idx: int = from_idx
+		while idx < SudokuBoard.CELL_COUNT and cells[idx] != 0:
+			idx += 1
+		if idx == SudokuBoard.CELL_COUNT:
+			return true
+
+		var r: int = SudokuBoard.CELL_ROW[idx]
+		var c: int = SudokuBoard.CELL_COL[idx]
+		var b: int = SudokuBoard.CELL_BOX[idx]
+		var free: int = ~(row_used[r] | col_used[c] | box_used[b]) & 0x1FF
+		var digits: Array[int] = []
+		for d in range(1, 10):
+			if free & (1 << (d - 1)) != 0:
+				digits.append(d)
+		rng.shuffle_array(digits)
+
+		for d in digits:
+			var bit: int = 1 << (d - 1)
+			cells[idx] = d
+			row_used[r] |= bit
+			col_used[c] |= bit
+			box_used[b] |= bit
+			if fill(idx + 1):
+				return true
+			row_used[r] ^= bit
+			col_used[c] ^= bit
+			box_used[b] ^= bit
+			cells[idx] = 0
+		return false
+
 static func _generate_full_board(rng: DeterministicRNG) -> SudokuBoard:
-	var board := SudokuBoard.new()
+	var filler := BoardFiller.new(rng)
 
 	# Fill 3 independent diagonal 3x3 boxes (boxes 0, 4, 8)
 	var digits: Array[int] = [1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -183,41 +318,16 @@ static func _generate_full_board(rng: DeterministicRNG) -> SudokuBoard:
 		rng.shuffle_array(digits)
 		var indices: Array = SudokuBoard.BOX_INDICES[b]
 		for i in range(9):
-			board.set_cell(indices[i], digits[i], false)
+			filler.place(indices[i], digits[i])
 
-	board.reset_candidates_from_grid()
-	if _fill_remaining(board, rng):
-		return board
-	return null
+	if not filler.fill():
+		return null
 
-static func _fill_remaining(board: SudokuBoard, rng: DeterministicRNG) -> bool:
-	var empty_idx: int = -1
+	var board := SudokuBoard.new()
 	for idx in range(SudokuBoard.CELL_COUNT):
-		if board.get_cell(idx) == 0:
-			empty_idx = idx
-			break
-
-	if empty_idx == -1:
-		return true
-
-	var candidates: Array[int] = board.get_candidates(empty_idx)
-	if candidates.is_empty():
-		return false
-
-	rng.shuffle_array(candidates)
-
-	for num in candidates:
-		var saved_candidates: PackedInt32Array = board.candidates.duplicate()
-		board.set_cell(empty_idx, num, false)
-		board.reset_candidates_from_grid()
-
-		if _fill_remaining(board, rng):
-			return true
-
-		board.set_cell(empty_idx, 0, false)
-		board.candidates = saved_candidates
-
-	return false
+		board.set_cell(idx, filler.cells[idx], false)
+	board.reset_candidates_from_grid()
+	return board
 
 static func _carve_clues(
 	full_board: SudokuBoard,
@@ -236,7 +346,8 @@ static func _carve_clues(
 		DifficultyAnalyzer.LEVEL_MEDIUM:
 			target_clues = rng.next_range(30, 34)
 		DifficultyAnalyzer.LEVEL_HARD:
-			target_clues = rng.next_range(27, 30)
+			# Carve to (near) minimal, then give clues back: wing-level puzzles only appear there
+			target_clues = rng.next_range(17, 20)
 		DifficultyAnalyzer.LEVEL_EXPERT:
 			target_clues = rng.next_range(24, 27)
 
@@ -264,4 +375,6 @@ static func _carve_clues(
 			# Not unique, revert
 			board.set_cell(idx, saved_val, false)
 
+	# Every cell was tried and none can go: no further removal can keep the solution unique
+	board.set_meta(META_MINIMAL, current_clues > target_clues)
 	return board

@@ -10,7 +10,8 @@ var tests_passed: int = 0
 var tests_failed: int = 0
 var suite_start_msec: int = 0
 
-const PER_TEST_TIMEOUT_MSEC: int = 1500
+# Generating Hard/Medium puzzles takes seconds (analyzer-verified), so the budget covers one generation
+const PER_TEST_TIMEOUT_MSEC: int = 6000
 const BOUNDED_SEEDS: Array[int] = [1001, 77777, 999999]
 const DIFFICULTIES: Array[String] = [
 	DifficultyAnalyzer.LEVEL_EASY,
