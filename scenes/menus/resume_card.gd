@@ -49,7 +49,7 @@ func _init() -> void:
 	title_label = Label.new()
 	title_label.theme_type_variation = "Header"
 	title_label.add_theme_font_size_override("font_size", 20)
-	title_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	title_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	title_label.mouse_filter = MOUSE_FILTER_IGNORE
 	info.add_child(title_label)
 
@@ -63,6 +63,7 @@ func _init() -> void:
 	body_label.theme_type_variation = "Caption"
 	body_label.add_theme_font_size_override("font_size", 12)
 	body_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	body_label.custom_minimum_size.x = 140.0
 	body_label.mouse_filter = MOUSE_FILTER_IGNORE
 	info.add_child(body_label)
 
@@ -101,6 +102,13 @@ func _gui_input(event: InputEvent) -> void:
 	elif event is InputEventScreenTouch and event.pressed:
 		pressed.emit()
 		accept_event()
+
+## Short screens: smaller miniature and padding so the home screen fits without scrolling
+func set_compact(compact: bool) -> void:
+	mini_board.custom_minimum_size = Vector2(108, 108) if compact else Vector2(148, 148)
+	pad_v = 12 if compact else 16
+	pad_h = 14 if compact else 16
+	title_label.add_theme_font_size_override("font_size", 18 if compact else 20)
 
 ## Shows `state` (or the empty invitation when null)
 func set_game(state: GameState) -> void:

@@ -289,8 +289,8 @@ static func apply_menu_layout(
 		# Masthead stays comfortably in upper area
 		top_spacer.custom_minimum_size.y = clampf(extra_h * 0.12, 12.0, 32.0)
 	if mid_spacer != null:
-		# Mid spacer absorbs extra height to position actions in lower thumb zone
-		mid_spacer.custom_minimum_size.y = clampf(extra_h * 0.68, 20.0, 180.0)
+		# Only a small gap: the resume card above the actions expands to take the free height
+		mid_spacer.custom_minimum_size.y = clampf(extra_h * 0.05, 12.0, 24.0)
 	if bottom_spacer != null:
 		# Controlled separation before baseline utility nav
 		bottom_spacer.custom_minimum_size.y = clampf(extra_h * 0.20, 14.0, 36.0)

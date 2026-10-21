@@ -3,6 +3,7 @@ extends Control
 
 const SoundManager = preload("res://scripts/services/sound_manager.gd")
 const AsyncPuzzleGenerator = preload("res://scripts/services/async_puzzle_generator.gd")
+const AppModal = preload("res://scenes/ui/app_modal.gd")
 const PuzzlePrefetcher = preload("res://scripts/services/puzzle_prefetcher.gd")
 const CustomThemeDialog = preload("res://scenes/menus/dialogs/custom_theme_dialog.gd")
 
@@ -57,6 +58,36 @@ func _ready() -> void:
 			return
 
 	_show_screen(main_menu)
+
+func _notification(what: int) -> void:
+	# Android back button (quit_on_go_back is off): modal -> screen -> menu -> quit
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		handle_back()
+
+## One step "back": closes the topmost modal, else leaves the current screen, else quits from the menu
+func handle_back() -> void:
+	var open_modals: Array = []
+	for m in get_tree().get_nodes_in_group(AppModal.GROUP):
+		if is_instance_valid(m) and m.visible:
+			open_modals.append(m)
+	if not open_modals.is_empty():
+		var top = open_modals[open_modals.size() - 1]
+		if top.dismissible_backdrop:
+			top._on_canceled()
+		return
+
+	if current_screen == game_screen:
+		game_screen._on_back_pressed()
+	elif current_screen == settings_screen:
+		settings_screen.back_requested.emit()
+	elif current_screen == history_screen:
+		history_screen.back_requested.emit()
+	elif current_screen == statistics_screen:
+		statistics_screen.back_requested.emit()
+	elif current_screen == load_game_screen:
+		load_game_screen.back_requested.emit()
+	else:
+		get_tree().quit()
 
 func _instantiate_screens() -> void:
 	root_bg = ColorRect.new()

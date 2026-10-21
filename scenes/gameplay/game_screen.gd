@@ -127,6 +127,15 @@ func _apply_responsive_layout() -> void:
 		bottom_spacer,
 		numpad
 	)
+	_fit_dock()
+
+## Gives the action dock the width left after the side margins (landscape: its side panel)
+func _fit_dock() -> void:
+	if action_dock == null:
+		return
+	var avail: float = ResponsiveManager.LANDSCAPE_SIDE_PANEL_W if _landscape else \
+		ResponsiveManager.get_viewport_size(self).x - float(margin_container.get_theme_constant("margin_left") + margin_container.get_theme_constant("margin_right"))
+	action_dock.fit_to_width(maxf(avail, 120.0))
 
 ## Moves the board and controls between the stacked (portrait) and side-by-side (landscape) trees
 func _set_landscape(on: bool) -> void:

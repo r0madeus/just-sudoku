@@ -252,6 +252,8 @@ func _build_ui() -> void:
 	# Dil / Language
 	lang_option = OptionButton.new()
 	lang_option.custom_minimum_size = Vector2(120, 38)
+	lang_option.clip_text = true
+	lang_option.fit_to_longest_item = false
 	lang_option.add_item("Türkçe")
 	lang_option.add_item("English")
 	lang_option.selected = 0 if LocalizationManager.get_locale() == LocalizationManager.LOCALE_TR else 1
@@ -266,6 +268,8 @@ func _build_ui() -> void:
 	# Görsel Tema / Visual Theme
 	theme_option = OptionButton.new()
 	theme_option.custom_minimum_size = Vector2(130, 38)
+	theme_option.clip_text = true
+	theme_option.fit_to_longest_item = false
 	theme_option.add_item("Dark")
 	theme_option.add_item("AMOLED")
 	theme_option.add_item("Light")
@@ -299,6 +303,9 @@ func _build_ui() -> void:
 	# Yazı Tipi / Font Family
 	font_option = OptionButton.new()
 	font_option.custom_minimum_size = Vector2(140, 38)
+	font_option.clip_text = true
+	font_option.fit_to_longest_item = false
+	font_option.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	font_option.add_item("Modern Sans")
 	font_option.add_item("Rounded Sans")
 	font_option.add_item("Classic Serif")

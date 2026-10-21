@@ -19,6 +19,8 @@ var notes_btn: Button
 var hint_btn: Button
 
 var is_notes_mode: bool = false
+var is_compact: bool = false
+var _available_width: float = 0.0
 
 func _init() -> void:
 	super()
@@ -106,6 +108,32 @@ func _build_ui() -> void:
 	hint_btn.pressed.connect(func(): hint_pressed.emit())
 	action_bar.add_child(hint_btn)
 
+## Narrow screens: Undo / Redo / Hint become icon-only (tooltips keep the names) when the
+## labelled dock would not fit `available_width`
+func fit_to_width(available_width: float) -> void:
+	_available_width = available_width
+	_apply_compact(false)
+	var natural: float = get_combined_minimum_size().x
+	_apply_compact(natural > available_width)
+
+func _apply_compact(compact: bool) -> void:
+	is_compact = compact
+	for btn in [undo_btn, redo_btn, hint_btn]:
+		if btn == null:
+			continue
+		btn.text = "" if compact else _label_for(btn)
+		btn.custom_minimum_size.x = 44.0 if compact else 64.0
+		btn.tooltip_text = _label_for(btn)
+		btn.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER if compact else HORIZONTAL_ALIGNMENT_LEFT
+	custom_minimum_size.x = 0.0 if compact else 310.0
+
+func _label_for(btn: Button) -> String:
+	if btn == undo_btn:
+		return LocalizationManager.translate("BTN_UNDO")
+	if btn == redo_btn:
+		return LocalizationManager.translate("BTN_REDO")
+	return LocalizationManager.translate("BTN_HINT")
+
 func set_can_undo(enabled: bool) -> void:
 	if undo_btn != null:
 		undo_btn.disabled = not enabled
@@ -158,12 +186,18 @@ func _update_notes_visuals() -> void:
 
 func _update_locale_texts() -> void:
 	if undo_btn != null:
-		undo_btn.text = LocalizationManager.translate("BTN_UNDO")
+		undo_btn.text = "" if is_compact else LocalizationManager.translate("BTN_UNDO")
+		undo_btn.tooltip_text = LocalizationManager.translate("BTN_UNDO")
 	if redo_btn != null:
-		redo_btn.text = LocalizationManager.translate("BTN_REDO")
+		redo_btn.text = "" if is_compact else LocalizationManager.translate("BTN_REDO")
+		redo_btn.tooltip_text = LocalizationManager.translate("BTN_REDO")
 	if hint_btn != null:
-		hint_btn.text = LocalizationManager.translate("BTN_HINT")
+		hint_btn.text = "" if is_compact else LocalizationManager.translate("BTN_HINT")
+		hint_btn.tooltip_text = LocalizationManager.translate("BTN_HINT")
 	_update_notes_visuals()
+	# Other languages have other label lengths, so re-check the fit
+	if _available_width > 0.0:
+		fit_to_width(_available_width)
 
 func _apply_theme_style() -> void:
 	# The glass surface itself is GlassPanel's job; only the Notes toggle depends on the theme here

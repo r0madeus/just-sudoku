@@ -96,6 +96,15 @@ func _apply_responsive_layout() -> void:
 		mid_spacer,
 		bottom_spacer
 	)
+	var vp := ResponsiveManager.get_viewport_size(self)
+	if resume_card != null:
+		resume_card.set_compact(vp.y < 720.0)
+	# Narrow phones: the navigation labels alone fit, with the icons they would overflow
+	var narrow: bool = vp.x < 400.0
+	if history_btn != null:
+		history_btn.icon = null if narrow else ThemeManager.get_icon("rotate-ccw")
+		stats_btn.icon = null if narrow else ThemeManager.get_icon("chart-column-big")
+		settings_btn.icon = null if narrow else ThemeManager.get_icon("settings")
 
 func refresh_buttons() -> void:
 	var has_active := SaveManager.has_active_game()
@@ -150,11 +159,19 @@ func _build_ui() -> void:
 	margin_container.add_theme_constant_override("margin_bottom", 20)
 	add_child(margin_container)
 
+	# Scrolls only when the content cannot fit (very short screens); otherwise it fills the screen
+	var scroll := ScrollContainer.new()
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	scroll.size_flags_horizontal = SIZE_EXPAND_FILL
+	scroll.size_flags_vertical = SIZE_EXPAND_FILL
+	margin_container.add_child(scroll)
+
 	root_vbox = VBoxContainer.new()
 	root_vbox.size_flags_horizontal = SIZE_EXPAND_FILL
 	root_vbox.size_flags_vertical = SIZE_EXPAND_FILL
 	root_vbox.add_theme_constant_override("separation", 0)
-	margin_container.add_child(root_vbox)
+	scroll.add_child(root_vbox)
 
 	menu_card_panel = root_vbox
 

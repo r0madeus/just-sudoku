@@ -16,6 +16,9 @@ signal confirmed()
 signal canceled()
 signal custom_action(action_id: String)
 
+## Every modal joins this group so the Android back button can dismiss the topmost open one
+const GROUP: String = "app_modals"
+
 # Configuration properties
 var max_modal_width: float = 380.0
 var dismissible_backdrop: bool = true
@@ -117,6 +120,7 @@ func _init() -> void:
 	mouse_filter = MOUSE_FILTER_STOP
 	set_anchors_preset(PRESET_FULL_RECT)
 	z_index = 60
+	add_to_group(GROUP)
 	_build_base_ui()
 	_update_base_locale_texts()
 	LocalizationManager.add_listener(_update_base_locale_texts)
