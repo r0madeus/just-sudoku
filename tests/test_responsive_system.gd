@@ -204,7 +204,8 @@ func _test_main_menu_multi_resolution_layout() -> void:
 		menu.size = r
 		menu._apply_responsive_layout()
 
-		var side_margin: int = menu.margin_container.get_theme_constant("margin_left", "MarginContainer")
+		# The scroll container's shadow padding is part of the visible side margin
+		var side_margin: int = menu.margin_container.get_theme_constant("margin_left", "MarginContainer") + MainMenu.SHADOW_PAD
 		var effective_content_w: float = r.x - float(side_margin * 2)
 		_assert(effective_content_w <= ResponsiveManager.MAX_MENU_WIDTH + 8.0, "%s: Content width is restrained (<= %dpx, actual: %dpx)" % [rname, int(ResponsiveManager.MAX_MENU_WIDTH), int(effective_content_w)])
 		_assert(side_margin >= 16, "%s: Side margins maintain comfortable breathing room (>= 16px, actual: %dpx)" % [rname, side_margin])
