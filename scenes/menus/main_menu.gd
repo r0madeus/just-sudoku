@@ -22,6 +22,7 @@ signal settings_requested()
 
 const AmbientBackdrop = preload("res://scenes/ui/ambient_backdrop.gd")
 const GlassPanel = preload("res://scenes/ui/glass_panel.gd")
+const SHADOW_PAD: int = 22
 const ResumeCard = preload("res://scenes/menus/resume_card.gd")
 
 var bg: ColorRect
@@ -96,6 +97,8 @@ func _apply_responsive_layout() -> void:
 		mid_spacer,
 		bottom_spacer
 	)
+	for side in ["margin_left", "margin_right", "margin_top", "margin_bottom"]:
+		margin_container.add_theme_constant_override(side, maxi(0, margin_container.get_theme_constant(side) - SHADOW_PAD))
 	var vp := ResponsiveManager.get_viewport_size(self)
 	if resume_card != null:
 		resume_card.set_compact(vp.y < 720.0)
@@ -112,12 +115,12 @@ func refresh_buttons() -> void:
 
 	if has_active:
 		continue_btn.theme_type_variation = "PrimaryButton"
-		new_game_btn.theme_type_variation = "SecondaryButton"
+		new_game_btn.theme_type_variation = "GhostButton"
 		if continue_meta_label != null:
 			continue_meta_label.text = LocalizationManager.translate("KEY_APP_SUBTITLE")
 			continue_meta_label.visible = false
 	else:
-		continue_btn.theme_type_variation = "SecondaryButton"
+		continue_btn.theme_type_variation = "GhostButton"
 		new_game_btn.theme_type_variation = "PrimaryButton"
 		if continue_meta_label != null:
 			continue_meta_label.visible = false
@@ -167,11 +170,20 @@ func _build_ui() -> void:
 	scroll.size_flags_vertical = SIZE_EXPAND_FILL
 	margin_container.add_child(scroll)
 
+	# The scroll container clips to its rect; this padding keeps the glass drop shadows inside it
+	# (the outer margins are reduced by the same amount, see _apply_responsive_layout)
+	var shadow_pad := MarginContainer.new()
+	shadow_pad.size_flags_horizontal = SIZE_EXPAND_FILL
+	shadow_pad.size_flags_vertical = SIZE_EXPAND_FILL
+	for side in ["margin_left", "margin_right", "margin_top", "margin_bottom"]:
+		shadow_pad.add_theme_constant_override(side, SHADOW_PAD)
+	scroll.add_child(shadow_pad)
+
 	root_vbox = VBoxContainer.new()
 	root_vbox.size_flags_horizontal = SIZE_EXPAND_FILL
 	root_vbox.size_flags_vertical = SIZE_EXPAND_FILL
 	root_vbox.add_theme_constant_override("separation", 0)
-	scroll.add_child(root_vbox)
+	shadow_pad.add_child(root_vbox)
 
 	menu_card_panel = root_vbox
 
@@ -280,10 +292,17 @@ func _build_ui() -> void:
 	daily_hbox.add_child(daily_btn)
 
 	# Hero Action Section (Trio of full-width capsule buttons with consistent 10px separation)
+	# One glass sheet holds the three actions: the accent capsule stays the call to action,
+	# the other two are quiet rows on the glass instead of separate opaque slabs
+	var hero_glass := GlassPanel.card(26.0, 10, 10)
+	hero_glass.shadow_size = 12
+	hero_glass.shadow_offset = Vector2(0, 4)
+	actions_vbox.add_child(hero_glass)
+
 	hero_vbox = VBoxContainer.new()
 	hero_vbox.size_flags_horizontal = SIZE_EXPAND_FILL
-	hero_vbox.add_theme_constant_override("separation", 10)
-	actions_vbox.add_child(hero_vbox)
+	hero_vbox.add_theme_constant_override("separation", 4)
+	hero_glass.add_child(hero_vbox)
 
 	# 2. Action: Primary / Resume - Continue Game (Prime reference: 52px hero capsule with 20px Lucide play icon)
 	var cont_box := VBoxContainer.new()
@@ -313,7 +332,7 @@ func _build_ui() -> void:
 	new_game_btn = Button.new()
 	new_game_btn.custom_minimum_size = Vector2(0, ResponsiveManager.HEIGHT_BUTTON_PRIMARY)
 	new_game_btn.size_flags_horizontal = SIZE_EXPAND_FILL
-	new_game_btn.theme_type_variation = "SecondaryButton"
+	new_game_btn.theme_type_variation = "GhostButton"
 	new_game_btn.add_theme_font_size_override("font_size", 16)
 	new_game_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	new_game_btn.pressed.connect(func(): new_game_requested.emit())
@@ -323,9 +342,7 @@ func _build_ui() -> void:
 	load_game_btn = Button.new()
 	load_game_btn.custom_minimum_size = Vector2(0, ResponsiveManager.HEIGHT_BUTTON_PRIMARY)
 	load_game_btn.size_flags_horizontal = SIZE_EXPAND_FILL
-	load_game_btn.theme_type_variation = "SecondaryButton"
-	load_game_btn.icon = ThemeManager.get_icon("folder-open")
-	load_game_btn.add_theme_constant_override("icon_max_width", 20)
+	load_game_btn.theme_type_variation = "GhostButton"
 	load_game_btn.add_theme_font_size_override("font_size", 16)
 	load_game_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	load_game_btn.pressed.connect(func(): load_game_requested.emit())
