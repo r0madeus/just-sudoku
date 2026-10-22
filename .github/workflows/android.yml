@@ -17,6 +17,11 @@ on:
       - "engine/**"
       - ".github/workflows/android.yml"
 
+# A newer push to the same branch replaces a run still going
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   GODOT_VERSION: "4.7-stable"
   NDK_VERSION: "29.0.14206865"
@@ -25,9 +30,13 @@ jobs:
   apk:
     runs-on: ubuntu-24.04
     timeout-minutes: 120
+    # The game is checked out in game/ and everything else beside it: Godot imports and exports
+    # every resource under the project folder, so a Godot source tree inside it ends up in the APK
     steps:
       - name: Checkout the game
         uses: actions/checkout@v4
+        with:
+          path: game
 
       - name: Set up Java 17
         uses: actions/setup-java@v4
@@ -40,7 +49,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: slim-template
-          key: slim-template-${{ env.GODOT_VERSION }}-${{ hashFiles('engine/custom.py') }}
+          key: slim-template-${{ env.GODOT_VERSION }}-${{ hashFiles('game/engine/custom.py') }}
 
       - name: Checkout Godot
         if: steps.template-cache.outputs.cache-hit != 'true'
@@ -63,7 +72,7 @@ jobs:
           cd godot
           # swappy must be given here: production=yes only reads it from the command line
           scons -j"$(nproc)" platform=android target=template_release arch=arm64 swappy=no \
-            profile="$GITHUB_WORKSPACE/engine/custom.py"
+            profile="$GITHUB_WORKSPACE/game/engine/custom.py"
           cd platform/android/java
           ./gradlew generateGodotTemplates
           cd "$GITHUB_WORKSPACE"
@@ -89,22 +98,23 @@ jobs:
           export/android/java_sdk_path = "$JAVA_HOME"
           export/android/android_sdk_path = "$ANDROID_HOME"
           EOF
-          # A throwaway key for a test build
+          # A throwaway key for a test build, outside the project
           keytool -genkeypair -keystore test.keystore -alias test -storepass testpass -keypass testpass \
             -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Just Sudoku test" > /dev/null
-          export GODOT_ANDROID_KEYSTORE_RELEASE_PATH="$PWD/test.keystore"
+          cd game
+          export GODOT_ANDROID_KEYSTORE_RELEASE_PATH="$GITHUB_WORKSPACE/test.keystore"
           export GODOT_ANDROID_KEYSTORE_RELEASE_USER=test
           export GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD=testpass
           # Export with the slim template instead of the official one
-          sed -i "s|^custom_template/release=.*|custom_template/release=\"$PWD/slim-template/android_release.apk\"|" export_presets.cfg
-          ./godot-editor --headless --import > /dev/null 2>&1 || true
-          mkdir -p out
-          ./godot-editor --headless --export-release "Android" out/JustSudoku-slim.apk
-          ls -l out
+          sed -i "s|^custom_template/release=.*|custom_template/release=\"$GITHUB_WORKSPACE/slim-template/android_release.apk\"|" export_presets.cfg
+          ../godot-editor --headless --import > /dev/null 2>&1 || true
+          mkdir -p ../out
+          ../godot-editor --headless --export-release "Android" ../out/JustSudoku-slim.apk
+          ls -l ../out
 
       - name: Report the size
         run: |
-          size() { numfmt --to=si --suffix=B "$(stat -c %s "$1")"; }
+          size() { numfmt --to=si --format="%.1f" --suffix=B "$(stat -c %s "$1")"; }
           lib=$(unzip -lv out/JustSudoku-slim.apk | awk '/libgodot_android.so/ {print $1, $3}')
           {
             echo "### APK size"
