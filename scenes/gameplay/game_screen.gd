@@ -683,7 +683,7 @@ func _on_check_pressed() -> void:
 	if wrong_cells.is_empty():
 		info_label.text = LocalizationManager.translate("CHECK_ALL_CORRECT")
 	else:
-		info_label.text = LocalizationManager.translate("CHECK_MISTAKES_FOUND") % wrong_cells.size()
+		info_label.text = LocalizationManager.plural("CHECK_MISTAKES_FOUND", wrong_cells.size())
 
 func _on_digit_completed(digit: int) -> void:
 	if sudoku_grid != null:

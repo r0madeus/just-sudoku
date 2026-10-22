@@ -329,7 +329,7 @@ func set_step(idx: int) -> void:
 		for sec_idx in s.secondary_cells:
 			peer_cells.append(sec_idx)
 
-		step_coord_badge.text = (s.get_target_coord() + " -> " + str(s.digit)) if s.digit != 0 else s.get_formatted_coords()
+		step_coord_badge.text = (s.get_target_coord() + " → " + str(s.digit)) if s.digit != 0 else s.get_formatted_coords()
 		step_tech_badge.text = "[" + LocalizationManager.get_technique_name(s.technique) + "]"
 		step_desc_label.text = s.explanation
 	else:
@@ -389,11 +389,9 @@ func _render_full_solution() -> void:
 	if initial_puzzle != null:
 		givens_cnt = SudokuBoard.CELL_COUNT - initial_puzzle.get_empty_cell_count()
 
-	var givens_fmt := LocalizationManager.translate("FULL_SOL_GIVENS")
-	full_givens_label.text = (givens_fmt % givens_cnt) if givens_fmt.contains("%") else ("Givens: %d" % givens_cnt)
-	var solved_fmt := LocalizationManager.translate("FULL_SOL_SOLVED")
-	full_solved_label.text = (solved_fmt % (81 - givens_cnt)) if solved_fmt.contains("%") else ("Solved: %d" % (81 - givens_cnt))
-	full_unique_label.text = LocalizationManager.translate("FULL_SOL_UNIQUE")
+	full_givens_label.text = LocalizationManager.translate("SOLUTION_SUMMARY_GIVENS") % givens_cnt
+	full_solved_label.text = LocalizationManager.translate("SOLUTION_SUMMARY_SOLVED") % (SudokuBoard.CELL_COUNT - givens_cnt)
+	full_unique_label.text = LocalizationManager.translate("SOLUTION_UNIQUE_VERIFIED")
 
 func _on_apply_solution_pressed() -> void:
 	if solved_board == null:

@@ -114,7 +114,7 @@ static func parse_import_string(raw_text: String, default_difficulty: String = D
 			return {
 				"success": false,
 				"type": "puzzle_code",
-				"error": LocalizationManager.translate("SHARE_ERR_CONFLICT") % conflicts.size()
+				"error": LocalizationManager.plural("SHARE_ERR_CONFLICT", conflicts.size())
 			}
 
 		# Validate unique solution

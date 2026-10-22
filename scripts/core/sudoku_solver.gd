@@ -12,23 +12,33 @@ class SolveStep extends RefCounted:
 	var secondary_cells: Array[int] = []
 	var digit: int = 0 # If placing a number, 1..9, else 0
 	var eliminations: Dictionary = {} # cell_idx (int) -> Array[int] (eliminated digits)
-	var explanation: String = ""
+	## The explanation as a dictionary key and its values ({"cell": idx}, {"unit": idx} and
+	## {"digits": [..]} are written out too), so it reads in the language on screen when shown
+	var text_key: String = ""
+	var text_args: Array = []
+	var _text_literal: String = ""
+	var explanation: String:
+		get:
+			return _text_literal if text_key.is_empty() else SudokuSolver.describe(text_key, text_args)
+		set(value):
+			_text_literal = value
+			text_key = ""
 	var focus_unit: int = -1 # ALL_UNITS index the deduction happens in, -1 if not tied to one unit
 
 	func get_target_coord() -> String:
 		if cells.is_empty():
 			return ""
-		var r: int = SudokuBoard.CELL_ROW[cells[0]] + 1
-		var c: int = SudokuBoard.CELL_COL[cells[0]] + 1
-		return "R%dC%d" % [r, c]
+		return SudokuSolver.format_cell(cells[0])
 
 	func get_formatted_coords() -> String:
 		var res: Array[String] = []
 		for idx in cells:
-			var r: int = SudokuBoard.CELL_ROW[idx] + 1
-			var c: int = SudokuBoard.CELL_COL[idx] + 1
-			res.append("R%dC%d" % [r, c])
+			res.append(SudokuSolver.format_cell(idx))
 		return ", ".join(res)
+
+	func set_text(key: String, args: Array = []) -> void:
+		text_key = key
+		text_args = args
 
 	func _to_string() -> String:
 		return "[%s] %s" % [technique, explanation]
@@ -99,8 +109,6 @@ static func find_best_hint(board: SudokuBoard, focus_cell: int = -1, solution: S
 	var working := board.clone()
 	working.reset_candidates_from_grid()
 
-	var is_tr: bool = (LocalizationManager.get_locale() == LocalizationManager.LOCALE_TR)
-
 	# 1. Collect all Single placement steps (Full House, Naked Single, Hidden Single)
 	var single_steps: Array[SolveStep] = []
 
@@ -132,12 +140,7 @@ static func find_best_hint(board: SudokuBoard, focus_cell: int = -1, solution: S
 				step.cells = [target_idx]
 				step.digit = missing_digit
 				step.focus_unit = u_idx
-				var coord := _format_coord(target_idx)
-				var unit_label := _get_unit_name(u_idx, is_tr)
-				if is_tr:
-					step.explanation = "%s bölgesinde 8 rakam yerleştirilmiş; kalan son boş hücreye (%s) yalnızca %d gelebilir." % [unit_label, coord, missing_digit]
-				else:
-					step.explanation = "In %s, 8 digits are already placed; the only remaining empty cell (%s) must be %d." % [unit_label, coord, missing_digit]
+				step.set_text("EXPL_FULL_HOUSE", [{"unit": u_idx}, {"cell": target_idx}, missing_digit])
 				single_steps.append(step)
 
 	# 1b. Naked Singles
@@ -152,11 +155,7 @@ static func find_best_hint(board: SudokuBoard, focus_cell: int = -1, solution: S
 				step.difficulty_weight = 1
 				step.cells = [idx]
 				step.digit = d
-				var coord := _format_coord(idx)
-				if is_tr:
-					step.explanation = "%s hücresinin satır, sütun ve 3×3 kutusu incelendiğinde yazılabilecek tek aday %d (Açık Tekli)." % [coord, d]
-				else:
-					step.explanation = "Checking the row, column, and 3x3 box for cell %s, the only candidate remaining is %d (Naked Single)." % [coord, d]
+				step.set_text("EXPL_NAKED_SINGLE", [{"cell": idx}, d])
 				single_steps.append(step)
 
 	# 1c. Hidden Singles
@@ -176,12 +175,7 @@ static func find_best_hint(board: SudokuBoard, focus_cell: int = -1, solution: S
 				step.cells = [target_idx]
 				step.digit = d
 				step.focus_unit = u_idx
-				var coord := _format_coord(target_idx)
-				var unit_label := _get_unit_name(u_idx, is_tr)
-				if is_tr:
-					step.explanation = "%s bölgesinde %d sayısının gelebileceği tek yer %s hücresidir (Gizli Tekli)." % [unit_label, d, coord]
-				else:
-					step.explanation = "In %s, cell %s is the only possible place for %d (Hidden Single)." % [unit_label, coord, d]
+				step.set_text("EXPL_HIDDEN_SINGLE", [{"unit": u_idx}, d, {"cell": target_idx}])
 				single_steps.append(step)
 
 	# If any single placement step exists, pick the most human-accessible one!
@@ -191,7 +185,6 @@ static func find_best_hint(board: SudokuBoard, focus_cell: int = -1, solution: S
 	# 2. Medium: Locked Candidates (Pointing & Claiming)
 	var locked_step := _find_locked_candidates(working)
 	if locked_step != null:
-		_localize_step_explanation(locked_step, is_tr)
 		return locked_step
 
 	# 3. Medium: Naked & Hidden Pairs
@@ -199,7 +192,6 @@ static func find_best_hint(board: SudokuBoard, focus_cell: int = -1, solution: S
 	if pair_step == null:
 		pair_step = _find_hidden_pairs(working)
 	if pair_step != null:
-		_localize_step_explanation(pair_step, is_tr)
 		return pair_step
 
 	# 4. Medium: Triples
@@ -207,7 +199,6 @@ static func find_best_hint(board: SudokuBoard, focus_cell: int = -1, solution: S
 	if triple_step == null:
 		triple_step = _find_hidden_triples(working)
 	if triple_step != null:
-		_localize_step_explanation(triple_step, is_tr)
 		return triple_step
 
 	# 5. Advanced: Wings & Fish
@@ -217,7 +208,6 @@ static func find_best_hint(board: SudokuBoard, focus_cell: int = -1, solution: S
 	if adv_step == null: adv_step = _find_xyz_wing(working)
 	if adv_step == null: adv_step = _find_swordfish(working)
 	if adv_step != null:
-		_localize_step_explanation(adv_step, is_tr)
 		return adv_step
 
 	# 6. Fallback: Backtracking / Solution
@@ -249,11 +239,7 @@ static func find_best_hint(board: SudokuBoard, focus_cell: int = -1, solution: S
 			step.difficulty_weight = 6
 			step.cells = [target_idx]
 			step.digit = target_digit
-			var coord := _format_coord(target_idx)
-			if is_tr:
-				step.explanation = "Mevcut tahta durumunda standart bir mantıksal teknik bulunamadı. %s hücresi için doğrudan çözüm değeri %d." % [coord, target_digit]
-			else:
-				step.explanation = "No standard human-logic technique found for the current board state. Direct solution value for cell %s is %d." % [coord, target_digit]
+			step.set_text("EXPL_DIRECT", [{"cell": target_idx}, target_digit])
 			return step
 
 	return null
@@ -274,15 +260,30 @@ static func get_focus_unit(step: SolveStep) -> int:
 	return 18 + SudokuBoard.CELL_BOX[idx]
 
 static func get_unit_name(unit_idx: int) -> String:
-	return _get_unit_name(unit_idx, LocalizationManager.get_locale() == LocalizationManager.LOCALE_TR)
-
-static func _get_unit_name(unit_idx: int, is_tr: bool) -> String:
 	if unit_idx < 9:
-		return ("%d. Satır" % (unit_idx + 1)) if is_tr else ("Row %d" % (unit_idx + 1))
+		return LocalizationManager.translate("UNIT_ROW") % (unit_idx + 1)
 	elif unit_idx < 18:
-		return ("%d. Sütun" % (unit_idx - 9 + 1)) if is_tr else ("Column %d" % (unit_idx - 9 + 1))
-	else:
-		return ("%d. Kutu" % (unit_idx - 18 + 1)) if is_tr else ("Box %d" % (unit_idx - 18 + 1))
+		return LocalizationManager.translate("UNIT_COL") % (unit_idx - 9 + 1)
+	return LocalizationManager.translate("UNIT_BOX") % (unit_idx - 18 + 1)
+
+## A cell in the language on screen ("R4C7", "4. satır 7. sütun")
+static func format_cell(idx: int) -> String:
+	return LocalizationManager.translate("CELL_COORD") % [SudokuBoard.CELL_ROW[idx] + 1, SudokuBoard.CELL_COL[idx] + 1]
+
+## An explanation key and its values as text in the language on screen
+static func describe(key: String, args: Array) -> String:
+	var values: Array = []
+	for a in args:
+		if a is Dictionary and a.has("cell"):
+			values.append(format_cell(a["cell"]))
+		elif a is Dictionary and a.has("unit"):
+			values.append(get_unit_name(a["unit"]))
+		elif a is Dictionary and a.has("digits"):
+			values.append(", ".join(a["digits"].map(func(d): return str(d))))
+		else:
+			values.append(a)
+	var fmt := LocalizationManager.translate(key)
+	return fmt % values if not values.is_empty() else fmt
 
 static func _pick_best_single_step(steps: Array[SolveStep], board: SudokuBoard, focus_cell: int) -> SolveStep:
 	var best_step: SolveStep = null
@@ -329,27 +330,6 @@ static func _pick_best_single_step(steps: Array[SolveStep], board: SudokuBoard, 
 			best_step = step
 
 	return best_step
-
-static func _localize_step_explanation(step: SolveStep, is_tr: bool) -> void:
-	if is_tr:
-		return
-	match step.technique:
-		"Locked Candidates":
-			step.explanation = "Locked Candidates: Candidates are aligned in a house, eliminating candidates from aligned peers."
-		"Naked Pair":
-			step.explanation = "Naked Pair: Two cells share two candidates, eliminating them from other cells in the house."
-		"Hidden Pair":
-			step.explanation = "Hidden Pair: Two digits can only go in two cells, eliminating all other candidates in those cells."
-		"Naked Triple":
-			step.explanation = "Naked Triple: Three cells share three candidates, eliminating them from other cells in the house."
-		"Hidden Triple":
-			step.explanation = "Hidden Triple: Three digits can only go in three cells, eliminating other candidates."
-		"X-Wing":
-			step.explanation = "X-Wing: Four cells form a rectangle sharing candidates, eliminating them from intersecting houses."
-		"Swordfish":
-			step.explanation = "Swordfish: Candidates across three houses align to eliminate peer candidates."
-		"XY-Wing", "XYZ-Wing":
-			step.explanation = "%s: Intersecting bi-value and tri-value cells eliminate candidates from shared peers." % step.technique
 
 ## Finds the next logical human deduction step
 static func find_next_step(board: SudokuBoard) -> SolveStep:
@@ -490,7 +470,7 @@ static func get_full_step_by_step_solution(board: SudokuBoard) -> Dictionary:
 					fallback_step.difficulty_weight = 3
 					fallback_step.cells = [idx]
 					fallback_step.digit = target_val
-					fallback_step.explanation = "%s hücresi için olası adaylar elendiğinde %d sayısı tek geçerli çözüm olmaktadır." % [_format_coord(idx), target_val]
+					fallback_step.set_text("EXPL_DEDUCTION", [{"cell": idx}, target_val])
 					steps.append(fallback_step)
 
 					working.set_cell(idx, target_val, false)
@@ -507,11 +487,6 @@ static func get_full_step_by_step_solution(board: SudokuBoard) -> Dictionary:
 
 # --- Technique Implementations ---
 
-static func _format_coord(idx: int) -> String:
-	var r: int = SudokuBoard.CELL_ROW[idx] + 1
-	var c: int = SudokuBoard.CELL_COL[idx] + 1
-	return "R%dC%d" % [r, c]
-
 static func _find_naked_single(board: SudokuBoard) -> SolveStep:
 	for idx in range(SudokuBoard.CELL_COUNT):
 		if board.get_cell(idx) == 0:
@@ -523,12 +498,13 @@ static func _find_naked_single(board: SudokuBoard) -> SolveStep:
 				step.difficulty_weight = 1
 				step.cells = [idx]
 				step.digit = cands[0]
-				step.explanation = "%s hücresinde kalan tek aday %d." % [_format_coord(idx), step.digit]
+				step.set_text("EXPL_NAKED_SINGLE", [{"cell": idx}, step.digit])
 				return step
 	return null
 
 static func _find_hidden_single(board: SudokuBoard) -> SolveStep:
-	for unit in ALL_UNITS:
+	for u_idx in range(ALL_UNITS.size()):
+		var unit: Array = ALL_UNITS[u_idx]
 		for d in range(1, 10):
 			var matching_cells: Array[int] = []
 			for idx in unit:
@@ -542,7 +518,8 @@ static func _find_hidden_single(board: SudokuBoard) -> SolveStep:
 				step.difficulty_weight = 2
 				step.cells = [target_idx]
 				step.digit = d
-				step.explanation = "%s hücresi bulunduğu bölgede %d sayısının gelebileceği tek yer." % [_format_coord(target_idx), d]
+				step.focus_unit = u_idx
+				step.set_text("EXPL_HIDDEN_SINGLE", [{"unit": u_idx}, d, {"cell": target_idx}])
 				return step
 	return null
 
@@ -580,7 +557,7 @@ static func _find_locked_candidates(board: SudokuBoard) -> SolveStep:
 						step.difficulty_weight = 3
 						step.cells = in_box
 						step.eliminations = elims
-						step.explanation = "Kutu %d içindeki %d adayları tek bir satıra hizalandığı için satırın geri kalanından silinir (Pointing)." % [b + 1, d]
+						step.set_text("EXPL_POINTING_ROW", [{"unit": 18 + b}, d, d])
 						return step
 
 				if same_col:
@@ -595,7 +572,7 @@ static func _find_locked_candidates(board: SudokuBoard) -> SolveStep:
 						step.difficulty_weight = 3
 						step.cells = in_box
 						step.eliminations = elims
-						step.explanation = "Kutu %d içindeki %d adayları tek bir sütuna hizalandığı için sütunun geri kalanından silinir (Pointing)." % [b + 1, d]
+						step.set_text("EXPL_POINTING_COL", [{"unit": 18 + b}, d, d])
 						return step
 
 	# Type 2: Claiming (Row/Col -> Box)
@@ -625,7 +602,7 @@ static func _find_locked_candidates(board: SudokuBoard) -> SolveStep:
 						step.difficulty_weight = 3
 						step.cells = in_row
 						step.eliminations = elims
-						step.explanation = "Satır %d içindeki %d adayları tek bir kutuda toplandığı için o kutudaki diğer hücrelerden silinir (Claiming)." % [r + 1, d]
+						step.set_text("EXPL_CLAIMING", [{"unit": r}, d, d])
 						return step
 
 	for c in range(SudokuBoard.SIZE):
@@ -654,7 +631,7 @@ static func _find_locked_candidates(board: SudokuBoard) -> SolveStep:
 						step.difficulty_weight = 3
 						step.cells = in_col
 						step.eliminations = elims
-						step.explanation = "Sütun %d içindeki %d adayları tek bir kutuda toplandığı için o kutudaki diğer hücrelerden silinir (Claiming)." % [c + 1, d]
+						step.set_text("EXPL_CLAIMING", [{"unit": 9 + c}, d, d])
 						return step
 
 	return null
@@ -690,9 +667,7 @@ static func _find_naked_pairs(board: SudokuBoard) -> SolveStep:
 						step.difficulty_weight = 4
 						step.cells = [idx1, idx2]
 						step.eliminations = elims
-						step.explanation = "%s ve %s hücreleri {%d, %d} adaylarını paylaştığı için bölgenin diğer hücrelerinden elenir." % [
-							_format_coord(idx1), _format_coord(idx2), cands[0], cands[1]
-						]
+						step.set_text("EXPL_NAKED_PAIR", [{"cell": idx1}, {"cell": idx2}, cands[0], cands[1]])
 						return step
 	return null
 
@@ -740,9 +715,7 @@ static func _find_hidden_pairs(board: SudokuBoard) -> SolveStep:
 						step.difficulty_weight = 5
 						step.cells = [idx1, idx2]
 						step.eliminations = elims
-						step.explanation = "{%d, %d} sayıları bu bölgede sadece %s ve %s hücrelerinde olabileceğinden diğer adaylar silinir." % [
-							d1, d2, _format_coord(idx1), _format_coord(idx2)
-						]
+						step.set_text("EXPL_HIDDEN_PAIR", [d1, d2, {"cell": idx1}, {"cell": idx2}])
 						return step
 	return null
 
@@ -786,9 +759,7 @@ static func _find_naked_triples(board: SudokuBoard) -> SolveStep:
 							step.difficulty_weight = 6
 							step.cells = [idx1, idx2, idx3]
 							step.eliminations = elims
-							step.explanation = "%s, %s ve %s hücreleri üç adayı {%s} kilitlediğinden diğer hücrelerden çıkarılır." % [
-								_format_coord(idx1), _format_coord(idx2), _format_coord(idx3), str(triple_cands)
-							]
+							step.set_text("EXPL_NAKED_TRIPLE", [{"cell": idx1}, {"cell": idx2}, {"cell": idx3}, {"digits": triple_cands}])
 							return step
 	return null
 
@@ -840,7 +811,7 @@ static func _find_hidden_triples(board: SudokuBoard) -> SolveStep:
 							step.difficulty_weight = 7
 							step.cells = cells_list
 							step.eliminations = elims
-							step.explanation = "{%d, %d, %d} sayıları bu bölgede sadece 3 hücrede bulunabildiği için diğer adaylar elenir." % [d1, d2, d3]
+							step.set_text("EXPL_HIDDEN_TRIPLE", [d1, d2, d3])
 							return step
 	return null
 
@@ -888,9 +859,7 @@ static func _find_x_wing(board: SudokuBoard) -> SolveStep:
 							SudokuBoard.get_index(r2, colA), SudokuBoard.get_index(r2, colB)
 						]
 						step.eliminations = elims
-						step.explanation = "Satır %d ve %d üzerindeki %d adayları X-Wing oluşturduğu için sütun %d ve %d'deki diğer adaylar silinir." % [
-							r1 + 1, r2 + 1, d, colA + 1, colB + 1
-						]
+						step.set_text("EXPL_X_WING_ROWS", [d, r1 + 1, r2 + 1, d, colA + 1, colB + 1])
 						return step
 
 	# Column-based X-Wing
@@ -936,9 +905,7 @@ static func _find_x_wing(board: SudokuBoard) -> SolveStep:
 							SudokuBoard.get_index(rowB, c1), SudokuBoard.get_index(rowB, c2)
 						]
 						step.eliminations = elims
-						step.explanation = "Sütun %d ve %d üzerindeki %d adayları X-Wing oluşturduğu için satır %d ve %d'deki diğer adaylar silinir." % [
-							c1 + 1, c2 + 1, d, rowA + 1, rowB + 1
-						]
+						step.set_text("EXPL_X_WING_COLS", [d, c1 + 1, c2 + 1, d, rowA + 1, rowB + 1])
 						return step
 
 	return null
@@ -988,9 +955,7 @@ static func _find_xy_wing(board: SudokuBoard) -> SolveStep:
 						step.difficulty_weight = 9
 						step.cells = [pivot, px, py]
 						step.eliminations = elims
-						step.explanation = "%s (pivot), %s ve %s (kanatlar) ile XY-Wing oluşturarak ortak komşulardaki %d adayını eler." % [
-							_format_coord(pivot), _format_coord(px), _format_coord(py), z_cand
-						]
+						step.set_text("EXPL_XY_WING", [{"cell": pivot}, {"cell": px}, {"cell": py}, z_cand])
 						return step
 	return null
 
@@ -1054,7 +1019,7 @@ static func _find_xyz_wing(board: SudokuBoard) -> SolveStep:
 						step.difficulty_weight = 10
 						step.cells = [pivot, p1, p2]
 						step.eliminations = elims
-						step.explanation = "%s pivotu ile XYZ-Wing kuruldu, ortak hücrelerdeki %d elendi." % [_format_coord(pivot), z_cand]
+						step.set_text("EXPL_XYZ_WING", [{"cell": pivot}, z_cand])
 						return step
 
 	return null
@@ -1105,9 +1070,7 @@ static func _find_swordfish(board: SudokuBoard) -> SolveStep:
 							step.category = "Advanced"
 							step.difficulty_weight = 10
 							step.eliminations = elims
-							step.explanation = "Satır %d, %d ve %d üzerinde %d sayısı Swordfish oluşturduğundan ilgili sütunlardaki diğer adaylar elenir." % [
-								r1 + 1, r2 + 1, r3 + 1, d
-							]
+							step.set_text("EXPL_SWORDFISH", [d, r1 + 1, r2 + 1, r3 + 1])
 							return step
 
 	return null

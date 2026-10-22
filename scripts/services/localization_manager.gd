@@ -63,11 +63,33 @@ static var DICTIONARY_EN: Dictionary = {
 	"TOAST_SAVE_COPIED": "Game copied. Open it on another device with Import.",
 	"HINT_DIALOG_TITLE": "Hint",
 	"HINT_APPLY_MOVE": "Apply Move",
+	"CELL_COORD": "R%dC%d",
+	"UNIT_ROW": "Row %d",
+	"UNIT_COL": "Column %d",
+	"UNIT_BOX": "Box %d",
+	"EXPL_FULL_HOUSE": "%s already has 8 digits; its last empty cell, %s, can only be %d.",
+	"EXPL_NAKED_SINGLE": "Looking at the row, column and box of %s, the only digit it can take is %d.",
+	"EXPL_HIDDEN_SINGLE": "In %s, the digit %d fits in only one cell: %s.",
+	"EXPL_DIRECT": "No standard technique applies to the board right now. The solution for %s is %d.",
+	"EXPL_DEDUCTION": "Once the other candidates for %s are ruled out, %d is the only value left.",
+	"EXPL_POINTING_ROW": "In %s, the digit %d can only go in one row, so %d is removed from the rest of that row.",
+	"EXPL_POINTING_COL": "In %s, the digit %d can only go in one column, so %d is removed from the rest of that column.",
+	"EXPL_CLAIMING": "In %s, the digit %d can only go in one box, so %d is removed from that box's other cells.",
+	"EXPL_NAKED_PAIR": "%s and %s can only hold {%d, %d}, so these two digits are removed from the other cells they share a row, column or box with.",
+	"EXPL_HIDDEN_PAIR": "In this area {%d, %d} can only go in %s and %s, so the other candidates in those two cells are removed.",
+	"EXPL_NAKED_TRIPLE": "%s, %s and %s only hold {%s} between them, so these digits are removed from the area's other cells.",
+	"EXPL_HIDDEN_TRIPLE": "In this area {%d, %d, %d} can only go in three cells, so the other candidates in those cells are removed.",
+	"EXPL_X_WING_ROWS": "The %d candidates in rows %d and %d form an X-Wing, so %d is removed from the rest of columns %d and %d.",
+	"EXPL_X_WING_COLS": "The %d candidates in columns %d and %d form an X-Wing, so %d is removed from the rest of rows %d and %d.",
+	"EXPL_XY_WING": "%s (pivot) with %s and %s (wings) form an XY-Wing, so %d is removed from cells that see both wings.",
+	"EXPL_XYZ_WING": "With %s as the pivot, an XYZ-Wing removes %d from the cells that see all three.",
+	"EXPL_SWORDFISH": "The %d candidates in rows %d, %d and %d form a Swordfish, so the other candidates in those columns are removed.",
 	"HINT_FOCUS_TEXT": "Look closely at this area: %s. The next logical step is there.\n\nNeed more? The next level names the technique.",
 	"HINT_SHOW_TECHNIQUE": "Show Technique",
 	"WIN_DIALOG_TITLE": "Puzzle Solved!",
 	"CHECK_ALL_CORRECT": "All digits are correct.",
 	"CHECK_MISTAKES_FOUND": "%d wrong digits marked in red.",
+	"CHECK_MISTAKES_FOUND_ONE": "%d wrong digit marked in red.",
 	"NEW_GAME_TITLE": "New Game",
 	"LOADING_PUZZLE": "Preparing a %s puzzle…",
 	"SEED_LABEL": "Puzzle No. %d",
@@ -113,9 +135,11 @@ static var DICTIONARY_EN: Dictionary = {
 	"STAT_AVG_TIME": "Average Time",
 	"STAT_PERF_BY_DIFF": "Performance by Difficulty",
 	"STAT_GAMES_COUNT": "%d games completed",
+	"STAT_GAMES_COUNT_ONE": "%d game completed",
 	"STAT_AVG_MISTAKES": "Avg. Mistakes: %.1f",
 	"STAT_BEST_TIME": "Best Time: %s",
 	"STAT_DAYS": "%d Days",
+	"STAT_DAYS_ONE": "%d Day",
 	"HISTORY_TITLE": "History",
 	"HISTORY_DIFF_FILTER": "Difficulty",
 	"HISTORY_SORT_FILTER": "Sort",
@@ -197,18 +221,6 @@ static var DICTIONARY_EN: Dictionary = {
 	"SOLUTION_SUMMARY_GIVENS": "Starting digits: %d",
 	"SOLUTION_SUMMARY_SOLVED": "Solved cells: %d",
 	"SOLUTION_UNIQUE_VERIFIED": "Unique solution verified",
-	"TECHNIQUE_NAKED_SINGLE": "Naked Single",
-	"TECHNIQUE_HIDDEN_SINGLE": "Hidden Single",
-	"TECHNIQUE_LOCKED_CANDIDATES": "Locked Candidates",
-	"TECHNIQUE_NAKED_PAIR": "Naked Pair",
-	"TECHNIQUE_HIDDEN_PAIR": "Hidden Pair",
-	"TECHNIQUE_NAKED_TRIPLE": "Naked Triple",
-	"TECHNIQUE_HIDDEN_TRIPLE": "Hidden Triple",
-	"TECHNIQUE_X_WING": "X-Wing",
-	"TECHNIQUE_XY_WING": "XY-Wing",
-	"TECHNIQUE_XYZ_WING": "XYZ-Wing",
-	"TECHNIQUE_SWORDFISH": "Swordfish",
-	"TECHNIQUE_ADVANCED_DEDUCTION": "Advanced Deduction",
 	"BTN_MASTER_AGAIN": "Solve Again",
 	"BADGE_REPLAY": "Replay",
 	"HISTORY_STATUS_FILTER": "Status",
@@ -222,7 +234,7 @@ static var DICTIONARY_EN: Dictionary = {
 	"SETTING_DESC_CUSTOM_THEME": "Pick your own colors",
 	"SETTING_DESC_FONT": "Typography and digit style",
 	"SETTING_DESC_AUTO_OPEN": "Opens your unfinished game straight away",
-	"SETTING_DESC_SMART_NUMPAD": "Greys out digits that can't go in the selected cell",
+	"SETTING_DESC_SMART_NUMPAD": "Dims digits that can't go in the selected cell",
 	"SETTING_DESC_AUTO_NOTES": "Clears matching notes in the same row, column and box when you place a digit",
 	"SETTING_DESC_SMART_CANDIDATES": "Shows every valid candidate in empty cells",
 	"SETTING_DESC_SHOW_CONFLICTS": "Marks duplicate digits in red right away",
@@ -236,6 +248,7 @@ static var DICTIONARY_EN: Dictionary = {
 	"DAILY_SUBTITLE": "Daily handcrafted puzzle",
 	"DAILY_PREPARING": "Preparing…",
 	"DAILY_STREAK_FORMAT": "Streak: %d Days",
+	"DAILY_STREAK_FORMAT_ONE": "Streak: %d Day",
 	"SUBTITLE_CALM": "Calm, focused Sudoku",
 	"STATS_OVERVIEW": "Overview",
 	"STATS_BY_DIFFICULTY": "By Difficulty",
@@ -259,6 +272,7 @@ static var DICTIONARY_EN: Dictionary = {
 	"SHARE_INFO_SAVE": "Exported game (%s, time %s, progress %s).",
 	"SHARE_ERR_SAVE": "This exported game is damaged and can't be opened.",
 	"SHARE_ERR_CONFLICT": "This puzzle breaks the rules: a digit repeats in a row, column or box (%d conflicts).",
+	"SHARE_ERR_CONFLICT_ONE": "This puzzle breaks the rules: a digit repeats in a row, column or box (%d conflict).",
 	"SHARE_ERR_NO_UNIQUE": "This puzzle doesn't have exactly one solution.",
 	"SHARE_INFO_CODE": "Valid puzzle code (%s, difficulty score %d).",
 	"SHARE_INFO_SEED": "Puzzle No. %d (%s).",
@@ -329,6 +343,27 @@ static var DICTIONARY_TR: Dictionary = {
 	"TOAST_SAVE_COPIED": "Oyun kopyalandı. Başka bir cihazda İçe Aktar ile açabilirsin.",
 	"HINT_DIALOG_TITLE": "İpucu",
 	"HINT_APPLY_MOVE": "Hamleyi Uygula",
+	"CELL_COORD": "%d. satır %d. sütun",
+	"UNIT_ROW": "%d. satır",
+	"UNIT_COL": "%d. sütun",
+	"UNIT_BOX": "%d. kutu",
+	"EXPL_FULL_HOUSE": "%s içinde 8 rakam yerleşmiş; kalan son boş hücreye (%s) yalnızca %d gelebilir.",
+	"EXPL_NAKED_SINGLE": "%s hücresinin satırı, sütunu ve kutusu incelendiğinde yazılabilecek tek rakam %d.",
+	"EXPL_HIDDEN_SINGLE": "%s içinde %d sayısının gelebileceği tek yer %s hücresi.",
+	"EXPL_DIRECT": "Tahtanın şu anki durumunda standart bir teknik uygulanamıyor. %s hücresinin çözümü %d.",
+	"EXPL_DEDUCTION": "%s hücresi için diğer adaylar elendiğinde geriye kalan tek değer %d.",
+	"EXPL_POINTING_ROW": "%s içinde %d sayısı yalnızca tek bir satıra gelebiliyor; bu yüzden o satırın geri kalanından %d adayı silinir.",
+	"EXPL_POINTING_COL": "%s içinde %d sayısı yalnızca tek bir sütuna gelebiliyor; bu yüzden o sütunun geri kalanından %d adayı silinir.",
+	"EXPL_CLAIMING": "%s içinde %d sayısı yalnızca tek bir kutuya gelebiliyor; bu yüzden o kutunun diğer hücrelerinden %d adayı silinir.",
+	"EXPL_NAKED_PAIR": "%s ve %s hücrelerine yalnızca {%d, %d} gelebiliyor; bu iki sayı ortak satır, sütun ya da kutudaki diğer hücrelerden silinir.",
+	"EXPL_HIDDEN_PAIR": "Bu bölgede {%d, %d} yalnızca %s ve %s hücrelerine gelebiliyor; bu iki hücredeki diğer adaylar silinir.",
+	"EXPL_NAKED_TRIPLE": "%s, %s ve %s hücrelerine yalnızca {%s} gelebiliyor; bu sayılar bölgenin diğer hücrelerinden silinir.",
+	"EXPL_HIDDEN_TRIPLE": "Bu bölgede {%d, %d, %d} yalnızca üç hücreye gelebiliyor; o hücrelerdeki diğer adaylar silinir.",
+	"EXPL_X_WING_ROWS": "%d adayları %d. ve %d. satırda X-Wing oluşturuyor; bu yüzden %d adayı %d. ve %d. sütunların geri kalanından silinir.",
+	"EXPL_X_WING_COLS": "%d adayları %d. ve %d. sütunda X-Wing oluşturuyor; bu yüzden %d adayı %d. ve %d. satırların geri kalanından silinir.",
+	"EXPL_XY_WING": "%s (pivot) ile %s ve %s (kanatlar) XY-Wing oluşturuyor; iki kanadı da gören hücrelerden %d silinir.",
+	"EXPL_XYZ_WING": "%s hücresi pivot olan bir XYZ-Wing, üçünü de gören hücrelerden %d sayısını siler.",
+	"EXPL_SWORDFISH": "%d adayları %d., %d. ve %d. satırda Swordfish oluşturuyor; bu sütunlardaki diğer adaylar silinir.",
 	"HINT_FOCUS_TEXT": "Şu bölgeye dikkatlice bak: %s. Sıradaki mantıksal adım orada.\n\nDaha fazlası gerekirse sonraki kademe tekniği söyler.",
 	"HINT_SHOW_TECHNIQUE": "Tekniği Göster",
 	"WIN_DIALOG_TITLE": "Bulmaca Çözüldü!",
@@ -463,18 +498,6 @@ static var DICTIONARY_TR: Dictionary = {
 	"SOLUTION_SUMMARY_GIVENS": "Başlangıç rakamı: %d",
 	"SOLUTION_SUMMARY_SOLVED": "Çözülen hücre: %d",
 	"SOLUTION_UNIQUE_VERIFIED": "Tek çözüm doğrulandı",
-	"TECHNIQUE_NAKED_SINGLE": "Açık Tekli",
-	"TECHNIQUE_HIDDEN_SINGLE": "Gizli Tekli",
-	"TECHNIQUE_LOCKED_CANDIDATES": "Kilitli Adaylar",
-	"TECHNIQUE_NAKED_PAIR": "Açık İkili",
-	"TECHNIQUE_HIDDEN_PAIR": "Gizli İkili",
-	"TECHNIQUE_NAKED_TRIPLE": "Açık Üçlü",
-	"TECHNIQUE_HIDDEN_TRIPLE": "Gizli Üçlü",
-	"TECHNIQUE_X_WING": "X-Wing",
-	"TECHNIQUE_XY_WING": "XY-Wing",
-	"TECHNIQUE_XYZ_WING": "XYZ-Wing",
-	"TECHNIQUE_SWORDFISH": "Swordfish",
-	"TECHNIQUE_ADVANCED_DEDUCTION": "İleri Çıkarım",
 	"BTN_MASTER_AGAIN": "Yeniden Çöz",
 	"BADGE_REPLAY": "Tekrar",
 	"HISTORY_STATUS_FILTER": "Durum",
@@ -525,7 +548,7 @@ static var DICTIONARY_TR: Dictionary = {
 	"SHARE_INFO_SAVE": "Dışa aktarılmış oyun (%s, süre %s, ilerleme %s).",
 	"SHARE_ERR_SAVE": "Bu dışa aktarılmış oyun bozuk, açılamıyor.",
 	"SHARE_ERR_CONFLICT": "Bu bulmaca kurallara uymuyor: bir rakam satır, sütun ya da kutuda tekrar ediyor (%d çakışma).",
-	"SHARE_ERR_NO_UNIQUE": "Bu bulmacanın tek bir çözümü yok.",
+	"SHARE_ERR_NO_UNIQUE": "Bu bulmacanın tek ve kesin bir çözümü yok.",
 	"SHARE_INFO_CODE": "Geçerli bulmaca kodu (%s, zorluk puanı %d).",
 	"SHARE_INFO_SEED": "Bulmaca No. %d (%s).",
 	"SHARE_ERR_UNKNOWN": "Bu bir bulmaca numarası, bulmaca kodu ya da dışa aktarılmış oyun gibi görünmüyor.",
@@ -608,15 +631,16 @@ static func translate(key: String) -> String:
 	return key
 
 ## Translates Difficulty level string (e.g. "Easy" -> "Kolay" in TR, "Easy" in EN)
+## Any letter case, so older or imported records ("medium") read the same
 static func get_difficulty_name(diff_key: String) -> String:
-	match diff_key:
-		DifficultyAnalyzer.LEVEL_EASY, "Easy", "Kolay":
+	match diff_key.strip_edges().to_lower():
+		"easy", "kolay":
 			return translate("DIFF_EASY")
-		DifficultyAnalyzer.LEVEL_MEDIUM, "Medium", "Orta":
+		"medium", "orta":
 			return translate("DIFF_MEDIUM")
-		DifficultyAnalyzer.LEVEL_HARD, "Hard", "Zor":
+		"hard", "zor":
 			return translate("DIFF_HARD")
-		DifficultyAnalyzer.LEVEL_EXPERT, "Expert", "Uzman":
+		"expert", "uzman":
 			return translate("DIFF_EXPERT")
 		_:
 			return diff_key
@@ -656,15 +680,18 @@ static func get_technique_title(tech: String) -> String:
 ## GDD §44: UI number, percentage, and date/time formatting per locale
 ## "1 Day" / "5 Days" (Turkish has no plural form)
 static func format_days(count: int) -> String:
-	if current_locale == LOCALE_EN and count == 1:
-		return "1 Day"
-	return translate("STAT_DAYS") % count
+	return plural("STAT_DAYS", count)
 
 ## "Streak: 1 Day" / "Streak: 5 Days"
 static func format_streak(count: int) -> String:
-	if current_locale == LOCALE_EN and count == 1:
-		return "Streak: 1 Day"
-	return translate("DAILY_STREAK_FORMAT") % count
+	return plural("DAILY_STREAK_FORMAT", count)
+
+## "%d ..." text for a count: English uses the key's "_ONE" form for exactly one
+## ("1 game completed"); Turkish nouns stay singular after a number, so it has no such forms
+static func plural(key: String, count: int) -> String:
+	if current_locale == LOCALE_EN and absi(count) == 1 and DICTIONARY_EN.has(key + "_ONE"):
+		return translate(key + "_ONE") % count
+	return translate(key) % count
 
 ## Upper case for small section labels (overlines). Godot's to_upper() is not locale aware,
 ## so Turkish "i" would become "I" instead of "İ" ("En İyi" -> "EN İYI")
@@ -726,9 +753,4 @@ static func detect_system_locale() -> String:
 	return LOCALE_EN
 
 static func get_technique_name(raw_tech: String) -> String:
-	var key: String = "TECHNIQUE_" + raw_tech.to_upper().replace(" ", "_").replace("-", "_")
-	var t: String = translate(key)
-	if t != key:
-		return t
-	return raw_tech
-
+	return get_technique_title(raw_tech)
