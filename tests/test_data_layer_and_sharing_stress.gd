@@ -389,7 +389,7 @@ func test_dimension_7_malformed_and_invalid_data_safety() -> void:
 	var multi_str := multi_board.to_string_flat()
 	var res_multi := PuzzleShareService.parse_import_string(multi_str)
 	assert_true(res_multi.get("success", true) == false, "Çoklu Çözüm Emniyeti: Birden fazla çözümü olan bulmaca reddedildi")
-	assert_true(res_multi.get("error", "").contains("tek bir çözümü yok"), "Hata mesajı çoklu çözümü bildirdi")
+	assert_true(res_multi.get("error", "").contains("tek ve kesin bir çözümü yok"), "Hata mesajı çoklu çözümü bildirdi")
 
 # -----------------------------------------------------------------------------
 # Test İzolasyonu ve Veri Yedekleme / Geri Yükleme Yardımcıları

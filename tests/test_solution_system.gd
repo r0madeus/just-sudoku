@@ -90,6 +90,7 @@ func test_solve_step_formatting_and_coords() -> void:
 	step.digit = 8
 	step.explanation = "R4C7 is the only candidate in block."
 
+	LocalizationManager.set_locale("en")
 	assert_true(step.get_target_coord() == "R4C7", "Coordinate formatting R4C7 correct")
 	assert_true(step.get_formatted_coords() == "R4C7", "Formatted coords matches")
 
@@ -103,6 +104,7 @@ func test_solve_step_formatting_and_coords() -> void:
 	LocalizationManager.set_locale("tr")
 	var tr_tech := LocalizationManager.get_technique_name("Hidden Single")
 	assert_true(tr_tech == "Gizli Tekli", "TR technique name translated correctly (%s)" % tr_tech)
+	assert_true(step.get_target_coord() == "4. satır 7. sütun", "TR coordinate reads as row and column (%s)" % step.get_target_coord())
 
 	LocalizationManager.set_locale("en")
 	var en_tech := LocalizationManager.get_technique_name("Hidden Single")

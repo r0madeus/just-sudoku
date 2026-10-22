@@ -295,7 +295,7 @@ func refresh_stats() -> void:
 		header_hbox.add_child(d_lbl)
 
 		var count_lbl := Label.new()
-		count_lbl.text = LocalizationManager.translate("STAT_GAMES_COUNT") % count
+		count_lbl.text = LocalizationManager.plural("STAT_GAMES_COUNT", count)
 		count_lbl.theme_type_variation = "Caption"
 		count_lbl.add_theme_font_size_override("font_size", 12)
 		count_lbl.add_theme_color_override("font_color", text_sec)

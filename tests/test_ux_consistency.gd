@@ -71,7 +71,8 @@ func test_copy_follows_glossary() -> void:
 	print("\n--- Test 1: Copy follows the glossary (GDD §54) ---")
 	var en: Dictionary = LocalizationManager.DICTIONARY_EN
 	var tr: Dictionary = LocalizationManager.DICTIONARY_TR
-	var missing := en.keys().filter(func(k): return not tr.has(k)) + tr.keys().filter(func(k): return not en.has(k))
+	# English-only singular forms ("1 game") end in _ONE; Turkish nouns stay singular after a number
+	var missing := en.keys().filter(func(k): return not tr.has(k) and not k.ends_with("_ONE")) + tr.keys().filter(func(k): return not en.has(k))
 	assert_true(missing.is_empty(), "Both languages have the same keys %s" % str(missing))
 
 	var bad_ph := en.keys().filter(func(k): return tr.has(k) and _placeholders(en[k]) != _placeholders(tr[k]))

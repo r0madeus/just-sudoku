@@ -25,7 +25,7 @@ static var show_conflicts: bool = true
 static var show_wrong_immediately: bool = false
 
 ## Width of the dropdowns on the right of the setting rows
-const PICKER_WIDTH: float = 150.0
+const PICKER_WIDTH: float = 168.0
 static var animations_enabled: bool = true
 static var sounds_enabled: bool = true
 static var haptics_enabled: bool = true
