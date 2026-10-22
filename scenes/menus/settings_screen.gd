@@ -263,7 +263,7 @@ func _build_ui() -> void:
 	# Dil / Language
 	# The three pickers share one width so their left edges line up down the card
 	lang_option = OptionButton.new()
-	lang_option.custom_minimum_size = Vector2(PICKER_WIDTH, 38)
+	lang_option.custom_minimum_size = Vector2(PICKER_WIDTH, ResponsiveManager.HEIGHT_INPUT)
 	lang_option.clip_text = true
 	lang_option.fit_to_longest_item = false
 	lang_option.add_item("Türkçe")
@@ -279,7 +279,7 @@ func _build_ui() -> void:
 
 	# Görsel Tema / Visual Theme
 	theme_option = OptionButton.new()
-	theme_option.custom_minimum_size = Vector2(PICKER_WIDTH, 38)
+	theme_option.custom_minimum_size = Vector2(PICKER_WIDTH, ResponsiveManager.HEIGHT_INPUT)
 	theme_option.clip_text = true
 	theme_option.fit_to_longest_item = false
 	theme_option.add_item("Dark")
@@ -299,7 +299,7 @@ func _build_ui() -> void:
 
 	# Özel Tema / Custom Theme Editor
 	custom_theme_btn = Button.new()
-	custom_theme_btn.custom_minimum_size = Vector2(120, 38)
+	custom_theme_btn.custom_minimum_size = Vector2(120, ResponsiveManager.HEIGHT_INPUT)
 	custom_theme_btn.theme_type_variation = "CompactSecondaryButton"
 	custom_theme_btn.icon = ThemeManager.get_icon("palette")
 	custom_theme_btn.add_theme_constant_override("icon_max_width", 18)
@@ -314,7 +314,7 @@ func _build_ui() -> void:
 
 	# Yazı Tipi / Font Family
 	font_option = OptionButton.new()
-	font_option.custom_minimum_size = Vector2(PICKER_WIDTH, 38)
+	font_option.custom_minimum_size = Vector2(PICKER_WIDTH, ResponsiveManager.HEIGHT_INPUT)
 	font_option.clip_text = true
 	font_option.fit_to_longest_item = false
 	font_option.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS

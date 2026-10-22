@@ -349,21 +349,26 @@ func _run() -> void:
 	app = load("res://scenes/app_root.tscn").instantiate()
 	root.add_child(app)
 	await _frames(10)
-	var order: Array = ["en", "tr"]
+	# Then again on a 360 x 640 dp phone, the narrowest and shortest layout the game supports
+	var passes: Array = [["en", false], ["tr", false], ["tr", true], ["en", true]]
 	var fonts: Array = [FontManager.FONT_MODERN_SANS, FontManager.FONT_ROUNDED_SANS, FontManager.FONT_CLASSIC_SERIF]
 	var i := 0
-	for loc in order:
+	for p in passes:
+		var loc: String = p[0]
+		if p[1]:
+			ResponsiveManager.apply_device_scaling(root, root.size.x / 360.0)
+			await _frames(4)
 		# Switch through Settings like a player would
 		app._show_screen(app.settings_screen)
 		await _frames(3)
 		app.settings_screen.lang_option.selected = 0 if loc == "tr" else 1
 		app.settings_screen._on_language_selected(0 if loc == "tr" else 1)
 		FontManager.set_font(fonts[i % fonts.size()])
-		print("  … %s with %s" % [loc, fonts[i % fonts.size()]])
+		print("  … %s with %s at %s" % [loc, fonts[i % fonts.size()], str(app.size)])
 		i += 1
 		app._show_screen(app.main_menu)
 		await _tour(loc)
-	assert_true(issues.is_empty(), "No text problems on any screen in either language")
+	assert_true(issues.is_empty(), "No text problems on any screen in either language, on a regular and a small phone")
 	print("========================================")
 	print("🏁 RESULTS: %d Passed, %d Failed" % [tests_passed, tests_failed])
 	print("========================================")

@@ -29,12 +29,12 @@ func _init() -> void:
 	super()
 	# Light chrome glass: capsule, soft shadow, tight padding
 	elevated = false
-	corner_radius = 23.0
+	corner_radius = 26.0
 	pad_h = 12
 	pad_v = 4
 	shadow_size = 10
 	shadow_offset = Vector2(0, 3)
-	custom_minimum_size = Vector2(310, 46)
+	custom_minimum_size = Vector2(310, ResponsiveManager.HEIGHT_ACTION_DOCK)
 	size_flags_horizontal = SIZE_SHRINK_CENTER
 	_build_ui()
 	_update_locale_texts()
@@ -52,7 +52,7 @@ func _exit_tree() -> void:
 
 func _build_ui() -> void:
 	action_bar = HBoxContainer.new()
-	action_bar.custom_minimum_size = Vector2(0, 36)
+	action_bar.custom_minimum_size = Vector2(0, ResponsiveManager.TOUCH_TARGET_MIN)
 	action_bar.size_flags_horizontal = SIZE_EXPAND_FILL
 	action_bar.alignment = BoxContainer.ALIGNMENT_CENTER
 	action_bar.add_theme_constant_override("separation", ThemeManager.SPACE_SM)
@@ -62,7 +62,7 @@ func _build_ui() -> void:
 	undo_btn = Button.new()
 	undo_btn.size_flags_horizontal = SIZE_EXPAND_FILL
 	undo_btn.size_flags_vertical = SIZE_EXPAND_FILL
-	undo_btn.custom_minimum_size = Vector2(64, 36)
+	undo_btn.custom_minimum_size = Vector2(64, ResponsiveManager.TOUCH_TARGET_MIN)
 	undo_btn.theme_type_variation = "GhostButton"
 	undo_btn.icon = ThemeManager.get_icon("undo")
 	undo_btn.add_theme_constant_override("icon_max_width", 18)
@@ -75,7 +75,7 @@ func _build_ui() -> void:
 	redo_btn = Button.new()
 	redo_btn.size_flags_horizontal = SIZE_EXPAND_FILL
 	redo_btn.size_flags_vertical = SIZE_EXPAND_FILL
-	redo_btn.custom_minimum_size = Vector2(64, 36)
+	redo_btn.custom_minimum_size = Vector2(64, ResponsiveManager.TOUCH_TARGET_MIN)
 	redo_btn.theme_type_variation = "GhostButton"
 	redo_btn.icon = ThemeManager.get_icon("redo")
 	redo_btn.add_theme_constant_override("icon_max_width", 18)
@@ -88,7 +88,7 @@ func _build_ui() -> void:
 	notes_btn = Button.new()
 	notes_btn.size_flags_horizontal = SIZE_EXPAND_FILL
 	notes_btn.size_flags_vertical = SIZE_EXPAND_FILL
-	notes_btn.custom_minimum_size = Vector2(68, 36)
+	notes_btn.custom_minimum_size = Vector2(68, ResponsiveManager.TOUCH_TARGET_MIN)
 	notes_btn.theme_type_variation = "GhostButton"
 	notes_btn.add_theme_font_size_override("font_size", 14)
 	notes_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
@@ -101,7 +101,7 @@ func _build_ui() -> void:
 	# 3b. Fill Notes (notes mode only)
 	fill_notes_btn = Button.new()
 	fill_notes_btn.size_flags_vertical = SIZE_EXPAND_FILL
-	fill_notes_btn.custom_minimum_size = Vector2(40, 36)
+	fill_notes_btn.custom_minimum_size = Vector2(ResponsiveManager.TOUCH_TARGET_MIN, ResponsiveManager.TOUCH_TARGET_MIN)
 	fill_notes_btn.theme_type_variation = "GhostButton"
 	fill_notes_btn.icon = ThemeManager.get_icon("grid-3x3")
 	fill_notes_btn.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -115,7 +115,7 @@ func _build_ui() -> void:
 	hint_btn = Button.new()
 	hint_btn.size_flags_horizontal = SIZE_EXPAND_FILL
 	hint_btn.size_flags_vertical = SIZE_EXPAND_FILL
-	hint_btn.custom_minimum_size = Vector2(64, 36)
+	hint_btn.custom_minimum_size = Vector2(64, ResponsiveManager.TOUCH_TARGET_MIN)
 	hint_btn.theme_type_variation = "GhostButton"
 	hint_btn.icon = ThemeManager.get_icon("lightbulb")
 	hint_btn.add_theme_constant_override("icon_max_width", 18)

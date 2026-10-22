@@ -440,10 +440,10 @@ static func get_icon_sized(icon_name: String, px: int) -> Texture2D:
 # Control Heights (Touch ergonomics with precision feel)
 const HEIGHT_TOUCH_MIN: int = 44
 const HEIGHT_BUTTON_PRIMARY: int = 44
-const HEIGHT_BUTTON_SECONDARY: int = 40
+const HEIGHT_BUTTON_SECONDARY: int = 44
 const HEIGHT_BUTTON_COMPACT: int = 32
 const HEIGHT_DOCK: int = 38
-const HEIGHT_SEGMENT: int = 34
+const HEIGHT_SEGMENT: int = 44
 
 # Shadows (Minimal, controlled)
 const SHADOW_SIZE_NONE: int = 0

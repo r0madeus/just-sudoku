@@ -18,6 +18,8 @@ var picker_buttons: Dictionary = {}
 var field_labels: Dictionary = {}
 var preset_prompt_label: Label
 var preset_buttons: Array[Button] = []
+var picker_scroll: ScrollContainer
+var picker_list: VBoxContainer
 var group_board_lbl: Label
 var group_numbers_lbl: Label
 
@@ -148,8 +150,10 @@ func _build_ui() -> void:
 	preset_prompt_label.theme_type_variation = "Caption"
 	preset_vbox.add_child(preset_prompt_label)
 
-	var preset_row := HBoxContainer.new()
-	preset_row.add_theme_constant_override("separation", 4)
+	# Wraps to a second line when the names do not fit, so each preset stays a full-size target
+	var preset_row := HFlowContainer.new()
+	preset_row.add_theme_constant_override("h_separation", 6)
+	preset_row.add_theme_constant_override("v_separation", 6)
 	preset_vbox.add_child(preset_row)
 
 	preset_buttons.clear()
@@ -165,9 +169,9 @@ func _build_ui() -> void:
 		btn.text = p_name
 		btn.set_meta("preset", p_name)
 		btn.size_flags_horizontal = SIZE_EXPAND_FILL
-		btn.custom_minimum_size = Vector2(0, 28)
+		btn.custom_minimum_size = Vector2(0, ResponsiveManager.TOUCH_TARGET_MIN)
 		btn.theme_type_variation = "SegmentButton"
-		btn.add_theme_font_size_override("font_size", 11)
+		btn.add_theme_font_size_override("font_size", ThemeManager.FONT_SIZE_SUBTITLE)
 		btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 		btn.pressed.connect(func(): _copy_preset(p_name))
 		preset_row.add_child(btn)
@@ -178,19 +182,16 @@ func _build_ui() -> void:
 	scroll.custom_minimum_size = Vector2(0, 160)
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	picker_scroll = scroll
 	body_vbox.add_child(scroll)
 
 	var pickers_vbox := VBoxContainer.new()
 	pickers_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	pickers_vbox.add_theme_constant_override("separation", 10)
 	scroll.add_child(pickers_vbox)
-	# Tall enough for every picker, so the last row is never cut off by a hidden scroll edge;
-	# only a short screen caps it (and then it scrolls)
-	pickers_vbox.minimum_size_changed.connect(func():
-		var cap: float = get_viewport_rect().size.y * 0.4 if is_inside_tree() else 400.0
-		scroll.custom_minimum_size.y = minf(pickers_vbox.get_combined_minimum_size().y, maxf(160.0, cap))
-	)
+	picker_list = pickers_vbox
+	pickers_vbox.minimum_size_changed.connect(_fit_picker_scroll)
 
 	# Group 1: Board & Surfaces
 	group_board_lbl = Label.new()
@@ -243,7 +244,7 @@ func _add_picker_row(parent: Control, key: String) -> void:
 	field_labels[key] = lbl
 
 	var cpb := ColorPickerButton.new()
-	cpb.custom_minimum_size = Vector2(48, 30)
+	cpb.custom_minimum_size = Vector2(52, ResponsiveManager.TOUCH_TARGET_MIN)
 	cpb.edit_alpha = false
 	# The swatch is drawn inside the stylebox margins; the theme's pill buttons have wide ones,
 	# which squeezed the colour into a thin bar. A small rounded frame shows it whole.
@@ -263,6 +264,21 @@ func open_dialog() -> void:
 			picker_buttons[key].color = _working_palette.get(key, Color.WHITE)
 	_refresh_preview()
 	open_modal()
+	_fit_picker_scroll.call_deferred()
+
+func _apply_responsive_layout() -> void:
+	super()
+	_fit_picker_scroll.call_deferred()
+
+## Tall enough for every picker, so the last row is never cut off by a scroll edge, but never
+## taller than the room the rest of the dialog leaves on screen; on a short phone it scrolls
+func _fit_picker_scroll() -> void:
+	if picker_scroll == null or picker_list == null or modal_panel == null:
+		return
+	var vp_h: float = get_viewport_rect().size.y if is_inside_tree() else ResponsiveManager.BASE_HEIGHT
+	var others: float = modal_panel.get_combined_minimum_size().y - picker_scroll.custom_minimum_size.y
+	var room: float = vp_h - 2.0 * ThemeManager.SPACE_LG - others
+	picker_scroll.custom_minimum_size.y = minf(picker_list.get_combined_minimum_size().y, maxf(120.0, room))
 
 func _copy_preset(preset_name: String) -> void:
 	if ThemeManager.PALETTES.has(preset_name):

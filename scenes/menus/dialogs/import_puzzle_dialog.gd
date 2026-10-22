@@ -62,7 +62,7 @@ func _build_import_ui() -> void:
 	paste_btn.icon = ThemeManager.get_icon("download")
 	paste_btn.add_theme_constant_override("icon_max_width", 16)
 	paste_btn.add_theme_font_size_override("font_size", 13)
-	paste_btn.custom_minimum_size = Vector2(0, 34)
+	paste_btn.custom_minimum_size = Vector2(0, ResponsiveManager.TOUCH_TARGET_MIN)
 	paste_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	paste_btn.pressed.connect(_on_paste_pressed)
 	action_row.add_child(paste_btn)
@@ -72,22 +72,20 @@ func _build_import_ui() -> void:
 	clear_btn.icon = ThemeManager.get_icon("x")
 	clear_btn.add_theme_constant_override("icon_max_width", 14)
 	clear_btn.add_theme_font_size_override("font_size", 13)
-	clear_btn.custom_minimum_size = Vector2(0, 34)
+	clear_btn.custom_minimum_size = Vector2(0, ResponsiveManager.TOUCH_TARGET_MIN)
 	clear_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	clear_btn.pressed.connect(func(): input_edit.text = ""; _validate_input())
 	action_row.add_child(clear_btn)
 
-	var row_spacer := Control.new()
-	row_spacer.size_flags_horizontal = SIZE_EXPAND_FILL
-	action_row.add_child(row_spacer)
-
+	# Difficulty on its own line: next to the paste buttons it no longer fits a phone-width dialog
 	diff_row = HBoxContainer.new()
 	diff_row.add_theme_constant_override("separation", 6)
-	action_row.add_child(diff_row)
+	body_vbox.add_child(diff_row)
 
 	d_lbl = Label.new()
 	d_lbl.theme_type_variation = "Caption"
-	d_lbl.add_theme_font_size_override("font_size", 12)
+	d_lbl.add_theme_font_size_override("font_size", 13)
+	d_lbl.size_flags_horizontal = SIZE_EXPAND_FILL
 	diff_row.add_child(d_lbl)
 
 	diff_option = OptionButton.new()
@@ -97,8 +95,8 @@ func _build_import_ui() -> void:
 	diff_option.add_item(DifficultyAnalyzer.LEVEL_EXPERT)
 	diff_option.selected = 1 # Medium default
 	diff_option.theme_type_variation = "SecondaryButton"
-	diff_option.add_theme_font_size_override("font_size", 12)
-	diff_option.custom_minimum_size = Vector2(0, 34)
+	diff_option.add_theme_font_size_override("font_size", 13)
+	diff_option.custom_minimum_size = Vector2(140, ResponsiveManager.HEIGHT_INPUT)
 	diff_option.item_selected.connect(func(_i): _validate_input())
 	diff_row.add_child(diff_option)
 

@@ -66,7 +66,7 @@ func _run() -> void:
 	root.add_child(dock)
 	await _frames()
 	_check(dock is GlassPanel and dock.glass_rect != null, "GameActionDock is a GlassPanel with a glass layer")
-	_check(is_equal_approx(dock.corner_radius, 23.0) and not dock.elevated, "Dock uses the light capsule glass settings")
+	_check(is_equal_approx(dock.corner_radius, 26.0) and not dock.elevated, "Dock uses the light capsule glass settings")
 
 	# Modals sit on glass; ambient replaces the scrim when requested
 	var modal := AppModal.new()

@@ -31,6 +31,7 @@ func _init() -> void:
 	_instantiate_screens()
 
 func _ready() -> void:
+	ResponsiveManager.apply_device_scaling(get_window())
 	set_anchors_preset(PRESET_FULL_RECT)
 	theme = ThemeManager.build_godot_theme()
 	if root_bg != null:

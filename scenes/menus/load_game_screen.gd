@@ -58,6 +58,20 @@ func _apply_responsive_layout() -> void:
 	if margin == null:
 		return
 	ResponsiveManager.apply_content_margins(self, margin, ResponsiveManager.MAX_CONTENT_WIDTH)
+	_update_import_label()
+
+## Narrower than this, Import shows only its icon so the title keeps its full width
+const IMPORT_LABEL_MIN_WIDTH: float = 400.0
+
+func _update_import_label() -> void:
+	if import_btn == null:
+		return
+	var label := LocalizationManager.translate("BTN_IMPORT")
+	var compact: bool = size.x > 0.0 and size.x < IMPORT_LABEL_MIN_WIDTH
+	import_btn.text = "" if compact else label
+	import_btn.tooltip_text = label
+	import_btn.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER if compact else HORIZONTAL_ALIGNMENT_LEFT
+	import_btn.custom_minimum_size.x = ResponsiveManager.TOUCH_TARGET_MIN if compact else 96.0
 
 func _on_theme_changed() -> void:
 	if bg != null:
@@ -111,7 +125,7 @@ func _build_ui() -> void:
 	import_btn.icon = ThemeManager.get_icon("download")
 	import_btn.add_theme_constant_override("icon_max_width", 18)
 	import_btn.add_theme_font_size_override("font_size", 14)
-	import_btn.custom_minimum_size = Vector2(96, 42)
+	import_btn.custom_minimum_size = Vector2(96, ResponsiveManager.TOUCH_TARGET_MIN)
 	import_btn.pressed.connect(func(): import_requested.emit())
 	header.add_child(import_btn)
 	ResponsiveManager.balance_header(header, title)
@@ -148,8 +162,8 @@ func _update_locale_texts() -> void:
 	if title != null:
 		title.text = LocalizationManager.translate("SAVED_GAMES_TITLE")
 	if import_btn != null:
-		import_btn.text = LocalizationManager.translate("BTN_IMPORT")
 		import_btn.icon = ThemeManager.get_icon("download")
+		_update_import_label()
 	if is_visible_in_tree():
 		refresh_list()
 	else:

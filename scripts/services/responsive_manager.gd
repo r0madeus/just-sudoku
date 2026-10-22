@@ -44,9 +44,9 @@ const HEIGHT_BUTTON_PRIMARY: float = 48.0
 const HEIGHT_BUTTON_SECONDARY: float = 44.0
 const HEIGHT_BUTTON_COMPACT: float = 36.0
 const HEIGHT_ROW_SETTING: float = 48.0
-const HEIGHT_ACTION_DOCK: float = 46.0
-const HEIGHT_INPUT: float = 38.0
-const HEIGHT_SEGMENT: float = 34.0
+const HEIGHT_ACTION_DOCK: float = 52.0
+const HEIGHT_INPUT: float = 44.0
+const HEIGHT_SEGMENT: float = 44.0
 
 # Typography Tokens
 const FONT_SIZE_HERO: int = 40
@@ -88,6 +88,39 @@ const MAX_MODAL_WIDTH: float = 380.0
 # =============================================================================
 # 3. VIEWPORT, SCALE FACTOR & DEVICE CATEGORY
 # =============================================================================
+## Device pixels per dp on phones and tablets (Android density bucket, iOS point scale);
+## 0 on desktop, which keeps the project's base size and is used with a mouse
+static func screen_density() -> float:
+	if OS.has_feature("android"):
+		return maxf(1.0, DisplayServer.screen_get_dpi() / 160.0)
+	if OS.has_feature("ios"):
+		return maxf(1.0, DisplayServer.screen_get_scale())
+	return 0.0
+
+## Lays the UI out in dp: 1 logical px = 1 dp on every phone and tablet, so a 44 px control
+## is a 44 dp touch target whatever the screen's shape. A fixed base size cannot do this: the
+## stretch scale comes from the tighter of width and height, so a 16:9 phone shrank the UI to
+## about 0.75 dp per px and a tablet blew it up to 2 dp per px.
+static func apply_device_scaling(window: Window, density: float = screen_density()) -> void:
+	if window == null or density <= 0.0:
+		return
+	window.set_meta(&"dp_density", density)
+	_fit_to_density(window)
+	# One listener per window (rotation, split screen); it reads the density stored above
+	if not window.has_meta(&"dp_listening"):
+		window.set_meta(&"dp_listening", true)
+		window.size_changed.connect(_fit_to_density.bind(window))
+
+static func _fit_to_density(window: Window) -> void:
+	var density: float = window.get_meta(&"dp_density", 0.0)
+	var px: Vector2i = window.size
+	if density <= 0.0 or px.x <= 0 or px.y <= 0:
+		return
+	var logical := Vector2i(roundi(px.x / density), roundi(px.y / density))
+	# Setting it re-emits size_changed, so only when it changes
+	if window.content_scale_size != logical:
+		window.content_scale_size = logical
+
 ## Resolves the actual viewport size from a control or root window
 static func get_viewport_size(node: Control = null) -> Vector2:
 	if node != null:
@@ -404,6 +437,8 @@ static func apply_game_layout(
 		numpad_h = 198.0
 	if numpad != null and numpad.has_method("set_compact_mode"):
 		numpad.set_compact_mode(is_compact)
+		# The pad's real height (keys, gaps and frame), so the board never pushes the bottom off screen
+		numpad_h = maxf(numpad_h, numpad.get_combined_minimum_size().y)
 
 	var header_h: float = 44.0
 	var non_grid_h: float = header_h + HEIGHT_ACTION_DOCK + numpad_h + 36.0 + float(top_margin + bottom_margin)
