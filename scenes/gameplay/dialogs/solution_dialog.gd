@@ -329,7 +329,8 @@ func set_step(idx: int) -> void:
 		for sec_idx in s.secondary_cells:
 			peer_cells.append(sec_idx)
 
-		step_coord_badge.text = (s.get_target_coord() + " → " + str(s.digit)) if s.digit != 0 else s.get_formatted_coords()
+		# "=": every bundled font has it (Nunito, the rounded one, has no arrow)
+		step_coord_badge.text = (s.get_target_coord() + " = " + str(s.digit)) if s.digit != 0 else s.get_formatted_coords()
 		step_tech_badge.text = "[" + LocalizationManager.get_technique_name(s.technique) + "]"
 		step_desc_label.text = s.explanation
 	else:
