@@ -148,7 +148,10 @@ func _apply_responsive_layout() -> void:
 func _fit_dock() -> void:
 	if action_dock == null:
 		return
-	var avail: float = ResponsiveManager.LANDSCAPE_SIDE_PANEL_W if _landscape else \
+	# Landscape: the side panel grows with the board, as the dock and number pad do
+	if _landscape and side_panel != null:
+		side_panel.custom_minimum_size.x = ResponsiveManager.LANDSCAPE_SIDE_PANEL_W * action_dock.size_scale
+	var avail: float = side_panel.custom_minimum_size.x if _landscape else \
 		ResponsiveManager.get_viewport_size(self).x - float(margin_container.get_theme_constant("margin_left") + margin_container.get_theme_constant("margin_right"))
 	action_dock.fit_to_width(maxf(avail, 120.0))
 
