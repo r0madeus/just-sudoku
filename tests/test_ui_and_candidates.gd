@@ -141,11 +141,12 @@ func _init() -> void:
 		return is_visible
 	)
 
-	run_test.call("Action Bar has exactly 4 responsive expanding buttons", func() -> bool:
+	run_test.call("Action Bar shows exactly 4 responsive expanding buttons outside notes mode", func() -> bool:
 		var screen := GameScreen.new()
 		root.add_child(screen)
 
-		var buttons: Array[Node] = screen.action_bar.get_children()
+		# Fill Notes is an extra icon button that only appears in notes mode
+		var buttons: Array[Node] = screen.action_bar.get_children().filter(func(b): return b.visible)
 		if buttons.size() != 4:
 			screen.queue_free()
 			return false

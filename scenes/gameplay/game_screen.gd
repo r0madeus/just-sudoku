@@ -21,6 +21,8 @@ signal settings_requested()
 
 var game_state: GameState
 var game_timer: GameTimer
+## smart_candidates_enabled as last applied to the board, to react only when it changes
+var _smart_candidates_applied: bool = false
 
 # UI Elements
 var bg: ColorRect
@@ -337,6 +339,7 @@ func _build_ui() -> void:
 	action_dock.redo_pressed.connect(_on_redo_pressed)
 	action_dock.notes_toggled.connect(_on_action_dock_notes_toggled)
 	action_dock.hint_pressed.connect(_on_hint_pressed)
+	action_dock.fill_notes_pressed.connect(_on_fill_notes_pressed)
 	dock_center.add_child(action_dock)
 
 	# Compatibility proxies & aliases
@@ -503,6 +506,9 @@ func setup_game(state: GameState) -> void:
 	if not game_state.units_completed.is_connected(_on_units_completed):
 		game_state.units_completed.connect(_on_units_completed)
 	sudoku_grid.set_hint_focus(-1)
+	_smart_candidates_applied = SettingsScreen.smart_candidates_enabled
+	if SettingsScreen.show_wrong_immediately:
+		game_state.check_board()
 
 	var diff_text := LocalizationManager.get_difficulty_name(game_state.difficulty)
 	if game_state.seed_value == DailyManager.get_today_seed():
@@ -516,20 +522,22 @@ func setup_game(state: GameState) -> void:
 		_hide_pause_overlay()
 	game_timer.start(game_state.elapsed_time)
 
-	# GDD §17: Candidate clutter check
-	if not SettingsScreen.smart_candidates_enabled:
-		game_state.current_board.clear_all_candidates()
-
 	sudoku_grid.refresh_all_cells()
 	_update_action_buttons()
 	sudoku_grid.select_cell(0)
 
 func _on_settings_changed() -> void:
 	if game_state != null and game_state.current_board != null:
-		if SettingsScreen.smart_candidates_enabled:
-			game_state.current_board.reset_candidates_from_grid()
-		else:
-			game_state.current_board.clear_all_candidates()
+		# Any setting saves and notifies; only a change of this one may rewrite the notes
+		if SettingsScreen.smart_candidates_enabled != _smart_candidates_applied:
+			_smart_candidates_applied = SettingsScreen.smart_candidates_enabled
+			if SettingsScreen.smart_candidates_enabled:
+				game_state.current_board.reset_candidates_from_grid()
+			else:
+				game_state.current_board.clear_all_candidates()
+		# Turning on "show wrong digits" reveals (and counts) the ones already on the board
+		if SettingsScreen.show_wrong_immediately and not game_state.is_completed:
+			game_state.check_board()
 		sudoku_grid.refresh_all_cells()
 		numpad.update_smart_states(game_state.current_board, sudoku_grid.selected_idx)
 
@@ -636,7 +644,7 @@ func _on_numpad_number_pressed(num: int) -> void:
 		var ok := game_state.set_number(idx, num, true)
 		if ok:
 			var conflicts := SudokuValidator.get_conflicts(game_state.current_board)
-			if conflicts.has(idx):
+			if conflicts.has(idx) or game_state.checked_wrong_indices.has(idx):
 				SoundManager.play_conflict()
 				Haptics.conflict()
 			else:
@@ -666,6 +674,13 @@ func _on_notes_toggle_pressed() -> void:
 		numpad.toggle_notes_mode()
 		notes_btn.text = LocalizationManager.translate("BTN_NOTES_ON") if numpad.is_notes_mode else LocalizationManager.translate("BTN_NOTES")
 		numpad.update_smart_states(game_state.current_board, sudoku_grid.selected_idx)
+
+func _on_fill_notes_pressed() -> void:
+	if game_state != null and game_state.fill_notes():
+		sudoku_grid.refresh_all_cells()
+		SoundManager.play_number_placed()
+		Haptics.tap()
+		_after_player_move()
 
 func _on_undo_pressed() -> void:
 	if game_state != null and game_state.undo():
@@ -1004,6 +1019,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		# Notes toggle
 		elif keycode == KEY_N:
 			_on_notes_toggle_pressed()
+			get_viewport().set_input_as_handled()
+		elif keycode == KEY_F:
+			_on_fill_notes_pressed()
 			get_viewport().set_input_as_handled()
 		# Undo / Redo
 		elif keycode == KEY_Z and event.ctrl_pressed:
