@@ -20,6 +20,10 @@ var title: Label
 var stats_vbox: VBoxContainer
 var _stats_dirty: bool = true
 
+## Set once _ready is done: every screen is still visible during it, before the app shows
+## only the menu, so lists are not built then
+var _started: bool = false
+
 func _init() -> void:
 	set_anchors_preset(PRESET_FULL_RECT)
 
@@ -30,6 +34,7 @@ func _ready() -> void:
 	_update_locale_texts()
 	LocalizationManager.add_listener(_update_locale_texts)
 	ThemeManager.add_listener(_on_theme_changed)
+	_started = true
 
 func _exit_tree() -> void:
 	LocalizationManager.remove_listener(_update_locale_texts)
@@ -120,7 +125,8 @@ func _update_locale_texts() -> void:
 		back_btn.icon = ThemeManager.get_icon("chevron-left")
 	if title != null:
 		title.text = LocalizationManager.translate("STATS_TITLE")
-	if is_visible_in_tree():
+	# Not from _ready: every screen is still visible then, before the app shows only the menu
+	if is_visible_in_tree() and _started:
 		refresh_stats()
 	else:
 		_stats_dirty = true

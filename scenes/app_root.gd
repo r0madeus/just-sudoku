@@ -117,22 +117,30 @@ func _instantiate_screens() -> void:
 	root_bg.color = ThemeManager.get_color("bg")
 	add_child(root_bg)
 
+	# Screens start hidden and _show_screen reveals one: a screen that believes it is on show
+	# builds its lists (when the language is set during start-up, for one)
 	main_menu = MainMenu.new()
+	main_menu.visible = false
 	add_child(main_menu)
 
 	game_screen = GameScreen.new()
+	game_screen.visible = false
 	add_child(game_screen)
 
 	load_game_screen = LoadGameScreen.new()
+	load_game_screen.visible = false
 	add_child(load_game_screen)
 
 	history_screen = HistoryScreen.new()
+	history_screen.visible = false
 	add_child(history_screen)
 
 	statistics_screen = StatisticsScreen.new()
+	statistics_screen.visible = false
 	add_child(statistics_screen)
 
 	settings_screen = SettingsScreen.new()
+	settings_screen.visible = false
 	add_child(settings_screen)
 
 	new_game_dialog = NewGameDialog.new()
@@ -150,8 +158,9 @@ func _connect_signals() -> void:
 	main_menu.new_game_requested.connect(func(): new_game_dialog.open_dialog())
 	main_menu.load_game_requested.connect(func(): load_game_screen.refresh_list(); _show_screen(load_game_screen))
 	main_menu.daily_sudoku_requested.connect(_on_daily_sudoku_requested)
-	main_menu.history_requested.connect(func(): _show_screen(history_screen); history_screen.refresh_history())
-	main_menu.statistics_requested.connect(func(): _show_screen(statistics_screen); statistics_screen.refresh_stats())
+	# Build before showing: showing first would build it twice (on becoming visible, then here)
+	main_menu.history_requested.connect(func(): history_screen.refresh_history(); _show_screen(history_screen))
+	main_menu.statistics_requested.connect(func(): statistics_screen.refresh_stats(); _show_screen(statistics_screen))
 	main_menu.settings_requested.connect(func():
 		_previous_screen_before_settings = main_menu
 		_show_screen(settings_screen)

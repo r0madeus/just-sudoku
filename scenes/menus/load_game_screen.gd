@@ -27,10 +27,13 @@ var _list_dirty: bool = true
 
 ## Cards built right away (enough to fill a screen); the rest follow a few per frame, so a long
 ## list of unfinished games no longer freezes the screen while it opens
-const FIRST_BATCH: int = 10
-const BATCH_PER_FRAME: int = 6
-## Bumped by every refresh, so a build still running for an older list stops
-var _build_id: int = 0
+## Rows per page: a phone screen shows about six, so the first page fills it with room to scroll
+const PAGE_SIZE: int = 15
+var _pager: ListPager
+
+## Set once _ready is done: every screen is still visible during it, before the app shows
+## only the menu, so lists are not built then
+var _started: bool = false
 
 func _init() -> void:
 	set_anchors_preset(PRESET_FULL_RECT)
@@ -42,6 +45,7 @@ func _ready() -> void:
 	_update_locale_texts()
 	LocalizationManager.add_listener(_update_locale_texts)
 	ThemeManager.add_listener(_on_theme_changed)
+	_started = true
 
 func _exit_tree() -> void:
 	LocalizationManager.remove_listener(_update_locale_texts)
@@ -139,6 +143,7 @@ func _build_ui() -> void:
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
 	root_vbox.add_child(scroll)
+	_pager = ListPager.new(scroll, PAGE_SIZE)
 
 	# Rows sit together in one card, like the groups in Settings (one glass surface per list)
 	var list_pad := MarginContainer.new()
@@ -164,14 +169,14 @@ func _update_locale_texts() -> void:
 	if import_btn != null:
 		import_btn.icon = ThemeManager.get_icon("download")
 		_update_import_label()
-	if is_visible_in_tree():
+	# Not from _ready: every screen is still visible then, before the app shows only the menu
+	if is_visible_in_tree() and _started:
 		refresh_list()
 	else:
 		_list_dirty = true
 
 func refresh_list() -> void:
 	_list_dirty = false
-	_build_id += 1
 	if list_vbox == null:
 		return
 	for c in list_vbox.get_children():
@@ -180,6 +185,7 @@ func refresh_list() -> void:
 
 	var games := SaveManager.list_active_games()
 	if games.is_empty():
+		_pager.start(0, Callable())
 		var empty_container := VBoxContainer.new()
 		empty_container.alignment = BoxContainer.ALIGNMENT_CENTER
 		empty_container.custom_minimum_size = Vector2(0, 160)
@@ -194,22 +200,7 @@ func refresh_list() -> void:
 		list_vbox.add_child(empty_container)
 		return
 
-	var first: int = mini(FIRST_BATCH, games.size())
-	for i in range(first):
-		_add_game_item(games[i])
-	if first < games.size():
-		_add_remaining_items(games, first, _build_id)
-
-func _add_remaining_items(games: Array[Dictionary], from: int, build_id: int) -> void:
-	var i: int = from
-	while i < games.size():
-		await get_tree().process_frame
-		if build_id != _build_id or not is_inside_tree():
-			return
-		var until: int = mini(i + BATCH_PER_FRAME, games.size())
-		while i < until:
-			_add_game_item(games[i])
-			i += 1
+	_pager.start(games.size(), func(i: int): _add_game_item(games[i]))
 
 func _add_game_item(g: Dictionary) -> void:
 	var item := GameRecordItem.new()

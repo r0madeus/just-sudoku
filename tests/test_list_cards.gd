@@ -163,6 +163,7 @@ func test_lists_sit_in_one_card() -> void:
 	await _frames(3)
 	saved.refresh_list()
 	history.refresh_history()
+	stats.refresh_stats()
 	await _frames(3)
 	assert_true(saved.list_card is GlassPanel and saved.list_vbox.get_parent() == saved.list_card, "Saved games rows are inside one card")
 	assert_true(history.list_card is GlassPanel and history.list_vbox.get_parent() == history.list_card, "History rows are inside one card")

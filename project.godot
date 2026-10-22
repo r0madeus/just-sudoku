@@ -12,6 +12,7 @@ config_version=5
 
 config/name="Just Sudoku"
 run/main_scene="res://scenes/app_root.tscn"
+run/low_processor_mode=true
 config/features=PackedStringArray("4.7", "Forward Plus")
 boot_splash/bg_color=Color(0, 0, 0, 1)
 boot_splash/show_image=false

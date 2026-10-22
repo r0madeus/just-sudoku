@@ -66,39 +66,49 @@ func _run() -> void:
 	print("========================================")
 	quit(1 if tests_failed > 0 else 0)
 
+func _scroll_to_end(scroll: ScrollContainer) -> void:
+	await _frames(2)
+	scroll.scroll_vertical = int(scroll.get_v_scroll_bar().max_value)
+	await _frames(3)
+
 func test_saved_games_list_builds_in_batches() -> void:
-	print("\n--- Test 1: Saved games list shows the first cards at once, the rest over frames ---")
-	for i in range(LoadGameScreen.FIRST_BATCH + 15):
+	print("\n--- Test 1: Saved games are built a page at a time, the next page on scrolling ---")
+	for i in range(LoadGameScreen.PAGE_SIZE + 15):
 		SaveManager.save_game_slot(_new_state())
 	var total: int = SaveManager.list_active_games().size()
 
 	var screen := LoadGameScreen.new()
 	root.add_child(screen)
 	await process_frame
+	assert_true(screen.list_vbox.get_child_count() == 0, "Nothing is built while the screen has not been opened")
 	screen.refresh_list()
-	assert_true(screen.list_vbox.get_child_count() == LoadGameScreen.FIRST_BATCH, "First batch built at once (%d of %d)" % [screen.list_vbox.get_child_count(), total])
+	assert_true(screen.list_vbox.get_child_count() == LoadGameScreen.PAGE_SIZE, "First page built at once (%d of %d)" % [screen.list_vbox.get_child_count(), total])
+	await _frames(10)
+	assert_true(screen.list_vbox.get_child_count() == LoadGameScreen.PAGE_SIZE, "No rows are added in the background without scrolling")
 
-	# A refresh while the rest is still being added starts over instead of mixing two lists
-	await process_frame
+	# A refresh while scrolled starts over instead of mixing two lists
+	await _scroll_to_end(screen._pager.scroll)
 	screen.refresh_list()
-	await _frames(total / LoadGameScreen.BATCH_PER_FRAME + 5)
-	assert_true(screen.list_vbox.get_child_count() == total, "All %d cards present, none twice (%d)" % [total, screen.list_vbox.get_child_count()])
+	for k in range(total / LoadGameScreen.PAGE_SIZE + 3):
+		await _scroll_to_end(screen._pager.scroll)
+	assert_true(screen.list_vbox.get_child_count() == total, "Scrolling down reaches all %d cards, none twice (%d)" % [total, screen.list_vbox.get_child_count()])
 	screen.queue_free()
 
 func test_history_list_builds_across_frames() -> void:
-	print("\n--- Test 2: History adds its batches on later frames ---")
-	for i in range(HistoryScreen.BATCH_SIZE + 5):
+	print("\n--- Test 2: History builds its next page when scrolling gets near the end ---")
+	for i in range(HistoryScreen.PAGE_SIZE + 5):
 		HistoryManager.add_record({"game_id": "hist_%d" % i, "seed": 1000 + i, "difficulty": DifficultyAnalyzer.LEVEL_EASY, "score": 80, "time": 100.0})
 	var screen := HistoryScreen.new()
 	root.add_child(screen)
 	await process_frame
 	screen.refresh_history()
 	var first: int = screen.list_vbox.get_child_count()
-	await process_frame
-	await process_frame
+	await _frames(5)
+	var idle: int = screen.list_vbox.get_child_count()
+	await _scroll_to_end(screen._pager.scroll)
 	var later: int = screen.list_vbox.get_child_count()
-	assert_true(first == HistoryScreen.BATCH_SIZE, "Only the first batch in the opening frame (%d)" % first)
-	assert_true(later > first, "More cards added on the next frames (%d)" % later)
+	assert_true(first == HistoryScreen.PAGE_SIZE and idle == first, "Only the first page until the list is scrolled (%d, then %d)" % [first, idle])
+	assert_true(later > first, "More cards added when scrolled near the end (%d)" % later)
 	screen.queue_free()
 
 func test_finished_game_is_not_resumable() -> void:

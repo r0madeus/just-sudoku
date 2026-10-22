@@ -102,13 +102,22 @@ func _draw() -> void:
 	# List thumbnails: a digit a few pixels tall is noise, so filled cells become dots
 	if thumbnail:
 		# Starting digits recede, the player's own digits carry the accent
-		var dot: float = maxf(0.9, cell * 0.2)
+		# Half a unit more than the old draw_circle radius: its soft edge spread that far out, so
+		# the dots keep their weight with a crisp one-pixel edge
+		var dot: float = maxf(0.9, cell * 0.2) + 0.5
 		var given_dot := Color(given_col, given_col.a * 0.45)
+		# All dots in one triangle list: one draw call per board instead of one per filled cell
+		var pts := PackedVector2Array()
+		var cols := PackedColorArray()
+		var tris := PackedInt32Array()
+		var feather: float = ThemeManager.edge_aa()
 		for idx in range(81):
 			if _values[idx] == 0:
 				continue
 			var center := origin + Vector2((idx % 9 + 0.5) * cell, (idx / 9 + 0.5) * cell)
-			draw_circle(center, dot, given_dot if _given[idx] == 1 else user_col, true, -1.0, true)
+			_add_dot(pts, cols, tris, center, dot, given_dot if _given[idx] == 1 else user_col, feather)
+		if not tris.is_empty():
+			RenderingServer.canvas_item_add_triangle_array(get_canvas_item(), tris, pts, cols)
 		return
 	for idx in range(81):
 		var v: int = _values[idx]
@@ -119,3 +128,27 @@ func _draw() -> void:
 		var col: Color = given_col if _given[idx] == 1 else user_col
 		var text_pos := origin + Vector2(c * cell, r * cell + cell * 0.5 + font_size * 0.36)
 		draw_string(font, text_pos, str(v), HORIZONTAL_ALIGNMENT_CENTER, cell, font_size, col)
+
+
+const DOT_SEGMENTS: int = 10
+
+## A filled circle as triangles: a solid disc plus a ring fading to clear over `feather` (one
+## screen pixel), the anti-aliasing that draw_circle would otherwise add as a separate draw
+static func _add_dot(pts: PackedVector2Array, cols: PackedColorArray, tris: PackedInt32Array,
+		center: Vector2, radius: float, col: Color, feather: float) -> void:
+	var base: int = pts.size()
+	var clear := Color(col, 0.0)
+	pts.append(center)
+	cols.append(col)
+	for k in range(DOT_SEGMENTS):
+		var dir := Vector2.from_angle(TAU * k / DOT_SEGMENTS)
+		pts.append(center + dir * maxf(radius - feather * 0.5, 0.0))
+		cols.append(col)
+		pts.append(center + dir * (radius + feather * 0.5))
+		cols.append(clear)
+	for k in range(DOT_SEGMENTS):
+		var inner: int = base + 1 + k * 2
+		var outer: int = inner + 1
+		var inner_next: int = base + 1 + ((k + 1) % DOT_SEGMENTS) * 2
+		var outer_next: int = inner_next + 1
+		tris.append_array([base, inner, inner_next, inner, outer, outer_next, inner, outer_next, inner_next])

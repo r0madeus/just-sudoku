@@ -400,15 +400,12 @@ static func get_icon(icon_name: String) -> Texture2D:
 	if raw_tex == null:
 		return null
 
+	# The SVGs are drawn in white, so theme tints (which multiply) can colour them anything;
+	# recolouring black ones here pixel by pixel cost ~0.7 ms per icon at start
 	var img: Image = raw_tex.get_image()
 	if img != null:
-		# Convert black stroke pixels to white (preserving alpha mask)
-		# so Godot's theme icon tinting can modulate it to any theme color.
-		for y in range(img.get_height()):
-			for x in range(img.get_width()):
-				var p := img.get_pixel(x, y)
-				if p.a > 0.0:
-					img.set_pixel(x, y, Color(1.0, 1.0, 1.0, p.a))
+		if img.is_compressed():
+			img.decompress()
 		img.generate_mipmaps()
 		var white_tex := ImageTexture.create_from_image(img)
 		_icon_cache[icon_name] = white_tex
