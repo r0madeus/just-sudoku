@@ -61,7 +61,8 @@ jobs:
         if: steps.template-cache.outputs.cache-hit != 'true'
         run: |
           cd godot
-          scons -j"$(nproc)" platform=android target=template_release arch=arm64 \
+          # swappy must be given here: production=yes only reads it from the command line
+          scons -j"$(nproc)" platform=android target=template_release arch=arm64 swappy=no \
             profile="$GITHUB_WORKSPACE/engine/custom.py"
           cd platform/android/java
           ./gradlew generateGodotTemplates

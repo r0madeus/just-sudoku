@@ -17,7 +17,8 @@ disable_navigation_3d = True
 disable_xr = True
 vulkan = False  # the game renders with GL Compatibility only
 brotli = False  # only for WOFF2 fonts; the bundled fonts are TTF
-swappy = False  # frame pacing for Vulkan, which is not built
+# swappy=no goes on the scons command line (production=yes reads it only from there):
+# Swappy is frame pacing for the Vulkan driver, which is not built
 
 # Only the modules the game uses
 modules_enabled_by_default = False
