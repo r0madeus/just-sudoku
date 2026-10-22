@@ -70,10 +70,27 @@ static func add_record(summary: Dictionary) -> void:
 		"undo_count": summary.get("undo_count", 0),
 		"is_replay": summary.get("is_replay", false),
 		"is_daily": summary.get("is_daily", false),
+		# Finished by applying the solution: counted as completed, never as a record
+		"assisted": summary.get("assisted", false),
 		"timestamp": int(Time.get_unix_time_from_system())
 	}
 	records.append(record)
 	save_all_records(records)
+
+## Personal reference for a difficulty: first solves only (no replays of a known puzzle, no
+## solutions shown). Returns {count, best_time, avg_time}; times are 0 when count is 0.
+static func get_level_benchmarks(difficulty: String) -> Dictionary:
+	var count: int = 0
+	var total: float = 0.0
+	var best: float = 0.0
+	for r in load_all_records():
+		if r.get("difficulty", "") != difficulty or r.get("is_replay", false) or r.get("assisted", false):
+			continue
+		var t: float = float(r.get("time", 0.0))
+		count += 1
+		total += t
+		best = t if count == 1 else minf(best, t)
+	return {"count": count, "best_time": best, "avg_time": total / count if count > 0 else 0.0}
 
 ## Returns filtered and sorted history items
 static func get_filtered_history(

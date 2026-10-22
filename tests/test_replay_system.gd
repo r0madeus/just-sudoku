@@ -220,7 +220,7 @@ func test_game_screen_replay_action_and_score_comparison() -> void:
 	}
 	screen._on_game_completed(summary)
 
-	assert_true(screen.complete_dialog.dialog_text.length() > 0, "Complete dialog populated: %s" % screen.complete_dialog.dialog_text.replace("\n", " "))
+	assert_true(screen.complete_summary.score_label.text == "94", "Complete dialog shows the score: %s" % screen.complete_summary.score_label.text)
 
 	# Trigger custom action "replay"
 	screen._on_complete_custom_action("replay")
@@ -240,7 +240,7 @@ func test_game_screen_replay_action_and_score_comparison() -> void:
 		"is_replay": true
 	}
 	screen._on_game_completed(replay_summary)
-	var result_text: String = screen.complete_dialog.dialog_text
+	var result_text: String = screen.complete_summary.highlight_labels[0].text
 	var comparison_prefix: String = LocalizationManager.translate("SCORE_BEST_COMPARISON").split("%")[0]
 	assert_true(result_text.contains(LocalizationManager.translate("NEW_BEST_SCORE")) or result_text.contains(comparison_prefix), "Replay completion contains best score comparison text")
 

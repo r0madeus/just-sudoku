@@ -22,6 +22,8 @@ const GROUP: String = "app_modals"
 # Configuration properties
 var max_modal_width: float = 380.0
 var dismissible_backdrop: bool = true
+## The Android back button cancels the modal even when tapping the backdrop does not
+var cancel_on_back: bool = false
 
 var show_close_button: bool = true :
 	get:

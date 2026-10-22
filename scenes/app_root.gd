@@ -85,7 +85,7 @@ func handle_back() -> void:
 			open_modals.append(m)
 	if not open_modals.is_empty():
 		var top = open_modals[open_modals.size() - 1]
-		if top.dismissible_backdrop:
+		if top.dismissible_backdrop or top.cancel_on_back:
 			top._on_canceled()
 		return
 
