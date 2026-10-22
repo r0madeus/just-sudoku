@@ -154,6 +154,7 @@ func _draw() -> void:
 	var ox: float = (size.x - grid_size) * 0.5
 	var oy: float = (size.y - grid_size) * 0.5
 	var bg_sb := StyleBoxFlat.new()
+	bg_sb.anti_aliasing_size = ThemeManager.edge_aa()
 	bg_sb.bg_color = ThemeManager.get_color("cell_bg")
 	bg_sb.set_corner_radius_all(ThemeManager.RADIUS_MD)
 	draw_style_box(bg_sb, Rect2(ox, oy, grid_size, grid_size))
@@ -192,6 +193,7 @@ func _draw_grid_lines(overlay: Control) -> void:
 			cols = 3
 		var accent: Color = ThemeManager.get_color("accent")
 		var focus_sb := StyleBoxFlat.new()
+		focus_sb.anti_aliasing_size = ThemeManager.edge_aa()
 		focus_sb.bg_color = Color(accent, 0.12)
 		focus_sb.border_color = accent
 		focus_sb.set_border_width_all(3)

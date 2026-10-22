@@ -20,7 +20,7 @@ uniform float radius = 22.0;
 uniform float shadow_size = 18.0;
 uniform vec2 shadow_offset = vec2(0.0, 6.0);
 uniform vec4 shadow_color : source_color = vec4(0.0, 0.0, 0.0, 0.4);
-uniform float blur_lod = 2.5;
+uniform float blur_radius = 8.0;
 uniform vec3 tint_color : source_color = vec3(0.1);
 uniform float tint_amount = 0.6;
 uniform float refraction = 7.0;
@@ -42,28 +42,51 @@ float hash(vec2 p) {
 	return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
 
+// Error function (Abramowitz-Stegun 7.1.27), for the Gaussian falloff of the shadow
+float erf_approx(float x) {
+	float a = abs(x);
+	float t = 1.0 + (0.278393 + (0.230389 + 0.078108 * a * a) * a) * a;
+	t *= t;
+	return sign(x) * (1.0 - 1.0 / (t * t));
+}
+
+// Coverage of a Gaussian-blurred edge at signed distance d (sigma in the same units)
+float soft_edge(float d, float sigma) {
+	return 0.5 - 0.5 * erf_approx(d / (sigma * 1.41421356));
+}
+
 void fragment() {
+	// Panel units (dp) are scaled to the screen; px_scale = device pixels per unit, so blur,
+	// bend and the edge's anti-aliasing look the same on a 2.6x phone and a 1x desktop
+	float px_scale = 1.0 / max(length(vec2(dFdx(UV.x), dFdy(UV.x))) * quad_size.x, 1e-4);
+	float aa = 0.5 / px_scale;
+
 	// The quad is larger than the panel so the drop shadow can be drawn here too: a stylebox
 	// shadow would sit under the glass and get blurred into it, darkening the glass
 	vec2 p = (UV - 0.5) * quad_size;
 	float d = sd_round_box(p, rect_size * 0.5, radius);
-	float mask = 1.0 - smoothstep(-0.75, 0.25, d);
-	float ds = sd_round_box(p - shadow_offset, rect_size * 0.5, radius);
-	float shadow_a = shadow_color.a * (1.0 - smoothstep(-shadow_size * 0.35, shadow_size, ds));
+	float mask = 1.0 - smoothstep(-aa, aa, d);
+	// Two layers, as real light gives: a tighter key shadow below the panel and a wide ambient one
+	float sigma = max(shadow_size, 0.001) * 0.4;
+	float key = soft_edge(sd_round_box(p - shadow_offset, rect_size * 0.5, radius), sigma * 0.6);
+	float ambient = soft_edge(sd_round_box(p - shadow_offset * 0.25, rect_size * 0.5, radius), sigma);
+	float shadow_a = shadow_size > 0.0 ? shadow_color.a * (0.6 * key + 0.4 * ambient) : 0.0;
 
 	// Lens: near the rim the backdrop is sampled from further inside, so it appears bent
 	float edge = clamp(1.0 + d / edge_width, 0.0, 1.0);
 	vec2 dir = normalize(p + vec2(0.0001));
-	vec2 uv = SCREEN_UV - dir * edge * edge * refraction * SCREEN_PIXEL_SIZE;
-	vec3 col = textureLod(screen_tex, uv, blur_lod).rgb;
+	vec2 uv = SCREEN_UV - dir * edge * edge * refraction * px_scale * SCREEN_PIXEL_SIZE;
+	// Mip level n is the screen blurred over about 2^n pixels
+	float lod = log2(max(blur_radius * px_scale, 1.0));
+	vec3 col = textureLod(screen_tex, uv, lod).rgb;
 	float grey = dot(col, vec3(0.299, 0.587, 0.114));
 	col = mix(vec3(grey), col, saturation);
 	col = mix(col, tint_color, tint_amount);
 
-	// Rim lit from the top-left, shaded on the opposite side
+	// Rim lit from the top-left, shaded on the opposite side; at least a device pixel wide
 	vec2 n = normalize(vec2(dFdx(d), dFdy(d)) + vec2(0.0001));
 	float facing = dot(n, normalize(vec2(-0.6, -0.8)));
-	float band = 1.0 - clamp(-d / rim_width, 0.0, 1.0);
+	float band = 1.0 - clamp(-d / max(rim_width, 1.0 / px_scale), 0.0, 1.0);
 	col += rim_light * band * max(facing, 0.0) * rim_light_amount;
 	col = mix(col, rim_shade, band * max(-facing, 0.0) * rim_shade_amount);
 	col += rim_light * edge * edge * 0.035;
@@ -178,7 +201,7 @@ func _refresh() -> void:
 		surface = surface.lerp(Color.WHITE, 0.6)
 	_material.set_shader_parameter("tint_color", Color(surface.r, surface.g, surface.b))
 	_material.set_shader_parameter("tint_amount", (0.74 if elevated else 0.58) if is_dark else (0.82 if elevated else 0.64))
-	_material.set_shader_parameter("blur_lod", 3.0 if elevated else 2.5)
+	_material.set_shader_parameter("blur_radius", 10.0 if elevated else 7.0)
 	_material.set_shader_parameter("rim_light", Color.WHITE)
 	_material.set_shader_parameter("rim_light_amount", 0.34 if is_dark else 0.95)
 	var shade: Color = Color.BLACK if is_dark else ThemeManager.get_color("border_subtle").darkened(0.15)
@@ -192,7 +215,8 @@ func _refresh() -> void:
 	sb.bg_color = Color(0, 0, 0, 0)
 	sb.set_corner_radius_all(int(corner_radius))
 	sb.corner_detail = 16
-	_material.set_shader_parameter("shadow_color", Color(0, 0, 0, 0.45) if is_dark else Color(0.08, 0.12, 0.20, 0.20))
+	# The Gaussian falloff is half strength at the panel's edge, so these are a little higher
+	_material.set_shader_parameter("shadow_color", Color(0, 0, 0, 0.55) if is_dark else Color(0.08, 0.12, 0.20, 0.26))
 	sb.content_margin_left = pad_h
 	sb.content_margin_right = pad_h
 	sb.content_margin_top = pad_v

@@ -59,6 +59,7 @@ static func draw_board(item: CanvasItem, rect: Rect2, minor_col: Color, major_co
 		item.draw_rect(Rect2(x0 + major_w, y, (x1 - x0) - major_w * 2.0, h), col)
 
 	var frame := StyleBoxFlat.new()
+	frame.anti_aliasing_size = ThemeManager.edge_aa()
 	frame.draw_center = false
 	frame.border_color = major_col
 	frame.set_border_width_all(int(MAJOR_WIDTH))

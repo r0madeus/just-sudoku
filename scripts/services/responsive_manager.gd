@@ -121,6 +121,15 @@ static func _fit_to_density(window: Window) -> void:
 	if window.content_scale_size != logical:
 		window.content_scale_size = logical
 
+## Device pixels per layout unit for a window stretched with the "expand" aspect
+static func device_px_scale(window: Window) -> float:
+	if window == null:
+		return 1.0
+	var base := Vector2(window.content_scale_size)
+	if base.x <= 0.0 or base.y <= 0.0:
+		return 1.0
+	return minf(float(window.size.x) / base.x, float(window.size.y) / base.y)
+
 ## Resolves the actual viewport size from a control or root window
 static func get_viewport_size(node: Control = null) -> Vector2:
 	if node != null:
