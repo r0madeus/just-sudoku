@@ -24,6 +24,13 @@ var import_btn: Button
 var list_vbox: VBoxContainer
 var _list_dirty: bool = true
 
+## Cards built right away (enough to fill a screen); the rest follow a few per frame, so a long
+## list of unfinished games no longer freezes the screen while it opens
+const FIRST_BATCH: int = 10
+const BATCH_PER_FRAME: int = 6
+## Bumped by every refresh, so a build still running for an older list stops
+var _build_id: int = 0
+
 func _init() -> void:
 	set_anchors_preset(PRESET_FULL_RECT)
 
@@ -139,9 +146,11 @@ func _update_locale_texts() -> void:
 
 func refresh_list() -> void:
 	_list_dirty = false
+	_build_id += 1
 	if list_vbox == null:
 		return
 	for c in list_vbox.get_children():
+		list_vbox.remove_child(c)
 		c.queue_free()
 
 	var games := SaveManager.list_active_games()
@@ -160,31 +169,46 @@ func refresh_list() -> void:
 		list_vbox.add_child(empty_container)
 		return
 
-	var is_tr := (LocalizationManager.get_locale() == LocalizationManager.LOCALE_TR)
+	var first: int = mini(FIRST_BATCH, games.size())
+	for i in range(first):
+		_add_game_item(games[i])
+	if first < games.size():
+		_add_remaining_items(games, first, _build_id)
 
-	for g in games:
-		var gid: String = g.get("game_id", "")
-		var item := GameRecordItem.new()
-		item.setup_saved_game(g)
-		item.play_pressed.connect(func(id): game_selected.emit(id))
-		item.share_pressed.connect(func(id, btn):
-			var slot_state := SaveManager.load_game_slot(id)
-			if slot_state != null and slot_state.initial_puzzle != null:
-				var text := PuzzleShareService.export_puzzle_share_text(
-					slot_state.seed_value, slot_state.difficulty, slot_state.initial_puzzle
+func _add_remaining_items(games: Array[Dictionary], from: int, build_id: int) -> void:
+	var i: int = from
+	while i < games.size():
+		await get_tree().process_frame
+		if build_id != _build_id or not is_inside_tree():
+			return
+		var until: int = mini(i + BATCH_PER_FRAME, games.size())
+		while i < until:
+			_add_game_item(games[i])
+			i += 1
+
+func _add_game_item(g: Dictionary) -> void:
+	var is_tr := (LocalizationManager.get_locale() == LocalizationManager.LOCALE_TR)
+	var item := GameRecordItem.new()
+	item.setup_saved_game(g)
+	item.play_pressed.connect(func(id): game_selected.emit(id))
+	item.share_pressed.connect(func(id, btn):
+		var slot_state := SaveManager.load_game_slot(id)
+		if slot_state != null and slot_state.initial_puzzle != null:
+			var text := PuzzleShareService.export_puzzle_share_text(
+				slot_state.seed_value, slot_state.difficulty, slot_state.initial_puzzle
+			)
+			PuzzleShareService.copy_to_clipboard(text)
+			btn.text = "Tamam" if is_tr else "Copied"
+			var t := create_tween()
+			if t != null:
+				t.tween_interval(1.5)
+				t.tween_callback(func():
+					if is_instance_valid(btn):
+						btn.text = LocalizationManager.translate("BTN_SHARE")
 				)
-				PuzzleShareService.copy_to_clipboard(text)
-				btn.text = "Tamam" if is_tr else "Copied"
-				var t := create_tween()
-				if t != null:
-					t.tween_interval(1.5)
-					t.tween_callback(func():
-						if is_instance_valid(btn):
-							btn.text = LocalizationManager.translate("BTN_SHARE")
-					)
-		)
-		item.delete_pressed.connect(func(id):
-			SaveManager.delete_game_slot(id)
-			refresh_list()
-		)
-		list_vbox.add_child(item)
+	)
+	item.delete_pressed.connect(func(id):
+		SaveManager.delete_game_slot(id)
+		refresh_list()
+	)
+	list_vbox.add_child(item)

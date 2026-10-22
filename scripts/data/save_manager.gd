@@ -66,9 +66,13 @@ static func save_active_game(game_state: GameState) -> bool:
 
 	return success
 
-## Loads the active game with automatic 3-state crash recovery fallback
+## Loads the active game with automatic 3-state crash recovery fallback. The backups only
+## stand in for an active save that exists but cannot be read; with no active save (cleared
+## when a game was finished) there is nothing to resume. A finished game is never resumed.
 static func load_active_game() -> GameState:
 	_ensure_directories()
+	if not FileAccess.file_exists(ACTIVE_GAME_FILE):
+		return null
 	var candidates_to_try: Array[String] = [ACTIVE_GAME_FILE, BACKUP_1_FILE, BACKUP_2_FILE]
 
 	for file_path in candidates_to_try:
@@ -87,16 +91,22 @@ static func load_active_game() -> GameState:
 		if parse_err == OK and json.data is Dictionary:
 			var state := GameState.new()
 			if state.deserialize(json.data):
+				if state.is_completed:
+					# Older versions wrote the finished game back as the active one
+					clear_active_game()
+					return null
 				return state
 
 	return null
 
 static func has_active_game() -> bool:
-	return FileAccess.file_exists(ACTIVE_GAME_FILE)
+	return FileAccess.file_exists(ACTIVE_GAME_FILE) and load_active_game() != null
 
 static func clear_active_game() -> void:
-	if FileAccess.file_exists(ACTIVE_GAME_FILE):
-		DirAccess.remove_absolute(ACTIVE_GAME_FILE)
+	# The backups belong to the game being cleared; left behind they could bring it back
+	for path in [ACTIVE_GAME_FILE, BACKUP_1_FILE, BACKUP_2_FILE]:
+		if FileAccess.file_exists(path):
+			DirAccess.remove_absolute(path)
 
 static func save_game_slot(game_state: GameState) -> bool:
 	if game_state == null or game_state.game_id.is_empty():
@@ -134,6 +144,11 @@ static func delete_game_slot(game_id: String) -> bool:
 	var slot_path: String = GAMES_DIR + game_id + ".json"
 	if FileAccess.file_exists(slot_path):
 		DirAccess.remove_absolute(slot_path)
+
+	# Deleting the game Continue would open removes it from there too
+	var active := load_active_game()
+	if active != null and active.game_id == game_id:
+		clear_active_game()
 
 	# Remove from index
 	var index_data: Dictionary = get_games_index()

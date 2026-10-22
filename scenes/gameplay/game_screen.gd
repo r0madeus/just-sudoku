@@ -521,6 +521,11 @@ func setup_game(state: GameState) -> void:
 	if pause_overlay != null and pause_overlay.visible:
 		_hide_pause_overlay()
 	game_timer.start(game_state.elapsed_time)
+	if game_state.is_completed:
+		# A finished game (e.g. today's Daily reopened) shows its final time, without a clock
+		game_timer.stop()
+	if timer_label != null:
+		timer_label.text = GameTimer.format_seconds(game_state.elapsed_time)
 
 	sudoku_grid.refresh_all_cells()
 	_update_action_buttons()
@@ -770,9 +775,12 @@ func _after_player_move() -> void:
 func _save_progress() -> void:
 	if game_state == null:
 		return
-	if not game_state.is_completed:
+	if game_state.is_completed:
+		# Finished: record it in its slot and the index, but never again as the game to resume
+		SaveManager.save_game_slot(game_state)
+	else:
 		game_state.elapsed_time = game_timer.elapsed_time
-	SaveManager.save_active_game(game_state)
+		SaveManager.save_active_game(game_state)
 	if game_state.seed_value == DailyManager.get_today_seed():
 		DailyManager.save_today_game(game_state)
 
@@ -906,10 +914,12 @@ func _on_solution_applied(solved: SudokuBoard) -> void:
 		var v: int = solved.get_cell(i)
 		game_state.current_board.set_cell(i, v, false)
 	game_state.checked_wrong_indices.clear()
+	# Leave the pause first: toggle_pause() ignores a finished game, which left the overlay
+	# (where Show Solution lives) open over the result
+	if game_state.is_paused:
+		toggle_pause()
 	game_state.is_completed = true
 	sudoku_grid.refresh_all_cells()
-	if pause_overlay != null and pause_overlay.visible:
-		toggle_pause()
 
 	var summary := {
 		"difficulty": game_state.difficulty,
@@ -929,6 +939,9 @@ func _on_game_completed(summary: Dictionary) -> void:
 	SoundManager.play_complete()
 	Haptics.game_completed()
 	SaveManager.clear_active_game()
+	if game_state != null and game_state.is_completed:
+		# Marks it finished in the index, so it leaves the saved games list
+		SaveManager.save_game_slot(game_state)
 
 	var seed_val: int = int(summary.get("seed", 0))
 	if seed_val == DailyManager.get_today_seed():
