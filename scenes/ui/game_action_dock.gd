@@ -68,7 +68,7 @@ func _build_ui() -> void:
 	undo_btn.theme_type_variation = "GhostButton"
 	undo_btn.icon = ThemeManager.get_icon("undo")
 	undo_btn.add_theme_constant_override("icon_max_width", 18)
-	undo_btn.add_theme_font_size_override("font_size", 14)
+	ThemeManager.set_font_size(undo_btn, 14)
 	undo_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	undo_btn.pressed.connect(func(): undo_pressed.emit())
 	action_bar.add_child(undo_btn)
@@ -81,7 +81,7 @@ func _build_ui() -> void:
 	redo_btn.theme_type_variation = "GhostButton"
 	redo_btn.icon = ThemeManager.get_icon("redo")
 	redo_btn.add_theme_constant_override("icon_max_width", 18)
-	redo_btn.add_theme_font_size_override("font_size", 14)
+	ThemeManager.set_font_size(redo_btn, 14)
 	redo_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	redo_btn.pressed.connect(func(): redo_pressed.emit())
 	action_bar.add_child(redo_btn)
@@ -92,7 +92,7 @@ func _build_ui() -> void:
 	notes_btn.size_flags_vertical = SIZE_EXPAND_FILL
 	notes_btn.custom_minimum_size = Vector2(68, ResponsiveManager.TOUCH_TARGET_MIN)
 	notes_btn.theme_type_variation = "GhostButton"
-	notes_btn.add_theme_font_size_override("font_size", 14)
+	ThemeManager.set_font_size(notes_btn, 14)
 	notes_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	notes_btn.pressed.connect(func():
 		set_notes_active(not is_notes_mode)
@@ -121,7 +121,7 @@ func _build_ui() -> void:
 	hint_btn.theme_type_variation = "GhostButton"
 	hint_btn.icon = ThemeManager.get_icon("lightbulb")
 	hint_btn.add_theme_constant_override("icon_max_width", 18)
-	hint_btn.add_theme_font_size_override("font_size", 14)
+	ThemeManager.set_font_size(hint_btn, 14)
 	hint_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	hint_btn.pressed.connect(func(): hint_pressed.emit())
 	action_bar.add_child(hint_btn)
@@ -157,7 +157,7 @@ func set_size_scale(scale: float) -> void:
 	action_bar.custom_minimum_size.y = h
 	for btn in [undo_btn, redo_btn, notes_btn, hint_btn, fill_notes_btn]:
 		btn.custom_minimum_size.y = h
-		btn.add_theme_font_size_override("font_size", roundi(14.0 * scale))
+		ThemeManager.set_font_size(btn, 14.0 * scale)
 		btn.add_theme_constant_override("icon_max_width", roundi(18.0 * scale))
 	notes_btn.custom_minimum_size.x = 68.0 * scale
 	fill_notes_btn.custom_minimum_size.x = h
@@ -242,6 +242,11 @@ func _update_locale_texts() -> void:
 		fill_notes_btn.tooltip_text = LocalizationManager.translate("BTN_FILL_NOTES")
 	_update_notes_visuals()
 	# Other languages have other label lengths, so re-check the fit
+	if _available_width > 0.0:
+		fit_to_width(_available_width)
+
+## Larger or smaller labels may change whether they fit beside the icons
+func _on_text_size_changed() -> void:
 	if _available_width > 0.0:
 		fit_to_width(_available_width)
 

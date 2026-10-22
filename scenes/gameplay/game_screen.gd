@@ -253,7 +253,7 @@ func _build_ui() -> void:
 	info_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	info_label.text = "Sudoku"
 	info_label.theme_type_variation = "EditorialHeader"
-	info_label.add_theme_font_size_override("font_size", 16)
+	ThemeManager.set_font_size(info_label, 16)
 	title_container.add_child(info_label)
 
 
@@ -269,7 +269,7 @@ func _build_ui() -> void:
 	timer_label = Label.new()
 	timer_label.text = "00:00"
 	timer_label.theme_type_variation = "TechnicalLabel"
-	timer_label.add_theme_font_size_override("font_size", 14)
+	ThemeManager.set_font_size(timer_label, 14)
 	timer_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	timer_box.add_child(timer_label)
 
@@ -386,7 +386,7 @@ func _build_ui() -> void:
 	pause_info_label = Label.new()
 	pause_info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	pause_info_label.theme_type_variation = "Subtitle"
-	pause_info_label.add_theme_font_size_override("font_size", 13)
+	ThemeManager.set_font_size(pause_info_label, 13)
 	pause_info_label.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
 	pause_modal.body_vbox.add_child(pause_info_label)
 
@@ -403,7 +403,7 @@ func _build_ui() -> void:
 	resume_btn.theme_type_variation = "PrimaryButton"
 	resume_btn.icon = ThemeManager.get_icon("play")
 	resume_btn.add_theme_constant_override("icon_max_width", 18)
-	resume_btn.add_theme_font_size_override("font_size", 16)
+	ThemeManager.set_font_size(resume_btn, 16)
 	resume_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	resume_btn.pressed.connect(toggle_pause)
 	pause_modal.actions_vbox.add_child(resume_btn)
@@ -414,7 +414,7 @@ func _build_ui() -> void:
 	share_puzzle_btn.theme_type_variation = "SecondaryButton"
 	share_puzzle_btn.icon = ThemeManager.get_icon("upload")
 	share_puzzle_btn.add_theme_constant_override("icon_max_width", 18)
-	share_puzzle_btn.add_theme_font_size_override("font_size", 14)
+	ThemeManager.set_font_size(share_puzzle_btn, 14)
 	share_puzzle_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	share_puzzle_btn.pressed.connect(_on_share_puzzle_pressed)
 	pause_modal.actions_vbox.add_child(share_puzzle_btn)
@@ -425,7 +425,7 @@ func _build_ui() -> void:
 	export_save_btn.theme_type_variation = "SecondaryButton"
 	export_save_btn.icon = ThemeManager.get_icon("save")
 	export_save_btn.add_theme_constant_override("icon_max_width", 18)
-	export_save_btn.add_theme_font_size_override("font_size", 14)
+	ThemeManager.set_font_size(export_save_btn, 14)
 	export_save_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	export_save_btn.pressed.connect(_on_export_save_pressed)
 	pause_modal.actions_vbox.add_child(export_save_btn)
@@ -436,7 +436,7 @@ func _build_ui() -> void:
 	solution_btn.theme_type_variation = "SecondaryButton"
 	solution_btn.icon = ThemeManager.get_icon("lightbulb")
 	solution_btn.add_theme_constant_override("icon_max_width", 18)
-	solution_btn.add_theme_font_size_override("font_size", 14)
+	ThemeManager.set_font_size(solution_btn, 14)
 	solution_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	solution_btn.pressed.connect(_on_view_solution_pressed)
 	pause_modal.actions_vbox.add_child(solution_btn)
@@ -447,7 +447,7 @@ func _build_ui() -> void:
 	pause_settings_btn.theme_type_variation = "SecondaryButton"
 	pause_settings_btn.icon = ThemeManager.get_icon("settings")
 	pause_settings_btn.add_theme_constant_override("icon_max_width", 18)
-	pause_settings_btn.add_theme_font_size_override("font_size", 14)
+	ThemeManager.set_font_size(pause_settings_btn, 14)
 	pause_settings_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	pause_settings_btn.pressed.connect(_on_pause_settings_pressed)
 	pause_modal.actions_vbox.add_child(pause_settings_btn)
@@ -458,7 +458,7 @@ func _build_ui() -> void:
 	pause_menu_btn.theme_type_variation = "GhostButton"
 	pause_menu_btn.icon = ThemeManager.get_icon("chevron-left")
 	pause_menu_btn.add_theme_constant_override("icon_max_width", 18)
-	pause_menu_btn.add_theme_font_size_override("font_size", 14)
+	ThemeManager.set_font_size(pause_menu_btn, 14)
 	pause_menu_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	pause_menu_btn.pressed.connect(func():
 		if pause_overlay is AppModal:
@@ -877,7 +877,7 @@ func _apply_theme_polish() -> void:
 		check_btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 		check_btn.add_theme_color_override("font_color", ThemeManager.get_color("text_user"))
 		check_btn.add_theme_color_override("font_hover_color", ThemeManager.get_color("text_given"))
-		check_btn.add_theme_font_size_override("font_size", 14)
+		ThemeManager.set_font_size(check_btn, 14)
 
 	if back_btn != null:
 		back_btn.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))

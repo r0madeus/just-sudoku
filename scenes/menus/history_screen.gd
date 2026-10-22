@@ -173,7 +173,7 @@ func _build_ui() -> void:
 
 	status_lbl = Label.new()
 	status_lbl.theme_type_variation = "Caption"
-	status_lbl.add_theme_font_size_override("font_size", 10)
+	ThemeManager.set_font_size(status_lbl, 10)
 	status_lbl.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
 	col_status.add_child(status_lbl)
 
@@ -196,7 +196,7 @@ func _build_ui() -> void:
 
 	diff_lbl = Label.new()
 	diff_lbl.theme_type_variation = "Caption"
-	diff_lbl.add_theme_font_size_override("font_size", 10)
+	ThemeManager.set_font_size(diff_lbl, 10)
 	diff_lbl.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
 	col_diff.add_child(diff_lbl)
 
@@ -219,7 +219,7 @@ func _build_ui() -> void:
 
 	sort_lbl = Label.new()
 	sort_lbl.theme_type_variation = "Caption"
-	sort_lbl.add_theme_font_size_override("font_size", 10)
+	ThemeManager.set_font_size(sort_lbl, 10)
 	sort_lbl.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
 	col_sort.add_child(sort_lbl)
 

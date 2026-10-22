@@ -26,6 +26,8 @@ static var show_wrong_immediately: bool = false
 
 ## Width of the dropdowns on the right of the setting rows
 const PICKER_WIDTH: float = 168.0
+## The Text size choices, in the order the dropdown lists them
+const TEXT_SIZE_ORDER: Array[String] = ["normal", "large", "xlarge"]
 static var animations_enabled: bool = true
 static var sounds_enabled: bool = true
 static var haptics_enabled: bool = true
@@ -64,6 +66,7 @@ var lang_row: SettingRow
 var theme_row: SettingRow
 var custom_theme_row: SettingRow
 var font_row: SettingRow
+var text_size_row: SettingRow
 
 var auto_open_row: SettingRow
 var smart_numpad_row: SettingRow
@@ -85,6 +88,7 @@ var custom_theme_lbl: Label
 var custom_theme_btn: Button
 var font_label: Label
 var font_option: OptionButton
+var text_size_option: OptionButton
 
 # Gameplay Controls
 var auto_open_lbl: Label
@@ -138,6 +142,7 @@ static func save_config() -> void:
 	var data := {
 		"locale": LocalizationManager.get_locale(),
 		"font": FontManager.current_font_name,
+		"text_size": ThemeManager.text_size,
 		"auto_open": auto_open_last_game,
 		"smart_numpad": smart_numpad_enabled,
 		"auto_notes": auto_remove_notes,
@@ -169,6 +174,7 @@ static func load_config() -> void:
 		LocalizationManager.set_locale(saved_loc)
 		var saved_font: String = json.data.get("font", FontManager.FONT_MODERN_SANS)
 		FontManager.set_font(saved_font)
+		ThemeManager.set_text_size(json.data.get("text_size", ThemeManager.TEXT_SIZE_NORMAL))
 		auto_open_last_game = json.data.get("auto_open", true)
 		smart_numpad_enabled = json.data.get("smart_numpad", true)
 		auto_remove_notes = json.data.get("auto_notes", true)
@@ -246,7 +252,7 @@ func _build_ui() -> void:
 
 	sec_appearance_lbl = Label.new()
 	sec_appearance_lbl.theme_type_variation = "Caption"
-	sec_appearance_lbl.add_theme_font_size_override("font_size", 11)
+	ThemeManager.set_font_size(sec_appearance_lbl, 11)
 	sec_appearance_lbl.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
 	sec_app_group.add_child(sec_appearance_lbl)
 
@@ -263,7 +269,7 @@ func _build_ui() -> void:
 	# Dil / Language
 	# The three pickers share one width so their left edges line up down the card
 	lang_option = OptionButton.new()
-	lang_option.custom_minimum_size = Vector2(PICKER_WIDTH, ResponsiveManager.HEIGHT_INPUT)
+	lang_option.custom_minimum_size = Vector2(_picker_width(), ResponsiveManager.HEIGHT_INPUT)
 	lang_option.clip_text = true
 	lang_option.fit_to_longest_item = false
 	lang_option.add_item("Türkçe")
@@ -279,7 +285,7 @@ func _build_ui() -> void:
 
 	# Görsel Tema / Visual Theme
 	theme_option = OptionButton.new()
-	theme_option.custom_minimum_size = Vector2(PICKER_WIDTH, ResponsiveManager.HEIGHT_INPUT)
+	theme_option.custom_minimum_size = Vector2(_picker_width(), ResponsiveManager.HEIGHT_INPUT)
 	theme_option.clip_text = true
 	theme_option.fit_to_longest_item = false
 	theme_option.add_item("Dark")
@@ -303,7 +309,7 @@ func _build_ui() -> void:
 	custom_theme_btn.theme_type_variation = "CompactSecondaryButton"
 	custom_theme_btn.icon = ThemeManager.get_icon("palette")
 	custom_theme_btn.add_theme_constant_override("icon_max_width", 18)
-	custom_theme_btn.add_theme_font_size_override("font_size", 14)
+	ThemeManager.set_font_size(custom_theme_btn, 14)
 	custom_theme_btn.pressed.connect(func(): custom_theme_requested.emit())
 
 	custom_theme_row = SettingRow.new("", "", custom_theme_btn)
@@ -314,7 +320,7 @@ func _build_ui() -> void:
 
 	# Yazı Tipi / Font Family
 	font_option = OptionButton.new()
-	font_option.custom_minimum_size = Vector2(PICKER_WIDTH, ResponsiveManager.HEIGHT_INPUT)
+	font_option.custom_minimum_size = Vector2(_picker_width(), ResponsiveManager.HEIGHT_INPUT)
 	font_option.clip_text = true
 	font_option.fit_to_longest_item = false
 	font_option.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
@@ -328,6 +334,22 @@ func _build_ui() -> void:
 	font_label = font_row.title_label
 	app_vbox.add_child(font_row)
 
+	app_vbox.add_child(_create_divider())
+
+	# Yazı Boyutu / Text Size (accessibility)
+	text_size_option = OptionButton.new()
+	text_size_option.custom_minimum_size = Vector2(_picker_width(), ResponsiveManager.HEIGHT_INPUT)
+	text_size_option.clip_text = true
+	text_size_option.fit_to_longest_item = false
+	text_size_option.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	for i in range(TEXT_SIZE_ORDER.size()):
+		text_size_option.add_item("")
+	_update_text_size_selection()
+	text_size_option.item_selected.connect(_on_text_size_selected)
+
+	text_size_row = SettingRow.new("", "", text_size_option)
+	app_vbox.add_child(text_size_row)
+
 	# =========================================================================
 	# 2. Gameplay Section (Oynanış)
 	# =========================================================================
@@ -337,7 +359,7 @@ func _build_ui() -> void:
 
 	sec_gameplay_lbl = Label.new()
 	sec_gameplay_lbl.theme_type_variation = "Caption"
-	sec_gameplay_lbl.add_theme_font_size_override("font_size", 11)
+	ThemeManager.set_font_size(sec_gameplay_lbl, 11)
 	sec_gameplay_lbl.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
 	sec_game_group.add_child(sec_gameplay_lbl)
 
@@ -402,7 +424,7 @@ func _build_ui() -> void:
 
 	sec_feedback_lbl = Label.new()
 	sec_feedback_lbl.theme_type_variation = "Caption"
-	sec_feedback_lbl.add_theme_font_size_override("font_size", 11)
+	ThemeManager.set_font_size(sec_feedback_lbl, 11)
 	sec_feedback_lbl.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
 	sec_feed_group.add_child(sec_feedback_lbl)
 
@@ -506,6 +528,25 @@ func _update_font_option_selection() -> void:
 		FontManager.FONT_ROUNDED_SANS: font_option.selected = 1
 		FontManager.FONT_CLASSIC_SERIF: font_option.selected = 2
 
+## The pickers grow with the text size, though less than the text, so the longest choice
+## ("AMOLED Siyah") still fits without crowding the row's title on a narrow phone
+static func _picker_width() -> float:
+	return roundf(PICKER_WIDTH * (1.0 + (ThemeManager.text_scale - 1.0) * 0.4))
+
+func _on_text_size_changed() -> void:
+	for opt in [lang_option, theme_option, font_option, text_size_option]:
+		if opt != null:
+			opt.custom_minimum_size.x = _picker_width()
+
+func _on_text_size_selected(idx: int) -> void:
+	# Resizes what is on screen now, on every screen, not only on the next start
+	ThemeManager.set_text_size(TEXT_SIZE_ORDER[idx], get_tree().root if is_inside_tree() else null)
+	save_config()
+
+func _update_text_size_selection() -> void:
+	if text_size_option != null:
+		text_size_option.selected = maxi(0, TEXT_SIZE_ORDER.find(ThemeManager.text_size))
+
 func _update_theme_option_selection() -> void:
 	if theme_option == null:
 		return
@@ -580,6 +621,14 @@ func _update_locale_texts() -> void:
 		font_option.set_item_text(1, LocalizationManager.translate("FONT_ROUNDED_SANS"))
 		font_option.set_item_text(2, LocalizationManager.translate("FONT_CLASSIC_SERIF"))
 		_update_font_option_selection()
+
+	if text_size_row != null:
+		text_size_row.set_title(LocalizationManager.translate("SETTING_TEXT_SIZE"))
+		text_size_row.set_description(LocalizationManager.translate("SETTING_DESC_TEXT_SIZE"))
+	if text_size_option != null:
+		for i in range(TEXT_SIZE_ORDER.size()):
+			text_size_option.set_item_text(i, LocalizationManager.translate("TEXT_SIZE_" + TEXT_SIZE_ORDER[i].to_upper()))
+		_update_text_size_selection()
 
 	# Gameplay labels
 	if auto_open_row != null:

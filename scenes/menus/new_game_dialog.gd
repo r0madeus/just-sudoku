@@ -99,7 +99,7 @@ func _build_new_game_ui() -> void:
 	loading_label = Label.new()
 	loading_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	loading_label.theme_type_variation = "Subtitle"
-	loading_label.add_theme_font_size_override("font_size", 13)
+	ThemeManager.set_font_size(loading_label, 13)
 	loading_box.add_child(loading_label)
 
 	preview_content = VBoxContainer.new()
@@ -111,25 +111,25 @@ func _build_new_game_ui() -> void:
 
 	preview_diff_label = Label.new()
 	preview_diff_label.theme_type_variation = "Header"
-	preview_diff_label.add_theme_font_size_override("font_size", 20)
+	ThemeManager.set_font_size(preview_diff_label, 20)
 	preview_content.add_child(preview_diff_label)
 
 	preview_time_label = Label.new()
 	preview_time_label.theme_type_variation = "Subtitle"
-	preview_time_label.add_theme_font_size_override("font_size", 13)
+	ThemeManager.set_font_size(preview_time_label, 13)
 	preview_content.add_child(preview_time_label)
 
 	preview_techs_label = Label.new()
 	preview_techs_label.autowrap_mode = TextServer.AUTOWRAP_WORD
 	preview_techs_label.theme_type_variation = "Body"
-	preview_techs_label.add_theme_font_size_override("font_size", 12)
+	ThemeManager.set_font_size(preview_techs_label, 12)
 	preview_content.add_child(preview_techs_label)
 
 	preview_seed_label = Label.new()
 	preview_seed_label.theme_type_variation = "TechnicalLabel"
 	# Left, like the level, time and techniques above it
 	preview_seed_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	preview_seed_label.add_theme_font_size_override("font_size", 11)
+	ThemeManager.set_font_size(preview_seed_label, 11)
 	preview_seed_label.visible = true
 	preview_content.add_child(preview_seed_label)
 

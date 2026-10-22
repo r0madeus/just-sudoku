@@ -42,7 +42,7 @@ func _build_import_ui() -> void:
 	info_lbl = Label.new()
 	info_lbl.theme_type_variation = "Caption"
 	info_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
-	info_lbl.add_theme_font_size_override("font_size", 13)
+	ThemeManager.set_font_size(info_lbl, 13)
 	body_vbox.add_child(info_lbl)
 
 	# Text input area
@@ -61,7 +61,7 @@ func _build_import_ui() -> void:
 	paste_btn.theme_type_variation = "SecondaryButton"
 	paste_btn.icon = ThemeManager.get_icon("download")
 	paste_btn.add_theme_constant_override("icon_max_width", 16)
-	paste_btn.add_theme_font_size_override("font_size", 13)
+	ThemeManager.set_font_size(paste_btn, 13)
 	paste_btn.custom_minimum_size = Vector2(0, ResponsiveManager.TOUCH_TARGET_MIN)
 	paste_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	paste_btn.pressed.connect(_on_paste_pressed)
@@ -71,7 +71,7 @@ func _build_import_ui() -> void:
 	clear_btn.theme_type_variation = "GhostButton"
 	clear_btn.icon = ThemeManager.get_icon("x")
 	clear_btn.add_theme_constant_override("icon_max_width", 14)
-	clear_btn.add_theme_font_size_override("font_size", 13)
+	ThemeManager.set_font_size(clear_btn, 13)
 	clear_btn.custom_minimum_size = Vector2(0, ResponsiveManager.TOUCH_TARGET_MIN)
 	clear_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	clear_btn.pressed.connect(func(): input_edit.text = ""; _validate_input())
@@ -84,7 +84,7 @@ func _build_import_ui() -> void:
 
 	d_lbl = Label.new()
 	d_lbl.theme_type_variation = "Caption"
-	d_lbl.add_theme_font_size_override("font_size", 13)
+	ThemeManager.set_font_size(d_lbl, 13)
 	d_lbl.size_flags_horizontal = SIZE_EXPAND_FILL
 	diff_row.add_child(d_lbl)
 
@@ -95,7 +95,7 @@ func _build_import_ui() -> void:
 	diff_option.add_item(DifficultyAnalyzer.LEVEL_EXPERT)
 	diff_option.selected = 1 # Medium default
 	diff_option.theme_type_variation = "SecondaryButton"
-	diff_option.add_theme_font_size_override("font_size", 13)
+	ThemeManager.set_font_size(diff_option, 13)
 	diff_option.custom_minimum_size = Vector2(140, ResponsiveManager.HEIGHT_INPUT)
 	diff_option.item_selected.connect(func(_i): _validate_input())
 	diff_row.add_child(diff_option)
@@ -108,7 +108,7 @@ func _build_import_ui() -> void:
 	status_label = Label.new()
 	status_label.theme_type_variation = "Body"
 	status_label.autowrap_mode = TextServer.AUTOWRAP_WORD
-	status_label.add_theme_font_size_override("font_size", 13)
+	ThemeManager.set_font_size(status_label, 13)
 	status_label.add_theme_color_override("font_color", ThemeManager.get_color("text_notes"))
 	status_card.add_child(status_label)
 

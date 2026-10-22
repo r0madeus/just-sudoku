@@ -86,33 +86,40 @@ func _build_row() -> Array:
 	info.add_theme_constant_override("separation", 3)
 	hbox.add_child(info)
 
-	var title_row := HBoxContainer.new()
-	title_row.add_theme_constant_override("separation", 8)
+	# Both lines wrap where they do not fit (a narrow phone, a large text size) rather than
+	# pushing the row wider than the screen
+	var title_row := HFlowContainer.new()
+	title_row.add_theme_constant_override("h_separation", 8)
+	title_row.add_theme_constant_override("v_separation", 0)
 	info.add_child(title_row)
 
-	var detail_row := HBoxContainer.new()
-	detail_row.add_theme_constant_override("separation", 6)
+	var detail_row := HFlowContainer.new()
+	detail_row.add_theme_constant_override("h_separation", 6)
+	detail_row.add_theme_constant_override("v_separation", 0)
 	info.add_child(detail_row)
 
 	diff_label = Label.new()
 	diff_label.theme_type_variation = "Body"
-	diff_label.add_theme_font_size_override("font_size", 15)
+	ThemeManager.set_font_size(diff_label, 15)
 	title_row.add_child(diff_label)
 	return [hbox, title_row, detail_row]
 
-func _caption(text: String, parent: Container, expand: bool = false) -> Label:
+func _caption(text: String, parent: Container) -> Label:
 	var lbl := Label.new()
 	lbl.text = text
 	lbl.theme_type_variation = "Caption"
-	lbl.add_theme_font_size_override("font_size", 12)
-	if expand:
-		# Only the last label of a line may shorten; an ellipsis label has no minimum width,
-		# so on the others it would let the line squeeze them away entirely
-		lbl.size_flags_horizontal = SIZE_EXPAND_FILL
-		lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	ThemeManager.set_font_size(lbl, 12)
 	secondary_labels.append(lbl)
 	parent.add_child(lbl)
 	return lbl
+
+## "• text" as one piece of a wrapping line, so a wrap never leaves a dot at a line's end
+func _dotted_caption(text: String, parent: Container) -> Label:
+	var group := HBoxContainer.new()
+	group.add_theme_constant_override("separation", 6)
+	parent.add_child(group)
+	_caption("•", group)
+	return _caption(text, group)
 
 func _round_action(icon_name: String, tooltip: String, primary: bool) -> Button:
 	var btn := Button.new()
@@ -133,8 +140,8 @@ func setup_history(record: Dictionary, best_record: Dictionary = {}) -> void:
 	current_data = record
 	var parts := _build_row()
 	var hbox: HBoxContainer = parts[0]
-	var title_row: HBoxContainer = parts[1]
-	var detail_row: HBoxContainer = parts[2]
+	var title_row: HFlowContainer = parts[1]
+	var detail_row: HFlowContainer = parts[2]
 
 	var raw_diff: String = record.get("difficulty", "Medium")
 	var score: int = int(record.get("score", 0))
@@ -147,7 +154,7 @@ func setup_history(record: Dictionary, best_record: Dictionary = {}) -> void:
 		replay_badge = Label.new()
 		replay_badge.text = LocalizationManager.translate("BADGE_REPLAY")
 		replay_badge.theme_type_variation = "TechnicalLabel"
-		replay_badge.add_theme_font_size_override("font_size", 11)
+		ThemeManager.set_font_size(replay_badge, 11)
 		replay_badge.size_flags_vertical = SIZE_SHRINK_CENTER
 		secondary_labels.append(replay_badge)
 		title_row.add_child(replay_badge)
@@ -155,16 +162,14 @@ func setup_history(record: Dictionary, best_record: Dictionary = {}) -> void:
 	score_label = Label.new()
 	score_label.text = LocalizationManager.translate("RECORD_SCORE") % score
 	score_label.theme_type_variation = "Body"
-	score_label.add_theme_font_size_override("font_size", 14)
+	ThemeManager.set_font_size(score_label, 14)
 	title_row.add_child(score_label)
 	if best_score > score:
 		best_score_label = _caption(LocalizationManager.translate("RECORD_BEST_SCORE") % best_score, title_row)
 
 	time_label = _caption(GameTimer.format_seconds(float(record.get("time", 0.0))), detail_row)
-	_caption("•", detail_row)
-	mistakes_label = _caption(LocalizationManager.translate("RECORD_MISTAKES") % int(record.get("mistakes", 0)), detail_row)
-	_caption("•", detail_row)
-	hints_label = _caption(LocalizationManager.translate("RECORD_HINTS") % int(record.get("hints", 0)), detail_row, true)
+	mistakes_label = _dotted_caption(LocalizationManager.translate("RECORD_MISTAKES") % int(record.get("mistakes", 0)), detail_row)
+	hints_label = _dotted_caption(LocalizationManager.translate("RECORD_HINTS") % int(record.get("hints", 0)), detail_row)
 
 	replay_btn = _round_action("rotate-ccw", LocalizationManager.translate("BTN_REPLAY_ACTION"), true)
 	replay_btn.name = "ReplayButton"
@@ -177,15 +182,14 @@ func setup_saved_game(game_data: Dictionary) -> void:
 	current_data = game_data
 	var parts := _build_row()
 	var hbox: HBoxContainer = parts[0]
-	var detail_row: HBoxContainer = parts[2]
+	var detail_row: HFlowContainer = parts[2]
 	var gid: String = game_data.get("game_id", "")
 	thumbnail.set_strings(String(game_data.get("current", "")), String(game_data.get("initial", "")))
 
 	diff_label.text = LocalizationManager.get_difficulty_name(game_data.get("difficulty", "Medium"))
 	var pct := LocalizationManager.format_percentage(int(game_data.get("progress_percentage", 0)))
 	progress_label = _caption(LocalizationManager.translate("PROGRESS_LABEL") % pct, detail_row)
-	_caption("•", detail_row)
-	time_label = _caption(GameTimer.format_seconds(float(game_data.get("elapsed_time", 0.0))), detail_row, true)
+	time_label = _dotted_caption(GameTimer.format_seconds(float(game_data.get("elapsed_time", 0.0))), detail_row)
 
 	more_btn = _round_action("more-horizontal", LocalizationManager.translate("BTN_MORE_ACTIONS"), false)
 	more_btn.pressed.connect(open_actions)

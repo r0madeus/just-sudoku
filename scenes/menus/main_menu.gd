@@ -209,7 +209,7 @@ func _build_ui() -> void:
 	subtitle_label = Label.new()
 	subtitle_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	subtitle_label.theme_type_variation = "Subtitle"
-	subtitle_label.add_theme_font_size_override("font_size", 12)
+	ThemeManager.set_font_size(subtitle_label, 12)
 	header_vbox.add_child(subtitle_label)
 
 	var masthead_gap := Control.new()
@@ -274,13 +274,13 @@ func _build_ui() -> void:
 
 	daily_title_label = Label.new()
 	daily_title_label.theme_type_variation = "Body"
-	daily_title_label.add_theme_font_size_override("font_size", 15)
+	ThemeManager.set_font_size(daily_title_label, 15)
 	daily_title_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	daily_info_vbox.add_child(daily_title_label)
 
 	daily_meta_label = Label.new()
 	daily_meta_label.theme_type_variation = "Caption"
-	daily_meta_label.add_theme_font_size_override("font_size", 12)
+	ThemeManager.set_font_size(daily_meta_label, 12)
 	daily_meta_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	daily_info_vbox.add_child(daily_meta_label)
 
@@ -288,7 +288,7 @@ func _build_ui() -> void:
 	daily_btn.custom_minimum_size = Vector2(112, ResponsiveManager.TOUCH_TARGET_MIN)
 	daily_btn.clip_text = false
 	daily_btn.theme_type_variation = "CompactSecondaryButton"
-	daily_btn.add_theme_font_size_override("font_size", 14)
+	ThemeManager.set_font_size(daily_btn, 14)
 	daily_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	daily_btn.pressed.connect(func(): daily_sudoku_requested.emit())
 	daily_hbox.add_child(daily_btn)
@@ -318,7 +318,7 @@ func _build_ui() -> void:
 	continue_btn.theme_type_variation = "PrimaryButton"
 	continue_btn.icon = ThemeManager.get_icon("play")
 	continue_btn.add_theme_constant_override("icon_max_width", 20)
-	continue_btn.add_theme_font_size_override("font_size", 17)
+	ThemeManager.set_font_size(continue_btn, 17)
 	continue_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	continue_btn.pressed.connect(func(): continue_pressed.emit())
 	cont_box.add_child(continue_btn)
@@ -326,7 +326,7 @@ func _build_ui() -> void:
 	continue_meta_label = Label.new()
 	continue_meta_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	continue_meta_label.theme_type_variation = "Caption"
-	continue_meta_label.add_theme_font_size_override("font_size", 12)
+	ThemeManager.set_font_size(continue_meta_label, 12)
 	continue_meta_label.visible = false
 	cont_box.add_child(continue_meta_label)
 
@@ -335,7 +335,7 @@ func _build_ui() -> void:
 	new_game_btn.custom_minimum_size = Vector2(0, ResponsiveManager.HEIGHT_BUTTON_PRIMARY)
 	new_game_btn.size_flags_horizontal = SIZE_EXPAND_FILL
 	new_game_btn.theme_type_variation = "GhostButton"
-	new_game_btn.add_theme_font_size_override("font_size", 16)
+	ThemeManager.set_font_size(new_game_btn, 16)
 	new_game_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	new_game_btn.pressed.connect(func(): new_game_requested.emit())
 	hero_vbox.add_child(new_game_btn)
@@ -345,7 +345,7 @@ func _build_ui() -> void:
 	load_game_btn.custom_minimum_size = Vector2(0, ResponsiveManager.HEIGHT_BUTTON_PRIMARY)
 	load_game_btn.size_flags_horizontal = SIZE_EXPAND_FILL
 	load_game_btn.theme_type_variation = "GhostButton"
-	load_game_btn.add_theme_font_size_override("font_size", 16)
+	ThemeManager.set_font_size(load_game_btn, 16)
 	load_game_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	load_game_btn.pressed.connect(func(): load_game_requested.emit())
 	hero_vbox.add_child(load_game_btn)
@@ -387,7 +387,7 @@ func _build_ui() -> void:
 	history_btn.theme_type_variation = "GhostButton"
 	history_btn.icon = ThemeManager.get_icon("rotate-ccw")
 	history_btn.add_theme_constant_override("icon_max_width", 16)
-	history_btn.add_theme_font_size_override("font_size", 13)
+	ThemeManager.set_font_size(history_btn, 13)
 	history_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	history_btn.pressed.connect(func(): history_requested.emit())
 	nav_hbox.add_child(history_btn)
@@ -398,7 +398,7 @@ func _build_ui() -> void:
 	stats_btn.theme_type_variation = "GhostButton"
 	stats_btn.icon = ThemeManager.get_icon("chart-column-big")
 	stats_btn.add_theme_constant_override("icon_max_width", 16)
-	stats_btn.add_theme_font_size_override("font_size", 13)
+	ThemeManager.set_font_size(stats_btn, 13)
 	stats_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	stats_btn.pressed.connect(func(): statistics_requested.emit())
 	nav_hbox.add_child(stats_btn)
@@ -409,7 +409,7 @@ func _build_ui() -> void:
 	settings_btn.theme_type_variation = "GhostButton"
 	settings_btn.icon = ThemeManager.get_icon("settings")
 	settings_btn.add_theme_constant_override("icon_max_width", 16)
-	settings_btn.add_theme_font_size_override("font_size", 13)
+	ThemeManager.set_font_size(settings_btn, 13)
 	settings_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	settings_btn.pressed.connect(func(): settings_requested.emit())
 	nav_hbox.add_child(settings_btn)

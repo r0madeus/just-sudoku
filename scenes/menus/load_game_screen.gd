@@ -128,7 +128,7 @@ func _build_ui() -> void:
 	import_btn.theme_type_variation = "SecondaryButton"
 	import_btn.icon = ThemeManager.get_icon("download")
 	import_btn.add_theme_constant_override("icon_max_width", 18)
-	import_btn.add_theme_font_size_override("font_size", 14)
+	ThemeManager.set_font_size(import_btn, 14)
 	import_btn.custom_minimum_size = Vector2(96, ResponsiveManager.TOUCH_TARGET_MIN)
 	import_btn.pressed.connect(func(): import_requested.emit())
 	header.add_child(import_btn)

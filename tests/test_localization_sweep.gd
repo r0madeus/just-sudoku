@@ -2,8 +2,9 @@ extends SceneTree
 
 ## Localization coverage: both dictionaries hold the same keys and placeholders, every key the
 ## code asks for exists, solver explanations follow the language on screen, and a walk through
-## every screen and dialog in each language (switched from Settings, a different font each time)
-## finds no raw keys, no text from the other language, no missing glyphs and no clipped text.
+## every screen and dialog in each language (switched from Settings, a different font each time,
+## and at the largest text size too) finds no raw keys, no text from the other language, no
+## missing glyphs and no clipped text.
 
 const SudokuGenerator = preload("res://scripts/core/sudoku_generator.gd")
 const DifficultyAnalyzer = preload("res://scripts/core/difficulty_analyzer.gd")
@@ -349,14 +350,23 @@ func _run() -> void:
 	app = load("res://scenes/app_root.tscn").instantiate()
 	root.add_child(app)
 	await _frames(10)
-	# Then again on a 360 x 640 dp phone, the narrowest and shortest layout the game supports
-	var passes: Array = [["en", false], ["tr", false], ["tr", true], ["en", true]]
+	# Then again on a 360 x 640 dp phone, the narrowest and shortest layout the game supports,
+	# and with the largest text size on both phones
+	var passes: Array = [["en", false, "normal"], ["tr", false, "normal"], ["tr", true, "normal"], ["en", true, "normal"],
+		["tr", true, "xlarge"], ["en", true, "xlarge"], ["tr", false, "xlarge"]]
+	var small := false
+	var regular_size: Vector2i = root.content_scale_size
 	var fonts: Array = [FontManager.FONT_MODERN_SANS, FontManager.FONT_ROUNDED_SANS, FontManager.FONT_CLASSIC_SERIF]
 	var i := 0
 	for p in passes:
 		var loc: String = p[0]
-		if p[1]:
-			ResponsiveManager.apply_device_scaling(root, root.size.x / 360.0)
+		if p[1] != small:
+			small = p[1]
+			if small:
+				ResponsiveManager.apply_device_scaling(root, root.size.x / 360.0)
+			else:
+				root.set_meta(&"dp_density", 0.0) # stops following the density
+				root.content_scale_size = regular_size
 			await _frames(4)
 		# Switch through Settings like a player would
 		app._show_screen(app.settings_screen)
@@ -364,11 +374,15 @@ func _run() -> void:
 		app.settings_screen.lang_option.selected = 0 if loc == "tr" else 1
 		app.settings_screen._on_language_selected(0 if loc == "tr" else 1)
 		FontManager.set_font(fonts[i % fonts.size()])
-		print("  … %s with %s at %s" % [loc, fonts[i % fonts.size()], str(app.size)])
+		var size_idx: int = SettingsScreen.TEXT_SIZE_ORDER.find(p[2])
+		app.settings_screen.text_size_option.selected = size_idx
+		app.settings_screen._on_text_size_selected(size_idx)
+		print("  … %s with %s at %s, %s text" % [loc, fonts[i % fonts.size()], str(app.size), p[2]])
 		i += 1
 		app._show_screen(app.main_menu)
 		await _tour(loc)
-	assert_true(issues.is_empty(), "No text problems on any screen in either language, on a regular and a small phone")
+	app.settings_screen._on_text_size_selected(0)
+	assert_true(issues.is_empty(), "No text problems on any screen in either language, on a regular and a small phone, at normal and extra large text")
 	print("========================================")
 	print("🏁 RESULTS: %d Passed, %d Failed" % [tests_passed, tests_failed])
 	print("========================================")

@@ -45,13 +45,13 @@ func _build() -> void:
 	score_label = Label.new()
 	score_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	score_label.theme_type_variation = "EditorialHeader"
-	score_label.add_theme_font_size_override("font_size", 52)
+	ThemeManager.set_font_size(score_label, 52)
 	score_box.add_child(score_label)
 
 	score_caption = Label.new()
 	score_caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	score_caption.theme_type_variation = "Caption"
-	score_caption.add_theme_font_size_override("font_size", 11)
+	ThemeManager.set_font_size(score_caption, 11)
 	score_box.add_child(score_caption)
 
 	stats_row = HBoxContainer.new()
@@ -65,12 +65,12 @@ func _build() -> void:
 		var value := Label.new()
 		value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		value.theme_type_variation = "TechnicalLabel"
-		value.add_theme_font_size_override("font_size", 20)
+		ThemeManager.set_font_size(value, 20)
 		col.add_child(value)
 		var caption := Label.new()
 		caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		caption.theme_type_variation = "Caption"
-		caption.add_theme_font_size_override("font_size", 10)
+		ThemeManager.set_font_size(caption, 10)
 		col.add_child(caption)
 		_stat_values.append(value)
 		_stat_captions.append(caption)
@@ -80,7 +80,7 @@ func _build() -> void:
 		line.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		line.theme_type_variation = "Body"
-		line.add_theme_font_size_override("font_size", 14)
+		ThemeManager.set_font_size(line, 14)
 		line.visible = false
 		add_child(line)
 		highlight_labels.append(line)
@@ -100,7 +100,7 @@ func _build() -> void:
 	achievement_label = Label.new()
 	achievement_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	achievement_label.theme_type_variation = "Body"
-	achievement_label.add_theme_font_size_override("font_size", 14)
+	ThemeManager.set_font_size(achievement_label, 14)
 	achievement_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	achievement_row.add_child(achievement_label)
 	_apply_theme()

@@ -63,7 +63,7 @@ func add_segment(id: String, text: String) -> void:
 	btn.size_flags_horizontal = SIZE_EXPAND_FILL
 	btn.custom_minimum_size = Vector2(0, ThemeManager.HEIGHT_SEGMENT)
 	btn.theme_type_variation = "SegmentButton"
-	btn.add_theme_font_size_override("font_size", ThemeManager.FONT_SIZE_SUBTITLE)
+	ThemeManager.set_font_size(btn, ThemeManager.FONT_SIZE_SUBTITLE)
 	btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	btn.pressed.connect(func(): select_index(idx))
 	hbox.add_child(btn)
