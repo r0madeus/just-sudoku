@@ -1825,7 +1825,7 @@ Temel ürün vaadi:
 
 # 54. Ton ve Terim Sözlüğü
 
-Arayüzdeki bütün metinler tek bir ses ile konuşur. Yeni bir metin eklerken veya mevcut bir metni değiştirirken bu bölüm esas alınır. Metinlerin tek kaynağı `scripts/services/localization_manager.gd` içindeki `DICTIONARY_EN` ve `DICTIONARY_TR` sözlükleridir.
+Arayüzdeki bütün metinler tek bir ses ile konuşur. Yeni bir metin eklerken veya mevcut bir metni değiştirirken bu bölüm esas alınır. Metinlerin tek kaynağı `scripts/services/localization_manager.gd` içindeki `DICTIONARY_EN` ve `DICTIONARY_TR` sözlükleridir; ayrı bir CSV veya çeviri dosyası tutulmaz.
 
 ## 54.1 Ton
 
@@ -1874,5 +1874,5 @@ Metinler sözlükte hiçbir zaman TAMAMEN BÜYÜK HARFLE yazılmaz. Küçük eti
 ## 54.4 İstisnalar
 
 - **Dil seçimi** iki dilde yazılır ("Dil / Language"), böylece arayüz dilini anlamayan biri de dili değiştirebilir.
-- **Paylaşım metni** ("Seed: …", "Kod: …" satırları) makine tarafından da okunur; içe aktarma bu etiketlere göre çalıştığı için değiştirilmez.
+- **Paylaşım metni** de sözlüğe uyar ("Zorluk: Orta / Bulmaca No: … / Bulmaca kodu: …"). İçe aktarma her iki dildeki etiketleri ve eski sürümlerin "Seed:" / "Kod:" etiketlerini tanır; bir etiket değişirse eskisi `PuzzleShareService` içindeki kabul listesinde kalmalıdır.
 - **Uygulama adı** "Just Sudoku" çevrilmez.

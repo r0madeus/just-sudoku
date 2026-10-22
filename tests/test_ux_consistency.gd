@@ -12,7 +12,7 @@ const LoadGameScreen = preload("res://scenes/menus/load_game_screen.gd")
 
 ## Keys whose text is a proper name, a machine-read label or deliberately bilingual (GDD §54.4)
 const COPY_EXCEPTIONS: Array[String] = [
-	"KEY_APP_TITLE", "SHARE_CARD_HEADER", "SHARE_SEED_LABEL", "SHARE_CODE_LABEL", "SETTING_LANGUAGE",
+	"KEY_APP_TITLE", "SHARE_CARD_HEADER", "SETTING_LANGUAGE",
 	"THEME_AMOLED", "TECH_X_WING", "TECH_SWORDFISH", "TECH_XY_WING", "TECH_XYZ_WING",
 	"TECHNIQUE_X_WING", "TECHNIQUE_XY_WING", "TECHNIQUE_XYZ_WING", "TECHNIQUE_SWORDFISH",
 ]
@@ -53,6 +53,7 @@ func _run() -> void:
 	await test_delete_asks_first()
 	await test_apply_solution_asks_first()
 	test_game_header_has_no_seed()
+	test_share_text_imports_across_languages()
 
 	print("========================================")
 	print("🏁 RESULTS: %d Passed, %d Failed" % [tests_passed, tests_failed])
@@ -248,3 +249,34 @@ func test_game_header_has_no_seed() -> void:
 	screen.toggle_pause()
 	assert_true(screen.pause_info_label.text.contains("123456789"), "Pause menu still shows it: %s" % screen.pause_info_label.text)
 	screen.queue_free()
+
+func test_share_text_imports_across_languages() -> void:
+	print("\n--- Test 8: Share text uses the glossary and imports in any language ---")
+	var gen := SudokuGenerator.generate(8181, DifficultyAnalyzer.LEVEL_HARD)
+	var prev := LocalizationManager.get_locale()
+	var texts := {}
+	for loc in [LocalizationManager.LOCALE_TR, LocalizationManager.LOCALE_EN]:
+		LocalizationManager.set_locale(loc)
+		texts[loc] = PuzzleShareService.export_puzzle_share_text(8181, DifficultyAnalyzer.LEVEL_HARD, gen.puzzle)
+	assert_true(texts["tr"].contains("Zorluk: Zor") and texts["tr"].contains("Bulmaca No: 8181") and texts["tr"].contains("Bulmaca kodu: "),
+		"Turkish share text: %s" % texts["tr"].replace("\n", " | ").left(80))
+	assert_true(texts["en"].contains("Difficulty: Hard") and texts["en"].contains("Puzzle No: 8181"),
+		"English share text: %s" % texts["en"].replace("\n", " | ").left(80))
+
+	# Each language's text opens in the other one
+	for pair in [["tr", "en"], ["en", "tr"]]:
+		LocalizationManager.set_locale(pair[1])
+		var res := PuzzleShareService.parse_import_string(texts[pair[0]])
+		assert_true(res.get("success", false) and res.get("seed", 0) == 8181, "%s text imports under %s" % [pair[0], pair[1]])
+
+	# Texts shared by older versions ("Seed:" / "Kod:", English difficulty) still open
+	var legacy := "Just Sudoku\nZorluk: Hard\nSeed: 8181\nKod: %s" % gen.puzzle.to_string_flat()
+	var res_legacy := PuzzleShareService.parse_import_string(legacy)
+	assert_true(res_legacy.get("success", false) and res_legacy.get("seed", 0) == 8181, "Older share text still imports")
+
+	# Number and difficulty alone (no code) regenerate the same puzzle
+	LocalizationManager.set_locale(LocalizationManager.LOCALE_TR)
+	var res_seed := PuzzleShareService.parse_import_string("Zorluk: Zor\nBulmaca No: 8181")
+	assert_true(res_seed.get("type", "") == "seed" and res_seed.get("difficulty", "") == DifficultyAnalyzer.LEVEL_HARD,
+		"Number + Turkish difficulty name picks the right level (%s)" % res_seed.get("difficulty", ""))
+	LocalizationManager.set_locale(prev)
