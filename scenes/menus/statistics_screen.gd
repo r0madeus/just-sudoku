@@ -170,8 +170,10 @@ func refresh_stats() -> void:
 	row1.add_theme_constant_override("separation", 16)
 	hero_vbox.add_child(row1)
 
-	_add_stat_callout(row1, LocalizationManager.format_number(completed_count), LocalizationManager.translate("STAT_COMPLETED_GAMES"), "check")
-	_add_stat_callout(row1, "%d%%" % int(comp_rate), LocalizationManager.translate("STAT_COMPLETION_RATE"), "chart-column-big")
+	# Value over caption, both centred and in one face; an icon beside the value would push it
+	# off its caption's centre line
+	_add_stat_callout(row1, LocalizationManager.format_number(completed_count), LocalizationManager.translate("STAT_COMPLETED_GAMES"))
+	_add_stat_callout(row1, LocalizationManager.format_percentage(int(comp_rate)), LocalizationManager.translate("STAT_COMPLETION_RATE"))
 
 	# Row 2: Average Time & Best Score
 	var row2 := HBoxContainer.new()
@@ -180,12 +182,8 @@ func refresh_stats() -> void:
 	hero_vbox.add_child(row2)
 
 	var avg_time_str := GameTimer.format_seconds(summary.get("average_time", 0.0))
-	_add_stat_callout(row2, avg_time_str, LocalizationManager.translate("STAT_AVG_TIME"), "clock-3", true)
-	_add_stat_callout(row2, "%d" % summary.get("best_score", 0), LocalizationManager.translate("STAT_BEST_SCORE"), "")
-
-	# Hairline divider
-	var div1 := HSeparator.new()
-	stats_vbox.add_child(div1)
+	_add_stat_callout(row2, avg_time_str, LocalizationManager.translate("STAT_AVG_TIME"))
+	_add_stat_callout(row2, "%d" % summary.get("best_score", 0), LocalizationManager.translate("STAT_BEST_SCORE"))
 
 	# -------------------------------------------------------------------------
 	# 2. Section 2: Daily Challenge Streaks (Restrained Liquid Glass Panel)
@@ -247,9 +245,6 @@ func refresh_stats() -> void:
 	streak_desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	streak_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	streak_vbox.add_child(streak_desc)
-
-	var div2 := HSeparator.new()
-	stats_vbox.add_child(div2)
 
 	# -------------------------------------------------------------------------
 	# 3. Section 3: Performance by Difficulty (Swiss Hairline Data Grid)

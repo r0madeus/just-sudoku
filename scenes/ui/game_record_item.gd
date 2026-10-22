@@ -188,7 +188,6 @@ func setup_saved_game(game_data: Dictionary) -> void:
 	time_label = _caption(GameTimer.format_seconds(float(game_data.get("elapsed_time", 0.0))), detail_row, true)
 
 	more_btn = _round_action("more-horizontal", LocalizationManager.translate("BTN_MORE_ACTIONS"), false)
-	more_btn.custom_minimum_size = Vector2(36, ACTION_SIZE)
 	more_btn.pressed.connect(open_actions)
 	hbox.add_child(more_btn)
 

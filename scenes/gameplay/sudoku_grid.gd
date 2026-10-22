@@ -20,8 +20,6 @@ var lines_overlay: GridOverlay = null
 ## Unit (SudokuSolver.ALL_UNITS index) outlined by a first-level hint, -1 for none
 var hint_focus_unit: int = -1
 
-const MAJOR_LINE_WIDTH: float = 2.5
-const MINOR_LINE_WIDTH: float = 1.0
 
 func _ready() -> void:
 	custom_minimum_size = Vector2.ZERO
@@ -171,29 +169,8 @@ func _draw_grid_lines(overlay: Control) -> void:
 	var minor_col: Color = ThemeManager.get_color("grid_minor")
 	var major_col: Color = ThemeManager.get_color("grid_major")
 
-	# 1. Minor cell lines (subtle, delicate 1px hairlines)
-	for i in range(1, 9):
-		if i % 3 == 0:
-			continue
-		var x: float = ox + i * cell_size
-		overlay.draw_line(Vector2(x, oy), Vector2(x, oy + grid_size), minor_col, MINOR_LINE_WIDTH, true)
-		var y: float = oy + i * cell_size
-		overlay.draw_line(Vector2(ox, y), Vector2(ox + grid_size, y), minor_col, MINOR_LINE_WIDTH, true)
-
-	# 2. Major 3x3 block boundaries (prominent, strong 2.5px solid dividing lines)
-	for i in [3, 6]:
-		var x: float = ox + i * cell_size
-		overlay.draw_line(Vector2(x, oy), Vector2(x, oy + grid_size), major_col, MAJOR_LINE_WIDTH, true)
-		var y: float = oy + i * cell_size
-		overlay.draw_line(Vector2(ox, y), Vector2(ox + grid_size, y), major_col, MAJOR_LINE_WIDTH, true)
-
-	# 3. Clean outer frame with gently rounded corners (RADIUS_MD)
-	var outer_sb := StyleBoxFlat.new()
-	outer_sb.draw_center = false
-	outer_sb.border_color = major_col
-	outer_sb.set_border_width_all(int(MAJOR_LINE_WIDTH))
-	outer_sb.set_corner_radius_all(ThemeManager.RADIUS_MD)
-	overlay.draw_style_box(outer_sb, Rect2(ox, oy, grid_size, grid_size))
+	# 1-3. Cell lines, box lines and the rounded frame, aligned to device pixels
+	GridLines.draw_board(overlay, Rect2(ox, oy, grid_size, grid_size), minor_col, major_col)
 
 	# 4. Hint focus: accent frame around the row, column or box the hint points at
 	if hint_focus_unit >= 0:

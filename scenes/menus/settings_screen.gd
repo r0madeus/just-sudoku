@@ -23,6 +23,9 @@ static var auto_remove_notes: bool = true
 static var smart_candidates_enabled: bool = false
 static var show_conflicts: bool = true
 static var show_wrong_immediately: bool = false
+
+## Width of the dropdowns on the right of the setting rows
+const PICKER_WIDTH: float = 150.0
 static var animations_enabled: bool = true
 static var sounds_enabled: bool = true
 static var haptics_enabled: bool = true
@@ -258,8 +261,9 @@ func _build_ui() -> void:
 	card_appearance.add_child(app_vbox)
 
 	# Dil / Language
+	# The three pickers share one width so their left edges line up down the card
 	lang_option = OptionButton.new()
-	lang_option.custom_minimum_size = Vector2(120, 38)
+	lang_option.custom_minimum_size = Vector2(PICKER_WIDTH, 38)
 	lang_option.clip_text = true
 	lang_option.fit_to_longest_item = false
 	lang_option.add_item("Türkçe")
@@ -275,7 +279,7 @@ func _build_ui() -> void:
 
 	# Görsel Tema / Visual Theme
 	theme_option = OptionButton.new()
-	theme_option.custom_minimum_size = Vector2(130, 38)
+	theme_option.custom_minimum_size = Vector2(PICKER_WIDTH, 38)
 	theme_option.clip_text = true
 	theme_option.fit_to_longest_item = false
 	theme_option.add_item("Dark")
@@ -310,7 +314,7 @@ func _build_ui() -> void:
 
 	# Yazı Tipi / Font Family
 	font_option = OptionButton.new()
-	font_option.custom_minimum_size = Vector2(140, 38)
+	font_option.custom_minimum_size = Vector2(PICKER_WIDTH, 38)
 	font_option.clip_text = true
 	font_option.fit_to_longest_item = false
 	font_option.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
