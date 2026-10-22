@@ -3,8 +3,8 @@ extends PanelContainer
 
 ## One row of a game list (Saved games, History), built the same way everywhere:
 ## a thumbnail of the board, a title line (level, score), a quiet detail line, and a single
-## round primary action on the right. Rows sit together in one card (see ListCard); each row
-## draws the hairline that separates it from the row above.
+## round primary action on the right. Rows sit together in one card (see ListCard), in one or
+## two columns; each row draws the hairline that separates it from the row above.
 ## Saved games keep Share and Delete one tap away behind "⋯", so the row has one main action.
 
 const ThemeManager = preload("res://scripts/services/theme_manager.gd")
@@ -62,7 +62,9 @@ func _notification(what: int) -> void:
 		queue_redraw()
 
 func _draw() -> void:
-	if get_index() > 0:
+	# In a two-column list the first line has two rows
+	var columns: int = get_parent().columns if get_parent() is GridContainer else 1
+	if get_index() >= columns:
 		draw_line(Vector2(0, 0), Vector2(size.x, 0), ThemeManager.get_color("border_subtle"), 1.0)
 
 ## Row skeleton: [thumbnail] [title line / detail line] ... actions are appended by the caller

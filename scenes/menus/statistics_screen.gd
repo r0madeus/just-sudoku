@@ -7,6 +7,7 @@ const ResponsiveManager = preload("res://scripts/services/responsive_manager.gd"
 const AmbientBackdrop = preload("res://scenes/ui/ambient_backdrop.gd")
 const GlassPanel = preload("res://scenes/ui/glass_panel.gd")
 const AchievementManager = preload("res://scripts/data/achievement_manager.gd")
+const AdaptiveColumns = preload("res://scenes/ui/adaptive_columns.gd")
 
 ## Performance and Progression Statistics Screen (GDD §33, §44)
 ## Swiss Editorial layout: High data-density typographic callouts and hairline dividers,
@@ -18,7 +19,8 @@ var bg: ColorRect
 var margin: MarginContainer
 var back_btn: Button
 var title: Label
-var stats_vbox: VBoxContainer
+## The cards; on a wide screen the overview, streak and levels on the left, achievements on the right
+var stats_vbox: AdaptiveColumns
 var _stats_dirty: bool = true
 
 ## Set once _ready is done: every screen is still visible during it, before the app shows
@@ -51,7 +53,9 @@ func _notification(what: int) -> void:
 func _apply_responsive_layout() -> void:
 	if margin == null:
 		return
-	ResponsiveManager.apply_content_margins(self, margin, ResponsiveManager.MAX_CONTENT_WIDTH)
+	ResponsiveManager.apply_content_margins(self, margin, ResponsiveManager.MAX_CONTENT_WIDTH, true)
+	if stats_vbox != null:
+		stats_vbox.columns = ResponsiveManager.content_columns(ResponsiveManager.get_viewport_size(self))
 
 func _on_theme_changed() -> void:
 	if bg != null:
@@ -114,9 +118,9 @@ func _build_ui() -> void:
 	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
 	root_vbox.add_child(scroll)
 
-	stats_vbox = VBoxContainer.new()
+	stats_vbox = AdaptiveColumns.new()
 	stats_vbox.size_flags_horizontal = SIZE_EXPAND_FILL
-	stats_vbox.add_theme_constant_override("separation", 20)
+	stats_vbox.separation = 20
 	scroll.add_child(stats_vbox)
 
 func _update_locale_texts() -> void:
@@ -342,6 +346,7 @@ func _add_achievements_card() -> void:
 
 	var card := GlassPanel.card(20.0, 16, 12)
 	card.name = "AchievementsCard"
+	AdaptiveColumns.set_column(card, 1)
 	stats_vbox.add_child(card)
 	var rows := VBoxContainer.new()
 	rows.add_theme_constant_override("separation", 12)

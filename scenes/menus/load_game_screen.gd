@@ -21,7 +21,8 @@ var margin: MarginContainer
 var back_btn: Button
 var title: Label
 var import_btn: Button
-var list_vbox: VBoxContainer
+## The rows: one column on a phone, two on a wide screen
+var list_vbox: GridContainer
 var list_card: PanelContainer
 var _list_dirty: bool = true
 
@@ -61,7 +62,8 @@ func _notification(what: int) -> void:
 func _apply_responsive_layout() -> void:
 	if margin == null:
 		return
-	ResponsiveManager.apply_content_margins(self, margin, ResponsiveManager.MAX_CONTENT_WIDTH)
+	ResponsiveManager.apply_content_margins(self, margin, ResponsiveManager.MAX_CONTENT_WIDTH, true)
+	_update_list_columns()
 	_update_import_label()
 
 ## Narrower than this, Import shows only its icon so the title keeps its full width
@@ -154,9 +156,11 @@ func _build_ui() -> void:
 	list_card.size_flags_vertical = SIZE_SHRINK_BEGIN
 	list_pad.add_child(list_card)
 
-	list_vbox = VBoxContainer.new()
+	list_vbox = GridContainer.new()
+	list_vbox.columns = 1
 	list_vbox.size_flags_horizontal = SIZE_EXPAND_FILL
-	list_vbox.add_theme_constant_override("separation", 0)
+	list_vbox.add_theme_constant_override("h_separation", 28)
+	list_vbox.add_theme_constant_override("v_separation", 0)
 	list_card.add_child(list_vbox)
 
 func _update_locale_texts() -> void:
@@ -198,9 +202,11 @@ func refresh_list() -> void:
 		empty_container.add_child(empty_lbl)
 
 		list_vbox.add_child(empty_container)
+		_update_list_columns()
 		return
 
 	_pager.start(games.size(), func(i: int): _add_game_item(games[i]))
+	_update_list_columns()
 
 func _add_game_item(g: Dictionary) -> void:
 	var item := GameRecordItem.new()
@@ -231,3 +237,15 @@ func _add_game_item(g: Dictionary) -> void:
 			true)
 	)
 	list_vbox.add_child(item)
+
+## Two columns of rows on a wide screen; the empty-list message keeps the full width
+func _update_list_columns() -> void:
+	if list_vbox == null:
+		return
+	var has_rows: bool = list_vbox.get_child_count() > 0 and list_vbox.get_child(0) is GameRecordItem
+	var cols: int = ResponsiveManager.content_columns(ResponsiveManager.get_viewport_size(self)) if has_rows else 1
+	if list_vbox.columns != cols:
+		list_vbox.columns = cols
+		# Each row draws the hairline above it, except on the first line
+		for c in list_vbox.get_children():
+			c.queue_redraw()
