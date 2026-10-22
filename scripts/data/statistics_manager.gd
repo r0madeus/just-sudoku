@@ -13,7 +13,8 @@ static func get_summary_statistics() -> Dictionary:
 
 	for r in records:
 		total_time += float(r.get("time", 0.0))
-		best_score = maxi(best_score, int(r.get("score", 0)))
+		if not r.get("assisted", false):
+			best_score = maxi(best_score, int(r.get("score", 0)))
 
 	var avg_time: float = total_time / maxf(1.0, float(total_completed))
 
@@ -45,9 +46,11 @@ static func get_detailed_statistics() -> Dictionary:
 			entry["total_time"] += t
 			entry["total_mistakes"] += int(r.get("mistakes", 0))
 			entry["total_hints"] += int(r.get("hints", 0))
-			entry["best_score"] = maxi(entry["best_score"], int(r.get("score", 0)))
-			if t < entry["best_time"]:
-				entry["best_time"] = t
+			# A shown solution is a completion, not a record
+			if not r.get("assisted", false):
+				entry["best_score"] = maxi(entry["best_score"], int(r.get("score", 0)))
+				if t < entry["best_time"]:
+					entry["best_time"] = t
 
 	# Compute averages
 	for d in diff_stats.keys():
@@ -56,7 +59,7 @@ static func get_detailed_statistics() -> Dictionary:
 		entry["avg_time"] = entry["total_time"] / c
 		entry["avg_mistakes"] = float(entry["total_mistakes"]) / c
 		entry["avg_hints"] = float(entry["total_hints"]) / c
-		if entry["count"] == 0:
+		if entry["count"] == 0 or entry["best_time"] >= 999999.0:
 			entry["best_time"] = 0.0
 
 	return {

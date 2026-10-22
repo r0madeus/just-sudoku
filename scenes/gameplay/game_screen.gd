@@ -79,7 +79,10 @@ var hint_dialog: AppModal
 
 # Completion Modal
 var complete_dialog: AppModal
+var complete_summary: ResultSummary
 var complete_replay_btn: Button
+## Pending background request for "New <level> Puzzle", 0 when none
+var _new_puzzle_req: int = 0
 
 # Solution Modal
 var solution_dialog: SolutionDialog
@@ -463,11 +466,18 @@ func _build_ui() -> void:
 	add_child(hint_dialog)
 
 	# --- 8. Completion Dialog (AppModal) ---
+	# Three ways on: the next puzzle at the same level, this puzzle again, or the menu
 	complete_dialog = AppModal.new()
 	complete_dialog.max_modal_width = 380.0
-	complete_dialog.cancel_btn.visible = false
+	complete_dialog.show_close_button = false
 	complete_dialog.dismissible_backdrop = false
-	complete_dialog.confirmed.connect(_on_back_pressed)
+	complete_dialog.cancel_on_back = true
+	complete_summary = ResultSummary.new()
+	complete_dialog.body_vbox.add_child(complete_summary)
+	# The next puzzle may need a moment to generate; keep the result open until it is ready
+	complete_dialog.primary_btn.pressed.disconnect(complete_dialog._on_confirmed)
+	complete_dialog.primary_btn.pressed.connect(_on_complete_new_puzzle)
+	complete_dialog.canceled.connect(_on_complete_menu)
 	complete_replay_btn = complete_dialog.add_button(LocalizationManager.translate("BTN_MASTER_AGAIN"), true, "replay")
 	complete_dialog.custom_action.connect(_on_complete_custom_action)
 	add_child(complete_dialog)
@@ -808,7 +818,10 @@ func _update_locale_texts() -> void:
 		hint_dialog.cancel_button_text = LocalizationManager.translate("BTN_CLOSE")
 	if complete_dialog != null:
 		complete_dialog.title = LocalizationManager.translate("WIN_DIALOG_TITLE")
-		complete_dialog.ok_button_text = LocalizationManager.translate("WIN_BUTTON_AWESOME")
+		complete_dialog.cancel_button_text = LocalizationManager.translate("BTN_MENU")
+		if game_state != null and _new_puzzle_req == 0:
+			complete_dialog.ok_button_text = LocalizationManager.translate("BTN_NEW_SAME_LEVEL") % \
+				LocalizationManager.get_difficulty_name(game_state.difficulty)
 	if complete_replay_btn != null:
 		complete_replay_btn.text = LocalizationManager.translate("BTN_MASTER_AGAIN")
 	if game_state != null and info_label != null:
@@ -909,33 +922,26 @@ func _on_game_completed(summary: Dictionary) -> void:
 		SaveManager.save_game_slot(game_state)
 
 	var seed_val: int = int(summary.get("seed", 0))
-	if seed_val == DailyManager.get_today_seed():
+	var is_daily: bool = seed_val == DailyManager.get_today_seed()
+	summary["is_daily"] = is_daily
+	if is_daily:
 		DailyManager.mark_today_completed()
 		if game_state != null:
 			DailyManager.save_today_game(game_state)
 
+	# References as they were before this game, then record it (GDD §25, §26)
+	var difficulty: String = summary.get("difficulty", DifficultyAnalyzer.LEVEL_MEDIUM)
 	var prev_best := HistoryManager.get_best_record_for_seed(seed_val)
+	var bench := HistoryManager.get_level_benchmarks(difficulty)
 	HistoryManager.add_record(summary)
 
-	var is_tr := (LocalizationManager.get_locale() == LocalizationManager.LOCALE_TR)
-	var time_str := GameTimer.format_seconds(summary["time"])
-	var mistakes: int = summary["mistakes"]
-	var hints: int = summary["hints"]
-	var score: int = summary["score"]
-
-	var text: String = LocalizationManager.translate("WIN_SUMMARY_FORMAT") % [
-		time_str, mistakes, hints, score
-	]
-
-	# GDD §26 Replay / Best performance comparison
-	if summary.get("is_replay", false) and not prev_best.is_empty():
-		var prev_score: int = int(prev_best.get("score", 0))
-		if score > prev_score:
-			text += "\n\n" + LocalizationManager.translate("NEW_BEST_SCORE")
-		else:
-			text += "\n\n" + (LocalizationManager.translate("SCORE_BEST_COMPARISON") % [prev_score, score])
-
-	complete_dialog.dialog_text = text
+	var streak: int = DailyManager.get_current_streak() if is_daily else 0
+	complete_summary.show_result(summary, ResultSummary.build_highlights(summary, bench, prev_best, streak))
+	complete_dialog.dialog_text = ""
+	_new_puzzle_req = 0
+	complete_dialog.primary_btn.disabled = false
+	complete_dialog.ok_button_text = LocalizationManager.translate("BTN_NEW_SAME_LEVEL") % \
+		LocalizationManager.get_difficulty_name(difficulty)
 	if SettingsScreen.animations_enabled and is_inside_tree() and sudoku_grid != null:
 		sudoku_grid.play_victory_wave(func():
 			if is_inside_tree():
@@ -945,9 +951,43 @@ func _on_game_completed(summary: Dictionary) -> void:
 		if is_inside_tree():
 			complete_dialog.popup_centered()
 
+func _on_complete_new_puzzle() -> void:
+	if game_state == null or _new_puzzle_req != 0:
+		return
+	var difficulty: String = game_state.difficulty
+	# Usually prepared in the background already (GDD §2.3), so it opens at once
+	var ready := PuzzlePrefetcher.take(difficulty)
+	if ready != null:
+		_start_new_puzzle(ready)
+		return
+	complete_dialog.primary_btn.disabled = true
+	complete_dialog.ok_button_text = LocalizationManager.translate("LOADING_PUZZLE") % \
+		LocalizationManager.get_difficulty_name(difficulty)
+	_new_puzzle_req = AsyncPuzzleGenerator.request_puzzle_async(
+		SudokuGenerator.generate_new_seed(),
+		difficulty,
+		func(gen: SudokuGenerator.GeneratedPuzzle) -> void:
+			_new_puzzle_req = 0
+			if gen != null:
+				_start_new_puzzle(gen)
+	)
+
+func _start_new_puzzle(gen: SudokuGenerator.GeneratedPuzzle) -> void:
+	complete_dialog.close_modal()
+	var state := GameState.new()
+	state.init_from_puzzle(gen)
+	SaveManager.save_active_game(state)
+	setup_game(state)
+
+func _on_complete_menu() -> void:
+	if _new_puzzle_req != 0:
+		AsyncPuzzleGenerator.cancel_request(_new_puzzle_req)
+		_new_puzzle_req = 0
+	_on_back_pressed()
+
 func _on_complete_custom_action(action: String) -> void:
 	if action == "replay":
-		complete_dialog.hide()
+		complete_dialog.close_modal()
 		if game_state != null:
 			game_state.reset_for_replay()
 			SaveManager.save_active_game(game_state)

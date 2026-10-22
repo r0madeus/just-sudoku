@@ -66,7 +66,6 @@ static var DICTIONARY_EN: Dictionary = {
 	"HINT_FOCUS_TEXT": "Look closely at this area: %s. The next logical step is there.\n\nNeed more? The next level names the technique.",
 	"HINT_SHOW_TECHNIQUE": "Show Technique",
 	"WIN_DIALOG_TITLE": "Puzzle Solved!",
-	"WIN_BUTTON_AWESOME": "Back to Menu",
 	"CHECK_ALL_CORRECT": "All digits are correct.",
 	"CHECK_MISTAKES_FOUND": "%d wrong digits marked in red.",
 	"NEW_GAME_TITLE": "New Game",
@@ -252,7 +251,6 @@ static var DICTIONARY_EN: Dictionary = {
 	"RECORD_MISTAKES": "Mistakes: %d",
 	"RECORD_HINTS": "Hints: %d",
 	"BTN_REPLAY_ACTION": "Solve Again",
-	"WIN_SUMMARY_FORMAT": "Time: %s\nMistakes: %d\nHints: %d\n\nScore: %d / 100",
 	"THEME_SYSTEM": "System (Auto)",
 	"SHARE_CARD_HEADER": "Just Sudoku",
 	"SHARE_DIFF_LABEL": "Difficulty",
@@ -267,7 +265,22 @@ static var DICTIONARY_EN: Dictionary = {
 	"SHARE_ERR_UNKNOWN": "This doesn't look like a puzzle number, puzzle code or exported game.",
 	"PUZZLE_NUMBER": "No. %d",
 	"DELETE_GAME_TITLE": "Delete This Game?",
-	"DELETE_GAME_BODY": "Your progress in this puzzle will be lost. This can't be undone."
+	"DELETE_GAME_BODY": "Your progress in this puzzle will be lost. This can't be undone.",
+	"BTN_NEW_SAME_LEVEL": "New %s Puzzle",
+	"RESULT_SCORE": "Score",
+	"RESULT_TIME": "Time",
+	"RESULT_MISTAKES": "Mistakes",
+	"RESULT_HINTS": "Hints",
+	"RESULT_FIRST_AT_LEVEL": "Your first solve at this level.",
+	"RESULT_FASTEST": "Your fastest solve at this level!",
+	"RESULT_FASTER_THAN_AVG": "%s faster than your average",
+	"RESULT_SLOWER_THAN_AVG": "%s slower than your average",
+	"RESULT_ON_AVG": "Right on your average",
+	"RESULT_ASSISTED": "Finished by showing the solution.",
+	"RESULT_DAILY": "Daily Sudoku done • %s",
+	"DURATION_MIN_SEC": "%d min %d s",
+	"DURATION_MIN": "%d min",
+	"DURATION_SEC": "%d s"
 }
 
 static var DICTIONARY_TR: Dictionary = {
@@ -318,7 +331,6 @@ static var DICTIONARY_TR: Dictionary = {
 	"HINT_FOCUS_TEXT": "Şu bölgeye dikkatlice bak: %s. Sıradaki mantıksal adım orada.\n\nDaha fazlası gerekirse sonraki kademe tekniği söyler.",
 	"HINT_SHOW_TECHNIQUE": "Tekniği Göster",
 	"WIN_DIALOG_TITLE": "Bulmaca Çözüldü!",
-	"WIN_BUTTON_AWESOME": "Menüye Dön",
 	"CHECK_ALL_CORRECT": "Tüm rakamlar doğru.",
 	"CHECK_MISTAKES_FOUND": "%d yanlış rakam kırmızıyla işaretlendi.",
 	"NEW_GAME_TITLE": "Yeni Oyun",
@@ -504,7 +516,6 @@ static var DICTIONARY_TR: Dictionary = {
 	"RECORD_MISTAKES": "Hata: %d",
 	"RECORD_HINTS": "İpucu: %d",
 	"BTN_REPLAY_ACTION": "Yeniden Çöz",
-	"WIN_SUMMARY_FORMAT": "Süre: %s\nHata: %d\nİpucu: %d\n\nSkor: %d / 100",
 	"THEME_SYSTEM": "Sistem (Otomatik)",
 	"SHARE_CARD_HEADER": "Just Sudoku",
 	"SHARE_DIFF_LABEL": "Zorluk",
@@ -519,7 +530,22 @@ static var DICTIONARY_TR: Dictionary = {
 	"SHARE_ERR_UNKNOWN": "Bu bir bulmaca numarası, bulmaca kodu ya da dışa aktarılmış oyun gibi görünmüyor.",
 	"PUZZLE_NUMBER": "No. %d",
 	"DELETE_GAME_TITLE": "Bu Oyun Silinsin mi?",
-	"DELETE_GAME_BODY": "Bu bulmacadaki ilerlemen kaybolacak. Bu işlem geri alınamaz."
+	"DELETE_GAME_BODY": "Bu bulmacadaki ilerlemen kaybolacak. Bu işlem geri alınamaz.",
+	"BTN_NEW_SAME_LEVEL": "Yeni %s Bulmaca",
+	"RESULT_SCORE": "Skor",
+	"RESULT_TIME": "Süre",
+	"RESULT_MISTAKES": "Hata",
+	"RESULT_HINTS": "İpucu",
+	"RESULT_FIRST_AT_LEVEL": "Bu seviyedeki ilk çözümün.",
+	"RESULT_FASTEST": "Bu seviyedeki en hızlı çözümün!",
+	"RESULT_FASTER_THAN_AVG": "Ortalamandan %s hızlı",
+	"RESULT_SLOWER_THAN_AVG": "Ortalamandan %s yavaş",
+	"RESULT_ON_AVG": "Tam ortalamanda",
+	"RESULT_ASSISTED": "Çözüm gösterilerek tamamlandı.",
+	"RESULT_DAILY": "Günün Sudokusu tamam • %s",
+	"DURATION_MIN_SEC": "%d dk %d sn",
+	"DURATION_MIN": "%d dk",
+	"DURATION_SEC": "%d sn"
 }
 
 static func _ensure_initialized() -> void:
@@ -668,6 +694,17 @@ static func format_date(year: int, month: int, day: int) -> String:
 	if current_locale == LOCALE_TR:
 		return "%02d.%02d.%04d" % [day, month, year]
 	return "%04d-%02d-%02d" % [year, month, day]
+
+## A length of time in words for comparisons ("1 dk 20 sn", "45 s")
+static func format_duration_words(seconds: float) -> String:
+	var sec := int(roundf(absf(seconds)))
+	var m := sec / 60
+	var s := sec % 60
+	if m == 0:
+		return translate("DURATION_SEC") % s
+	if s == 0:
+		return translate("DURATION_MIN") % m
+	return translate("DURATION_MIN_SEC") % [m, s]
 
 static func format_duration(seconds: float) -> String:
 	var sec := int(roundf(seconds))
