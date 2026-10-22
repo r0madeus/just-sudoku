@@ -26,7 +26,8 @@ var diff_lbl: Label
 var diff_opt: OptionButton
 var sort_lbl: Label
 var sort_opt: OptionButton
-var list_vbox: VBoxContainer
+## The rows: one column on a phone, two on a wide screen
+var list_vbox: GridContainer
 var list_card: PanelContainer
 
 const STATUS_KEYS: Array[String] = [
@@ -91,7 +92,8 @@ func _notification(what: int) -> void:
 func _apply_responsive_layout() -> void:
 	if margin == null:
 		return
-	ResponsiveManager.apply_content_margins(self, margin, ResponsiveManager.MAX_CONTENT_WIDTH)
+	ResponsiveManager.apply_content_margins(self, margin, ResponsiveManager.MAX_CONTENT_WIDTH, true)
+	_update_list_columns()
 
 func _on_theme_changed() -> void:
 	if bg != null:
@@ -253,9 +255,11 @@ func _build_ui() -> void:
 	list_card.size_flags_vertical = SIZE_SHRINK_BEGIN
 	list_pad.add_child(list_card)
 
-	list_vbox = VBoxContainer.new()
+	list_vbox = GridContainer.new()
+	list_vbox.columns = 1
 	list_vbox.size_flags_horizontal = SIZE_EXPAND_FILL
-	list_vbox.add_theme_constant_override("separation", 0)
+	list_vbox.add_theme_constant_override("h_separation", 28)
+	list_vbox.add_theme_constant_override("v_separation", 0)
 	list_card.add_child(list_vbox)
 
 func _update_locale_texts() -> void:
@@ -337,11 +341,13 @@ func refresh_history() -> void:
 		empty_container.add_child(empty_lbl)
 
 		list_vbox.add_child(empty_container)
+		_update_list_columns()
 		return
 
 	_pending_records = records
 	_pending_best_map = HistoryManager.get_best_records_map()
 	_pager.start(records.size(), _add_record_row)
+	_update_list_columns()
 
 func _add_record_row(i: int) -> void:
 	var r: Dictionary = _pending_records[i]
@@ -352,3 +358,14 @@ func _add_record_row(i: int) -> void:
 	item.replay_pressed.connect(func(s, d): replay_requested.emit(s, d))
 	list_vbox.add_child(item)
 
+## Two columns of rows on a wide screen; the empty-list message keeps the full width
+func _update_list_columns() -> void:
+	if list_vbox == null:
+		return
+	var has_rows: bool = list_vbox.get_child_count() > 0 and list_vbox.get_child(0) is GameRecordItem
+	var cols: int = ResponsiveManager.content_columns(ResponsiveManager.get_viewport_size(self)) if has_rows else 1
+	if list_vbox.columns != cols:
+		list_vbox.columns = cols
+		# Each row draws the hairline above it, except on the first line
+		for c in list_vbox.get_children():
+			c.queue_redraw()

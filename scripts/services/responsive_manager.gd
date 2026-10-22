@@ -78,7 +78,13 @@ const RADIUS_PILL: int = 22
 
 # Standard Content Width Limits
 const MAX_CONTENT_WIDTH: float = 480.0
+## Screens that split into two columns (Statistics, Settings, the game lists) do so from this
+## width, with at most this much content across
+const TWO_COLUMN_MIN_WIDTH: float = 900.0
+const MAX_TWO_COLUMN_WIDTH: float = 1040.0
 const MAX_MENU_WIDTH: float = 380.0
+## The menu in two columns (wide landscape screens)
+const MAX_MENU_WIDE_WIDTH: float = 920.0
 const MAX_BOARD_WIDTH: float = 520.0
 const MAX_BOARD_WIDTH_LANDSCAPE: float = 720.0
 const LANDSCAPE_SIDE_PANEL_W: float = 340.0
@@ -175,6 +181,14 @@ static func tablet_factor(viewport_size: Vector2) -> float:
 	if cat == DeviceCategory.PHONE or cat == DeviceCategory.COMPACT_PHONE:
 		return 1.0
 	return clampf(minf(viewport_size.x, viewport_size.y) / 600.0, 1.0, 1.4)
+
+## 2 when a screen that can split into columns has the room for two (a tablet in landscape, a
+## 12.9" tablet in portrait, a large window), else 1. Tablets in portrait keep one wider column.
+static func content_columns(viewport_size: Vector2) -> int:
+	var cat := get_device_category(viewport_size)
+	if cat == DeviceCategory.PHONE or cat == DeviceCategory.COMPACT_PHONE:
+		return 1
+	return 2 if viewport_size.x >= TWO_COLUMN_MIN_WIDTH else 1
 
 ## Shorter side, in dp, from which a device counts as a tablet
 const TABLET_MIN_SHORT_SIDE: float = 600.0
@@ -320,10 +334,13 @@ static func balance_header(header: HBoxContainer, title: Control) -> void:
 	header.resized.connect(rebalance)
 	rebalance.call()
 
+## `two_columns`: the screen lays its content out in two columns when content_columns() says
+## so, and then may use up to MAX_TWO_COLUMN_WIDTH
 static func apply_content_margins(
 	screen: Control,
 	margin_container: MarginContainer,
-	max_content_w: float = MAX_CONTENT_WIDTH
+	max_content_w: float = MAX_CONTENT_WIDTH,
+	two_columns: bool = false
 ) -> void:
 	if screen == null or margin_container == null:
 		return
@@ -336,6 +353,8 @@ static func apply_content_margins(
 	var safe := get_safe_area_insets(screen)
 	var cat := get_device_category(vp_size)
 	max_content_w *= tablet_factor(vp_size)
+	if two_columns and content_columns(vp_size) == 2:
+		max_content_w = MAX_TWO_COLUMN_WIDTH
 
 	# Responsive horizontal margin
 	var side_margin: int = 16
@@ -363,7 +382,8 @@ static func apply_menu_layout(
 	top_spacer: Control,
 	mid_spacer: Control,
 	bottom_spacer: Control,
-	max_menu_w: float = MAX_MENU_WIDTH
+	max_menu_w: float = MAX_MENU_WIDTH,
+	wide: bool = false
 ) -> void:
 	if screen == null or margin_container == null:
 		return
@@ -377,7 +397,9 @@ static func apply_menu_layout(
 	var cat := get_device_category(vp_size)
 
 	var target_w: float = max_menu_w * tablet_factor(vp_size)
-	if cat == DeviceCategory.COMPACT_PHONE:
+	if wide:
+		target_w = minf(MAX_MENU_WIDE_WIDTH, w - 48.0)
+	elif cat == DeviceCategory.COMPACT_PHONE:
 		target_w = minf(340.0, w - 24.0)
 	elif cat == DeviceCategory.DESKTOP:
 		var is_landscape: bool = (w > h * 1.15) and (h <= 720.0)

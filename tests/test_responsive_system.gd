@@ -213,7 +213,8 @@ func _test_main_menu_multi_resolution_layout() -> void:
 		# The scroll container's shadow padding is part of the visible side margin
 		var side_margin: int = menu.margin_container.get_theme_constant("margin_left", "MarginContainer") + MainMenu.SHADOW_PAD
 		var effective_content_w: float = r.x - float(side_margin * 2)
-		var menu_cap: float = ResponsiveManager.MAX_MENU_WIDTH * ResponsiveManager.tablet_factor(r)
+		# A wide landscape screen shows the menu in two columns, with its own cap
+		var menu_cap: float = ResponsiveManager.MAX_MENU_WIDE_WIDTH if menu.is_wide else ResponsiveManager.MAX_MENU_WIDTH * ResponsiveManager.tablet_factor(r)
 		_assert(effective_content_w <= menu_cap + 8.0, "%s: Content width is restrained (<= %dpx, actual: %dpx)" % [rname, int(menu_cap), int(effective_content_w)])
 		_assert(side_margin >= 16, "%s: Side margins maintain comfortable breathing room (>= 16px, actual: %dpx)" % [rname, side_margin])
 
@@ -243,8 +244,10 @@ func _test_secondary_screens_content_margins() -> void:
 		if margin_ctrl != null:
 			var side_margin: int = margin_ctrl.get_theme_constant("margin_left", "MarginContainer")
 			var content_w: float = 1280.0 - float(side_margin * 2)
-			var col_w: float = ResponsiveManager.MAX_CONTENT_WIDTH * ResponsiveManager.tablet_factor(Vector2(1280, 720))
-			_assert(absf(content_w - col_w) <= 1.0, "%s on 1280px desktop centers column to exactly %dpx (margin=%dpx)" % [sname, int(col_w), side_margin])
+			# These screens split into two columns on a screen this wide, with a wider cap
+			var col_w: float = ResponsiveManager.MAX_TWO_COLUMN_WIDTH
+			_assert(ResponsiveManager.content_columns(Vector2(1280, 720)) == 2 and absf(content_w - col_w) <= 1.0,
+				"%s on 1280px desktop centers its two columns in exactly %dpx (margin=%dpx)" % [sname, int(col_w), side_margin])
 
 		scr.queue_free()
 

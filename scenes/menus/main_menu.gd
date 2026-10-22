@@ -58,6 +58,7 @@ var daily_btn: Button
 var load_game_btn: Button
 
 # 5. Baseline Utility Navigation
+var nav_section_vbox: VBoxContainer
 var nav_separator: HSeparator
 var nav_glass: GlassPanel
 var nav_hbox: HBoxContainer
@@ -67,6 +68,12 @@ var settings_btn: Button
 
 # Backwards compatibility reference
 var menu_card_panel: Control
+
+## Wide landscape screens (a tablet turned sideways, a large window): the resume card on the left,
+## the actions and navigation on the right, under the masthead
+var wide_row: HBoxContainer
+var wide_right: VBoxContainer
+var is_wide: bool = false
 
 func _init() -> void:
 	set_anchors_preset(PRESET_FULL_RECT)
@@ -90,12 +97,16 @@ func _ready() -> void:
 func _apply_responsive_layout() -> void:
 	if margin_container == null:
 		return
+	var vp_size := ResponsiveManager.get_viewport_size(self)
+	_set_wide(ResponsiveManager.content_columns(vp_size) == 2 and ResponsiveManager.is_game_landscape(vp_size))
 	ResponsiveManager.apply_menu_layout(
 		self,
 		margin_container,
 		top_spacer,
 		mid_spacer,
-		bottom_spacer
+		bottom_spacer,
+		ResponsiveManager.MAX_MENU_WIDTH,
+		is_wide
 	)
 	for side in ["margin_left", "margin_right", "margin_top", "margin_bottom"]:
 		margin_container.add_theme_constant_override(side, maxi(0, margin_container.get_theme_constant(side) - SHADOW_PAD))
@@ -108,6 +119,30 @@ func _apply_responsive_layout() -> void:
 		history_btn.icon = null if narrow else ThemeManager.get_icon("rotate-ccw")
 		stats_btn.icon = null if narrow else ThemeManager.get_icon("chart-column-big")
 		settings_btn.icon = null if narrow else ThemeManager.get_icon("settings")
+
+## Moves the resume card and the actions between the single column and the two-column row.
+## Only their parents change; the order within the single column is the original one.
+func _set_wide(wide: bool) -> void:
+	if wide == is_wide or wide_row == null:
+		return
+	is_wide = wide
+	for n in [resume_holder, mid_spacer, actions_vbox, bottom_spacer, nav_section_vbox]:
+		n.get_parent().remove_child(n)
+	if wide:
+		wide_row.add_child(resume_holder)
+		wide_row.move_child(resume_holder, 0)
+		wide_right.add_child(actions_vbox)
+		wide_right.add_child(bottom_spacer)
+		wide_right.add_child(nav_section_vbox)
+		root_vbox.add_child(mid_spacer)
+		root_vbox.move_child(mid_spacer, wide_row.get_index())
+	else:
+		var at: int = wide_row.get_index()
+		for n in [resume_holder, mid_spacer, actions_vbox, bottom_spacer, nav_section_vbox]:
+			root_vbox.add_child(n)
+			root_vbox.move_child(n, at)
+			at += 1
+	wide_row.visible = wide
 
 func refresh_buttons() -> void:
 	var has_active := SaveManager.has_active_game()
@@ -356,7 +391,7 @@ func _build_ui() -> void:
 	root_vbox.add_child(bottom_spacer)
 
 	# --- 6. Lower Utility Baseline Navigation (Low Weight, 44px touch targets) ---
-	var nav_section_vbox := VBoxContainer.new()
+	nav_section_vbox = VBoxContainer.new()
 	nav_section_vbox.size_flags_horizontal = SIZE_EXPAND_FILL
 	nav_section_vbox.add_theme_constant_override("separation", 10)
 	root_vbox.add_child(nav_section_vbox)
@@ -413,6 +448,18 @@ func _build_ui() -> void:
 	settings_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	settings_btn.pressed.connect(func(): settings_requested.emit())
 	nav_hbox.add_child(settings_btn)
+
+	wide_row = HBoxContainer.new()
+	wide_row.size_flags_horizontal = SIZE_EXPAND_FILL
+	wide_row.size_flags_vertical = SIZE_EXPAND_FILL
+	wide_row.add_theme_constant_override("separation", 40)
+	wide_row.visible = false
+	root_vbox.add_child(wide_row)
+	root_vbox.move_child(wide_row, resume_holder.get_index())
+	wide_right = VBoxContainer.new()
+	wide_right.size_flags_horizontal = SIZE_EXPAND_FILL
+	wide_right.alignment = BoxContainer.ALIGNMENT_CENTER
+	wide_row.add_child(wide_right)
 
 	_apply_theme_polish()
 

@@ -8,6 +8,7 @@ const SettingRow = preload("res://scenes/ui/setting_row.gd")
 const ResponsiveManager = preload("res://scripts/services/responsive_manager.gd")
 const AmbientBackdrop = preload("res://scenes/ui/ambient_backdrop.gd")
 const GlassPanel = preload("res://scenes/ui/glass_panel.gd")
+const AdaptiveColumns = preload("res://scenes/ui/adaptive_columns.gd")
 
 ## Settings Menu Screen (GDD §17, §19, §38, §40, §41, §44)
 ## Clean settings list with clear sections and aligned controls.
@@ -50,6 +51,8 @@ var bg: ColorRect
 var margin: MarginContainer
 var back_btn: Button
 var title_label: Label
+## The sections; on a wide screen Appearance on the left, Gameplay and Feedback on the right
+var sections: AdaptiveColumns
 
 # Section Header Labels
 var sec_appearance_lbl: Label
@@ -136,7 +139,9 @@ func _notification(what: int) -> void:
 func _apply_responsive_layout() -> void:
 	if margin == null:
 		return
-	ResponsiveManager.apply_content_margins(self, margin, ResponsiveManager.MAX_CONTENT_WIDTH)
+	ResponsiveManager.apply_content_margins(self, margin, ResponsiveManager.MAX_CONTENT_WIDTH, true)
+	if sections != null:
+		sections.columns = ResponsiveManager.content_columns(ResponsiveManager.get_viewport_size(self))
 
 static func save_config() -> void:
 	var data := {
@@ -238,10 +243,11 @@ func _build_ui() -> void:
 	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
 	root_vbox.add_child(scroll)
 
-	var list_vbox := VBoxContainer.new()
+	var list_vbox := AdaptiveColumns.new()
 	list_vbox.size_flags_horizontal = SIZE_EXPAND_FILL
-	list_vbox.add_theme_constant_override("separation", 24)
+	list_vbox.separation = 24
 	scroll.add_child(list_vbox)
+	sections = list_vbox
 
 	# =========================================================================
 	# 1. Appearance Section (Görünüm)
@@ -355,6 +361,7 @@ func _build_ui() -> void:
 	# =========================================================================
 	var sec_game_group := VBoxContainer.new()
 	sec_game_group.add_theme_constant_override("separation", 8)
+	AdaptiveColumns.set_column(sec_game_group, 1)
 	list_vbox.add_child(sec_game_group)
 
 	sec_gameplay_lbl = Label.new()
@@ -420,6 +427,7 @@ func _build_ui() -> void:
 	# =========================================================================
 	var sec_feed_group := VBoxContainer.new()
 	sec_feed_group.add_theme_constant_override("separation", 8)
+	AdaptiveColumns.set_column(sec_feed_group, 1)
 	list_vbox.add_child(sec_feed_group)
 
 	sec_feedback_lbl = Label.new()
