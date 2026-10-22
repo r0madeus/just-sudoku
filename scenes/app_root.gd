@@ -35,12 +35,8 @@ func _ready() -> void:
 	theme = ThemeManager.build_godot_theme()
 	if root_bg != null:
 		root_bg.color = ThemeManager.get_color("bg")
-	ThemeManager.add_listener(func():
-		theme = ThemeManager.build_godot_theme()
-		if root_bg != null:
-			root_bg.color = ThemeManager.get_color("bg")
-	)
-	FontManager.add_listener(func(): theme = ThemeManager.build_godot_theme())
+	ThemeManager.add_listener(_on_theme_changed)
+	FontManager.add_listener(_rebuild_theme)
 
 	SoundManager.init_audio(self)
 
@@ -58,6 +54,23 @@ func _ready() -> void:
 			return
 
 	_show_screen(main_menu)
+
+# The managers keep listeners in static arrays, which outlive the scene and are only cleared
+# after the script runtime is gone; a lambda still registered then crashes the exit
+func _exit_tree() -> void:
+	ThemeManager.remove_listener(_on_theme_changed)
+	FontManager.remove_listener(_rebuild_theme)
+	# Background generation (prefetch, New Game preview) must be finished before the engine exits
+	PuzzlePrefetcher.stop()
+	AsyncPuzzleGenerator.shutdown()
+
+func _on_theme_changed() -> void:
+	_rebuild_theme()
+	if root_bg != null:
+		root_bg.color = ThemeManager.get_color("bg")
+
+func _rebuild_theme() -> void:
+	theme = ThemeManager.build_godot_theme()
 
 func _notification(what: int) -> void:
 	# Android back button (quit_on_go_back is off): modal -> screen -> menu -> quit
