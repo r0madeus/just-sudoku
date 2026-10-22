@@ -91,7 +91,7 @@ func setup_history(record: Dictionary, best_record: Dictionary = {}) -> void:
 
 	if is_replay:
 		replay_badge = Label.new()
-		replay_badge.text = "[Replay]"
+		replay_badge.text = LocalizationManager.translate("BADGE_REPLAY")
 		replay_badge.theme_type_variation = "TechnicalLabel"
 		replay_badge.add_theme_font_size_override("font_size", 11)
 		secondary_labels.append(replay_badge)

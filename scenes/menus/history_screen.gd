@@ -165,6 +165,9 @@ func _build_ui() -> void:
 
 	status_opt = OptionButton.new()
 	status_opt.size_flags_horizontal = SIZE_EXPAND_FILL
+	# Size to the selected item, not the longest one, so three filters fit a 360 px phone
+	status_opt.fit_to_longest_item = false
+	status_opt.clip_text = true
 	status_opt.custom_minimum_size = Vector2(0, 38)
 	for s in STATUS_KEYS:
 		status_opt.add_item(s)
@@ -185,6 +188,9 @@ func _build_ui() -> void:
 
 	diff_opt = OptionButton.new()
 	diff_opt.size_flags_horizontal = SIZE_EXPAND_FILL
+	# Size to the selected item, not the longest one, so three filters fit a 360 px phone
+	diff_opt.fit_to_longest_item = false
+	diff_opt.clip_text = true
 	diff_opt.custom_minimum_size = Vector2(0, 38)
 	for d in DIFF_KEYS:
 		diff_opt.add_item(d)
@@ -205,6 +211,9 @@ func _build_ui() -> void:
 
 	sort_opt = OptionButton.new()
 	sort_opt.size_flags_horizontal = SIZE_EXPAND_FILL
+	# Size to the selected item, not the longest one, so three filters fit a 360 px phone
+	sort_opt.fit_to_longest_item = false
+	sort_opt.clip_text = true
 	sort_opt.custom_minimum_size = Vector2(0, 38)
 	for s in SORT_KEYS:
 		sort_opt.add_item(s)
@@ -234,11 +243,11 @@ func _update_locale_texts() -> void:
 	if title != null:
 		title.text = LocalizationManager.translate("HISTORY_TITLE")
 	if status_lbl != null:
-		status_lbl.text = LocalizationManager.translate("HISTORY_STATUS_FILTER").to_upper()
+		status_lbl.text = LocalizationManager.upper(LocalizationManager.translate("HISTORY_STATUS_FILTER"))
 	if diff_lbl != null:
-		diff_lbl.text = LocalizationManager.translate("HISTORY_DIFF_FILTER").to_upper()
+		diff_lbl.text = LocalizationManager.upper(LocalizationManager.translate("HISTORY_DIFF_FILTER"))
 	if sort_lbl != null:
-		sort_lbl.text = LocalizationManager.translate("HISTORY_SORT_FILTER").to_upper()
+		sort_lbl.text = LocalizationManager.upper(LocalizationManager.translate("HISTORY_SORT_FILTER"))
 
 	if status_opt != null:
 		var cur_st := status_opt.selected
@@ -300,7 +309,7 @@ func refresh_history() -> void:
 		empty_container.size_flags_horizontal = SIZE_EXPAND_FILL
 
 		var empty_lbl := Label.new()
-		empty_lbl.text = "Henüz tamamlanmış bir oyun bulunmuyor." if LocalizationManager.get_locale() == LocalizationManager.LOCALE_TR else "No completed games found."
+		empty_lbl.text = LocalizationManager.translate("HISTORY_EMPTY")
 		empty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		empty_lbl.theme_type_variation = "Subtitle"
 		empty_container.add_child(empty_lbl)

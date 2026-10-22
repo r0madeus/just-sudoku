@@ -156,7 +156,7 @@ func refresh_stats() -> void:
 	hero_vbox.add_child(hero_header_row)
 
 	var hero_title := Label.new()
-	hero_title.text = LocalizationManager.translate("STAT_ALL_TIME")
+	hero_title.text = LocalizationManager.upper(LocalizationManager.translate("STAT_ALL_TIME"))
 	hero_title.theme_type_variation = "Caption"
 	hero_title.add_theme_font_size_override("font_size", 11)
 	hero_title.add_theme_color_override("font_color", text_sec)
@@ -211,7 +211,7 @@ func refresh_stats() -> void:
 	streak_header.add_child(streak_icon)
 
 	var streak_title := Label.new()
-	streak_title.text = LocalizationManager.translate("STAT_DAILY_STREAK_BANNER")
+	streak_title.text = LocalizationManager.upper(LocalizationManager.translate("STAT_DAILY_STREAK_BANNER"))
 	streak_title.theme_type_variation = "Caption"
 	streak_title.add_theme_font_size_override("font_size", 11)
 	streak_title.add_theme_color_override("font_color", text_sec)
@@ -259,7 +259,7 @@ func refresh_stats() -> void:
 	stats_vbox.add_child(diff_section_vbox)
 
 	var diff_title := Label.new()
-	diff_title.text = LocalizationManager.translate("STAT_DIFFICULTIES")
+	diff_title.text = LocalizationManager.upper(LocalizationManager.translate("STAT_DIFFICULTIES"))
 	diff_title.theme_type_variation = "Caption"
 	diff_title.add_theme_font_size_override("font_size", 11)
 	diff_title.add_theme_color_override("font_color", text_sec)
@@ -371,7 +371,7 @@ func _add_key_value(parent: Control, label_text: String, val_text: String, is_mo
 	parent.add_child(item_vbox)
 
 	var k_lbl := Label.new()
-	k_lbl.text = label_text.to_upper()
+	k_lbl.text = LocalizationManager.upper(label_text)
 	k_lbl.theme_type_variation = "Caption"
 	k_lbl.add_theme_font_size_override("font_size", 10)
 	k_lbl.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))

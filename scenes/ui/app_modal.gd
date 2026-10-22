@@ -171,6 +171,31 @@ func add_button(btn_text: String, before_cancel: bool = false, action_id: String
 
 var _modal_tween: Tween = null
 
+## One-off confirmation over `host`; `on_confirm` runs only when the player accepts.
+## `destructive` paints the confirm button in the conflict color (deleting, giving up a game).
+## The modal frees itself once it has closed.
+static func ask(host: Node, title_text: String, body: String, confirm_text: String,
+		on_confirm: Callable, destructive: bool = false) -> AppModal:
+	var modal := AppModal.new()
+	modal.title = title_text
+	modal.dialog_text = body
+	modal.ok_button_text = confirm_text
+	modal.cancel_button_text = LocalizationManager.translate("BTN_CANCEL")
+	modal.confirmed.connect(on_confirm)
+	host.add_child(modal)
+	if destructive and modal.primary_btn != null:
+		var sb := ThemeManager.create_flat_stylebox(ThemeManager.get_color("text_conflict"), ThemeManager.RADIUS_PILL)
+		for state in ["normal", "hover", "pressed", "focus"]:
+			modal.primary_btn.add_theme_stylebox_override(state, sb)
+		modal.primary_btn.add_theme_color_override("font_color", Color.WHITE)
+		modal.primary_btn.add_theme_color_override("font_hover_color", Color.WHITE)
+	modal.visibility_changed.connect(func():
+		if not modal.visible:
+			modal.queue_free()
+	)
+	modal.open_modal()
+	return modal
+
 func open_modal() -> void:
 	visible = true
 	_apply_responsive_layout()

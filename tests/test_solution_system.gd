@@ -102,7 +102,7 @@ func test_solve_step_formatting_and_coords() -> void:
 	# Localization of technique name
 	LocalizationManager.set_locale("tr")
 	var tr_tech := LocalizationManager.get_technique_name("Hidden Single")
-	assert_true(tr_tech == "Gizli Tek Aday (Hidden Single)", "TR technique name translated correctly")
+	assert_true(tr_tech == "Gizli Tekli", "TR technique name translated correctly (%s)" % tr_tech)
 
 	LocalizationManager.set_locale("en")
 	var en_tech := LocalizationManager.get_technique_name("Hidden Single")

@@ -1821,3 +1821,58 @@ Görsel tarafta ise premium puzzle app yaklaşımı korunur.
 Temel ürün vaadi:
 
 **“Sadece Sudoku. Ama doğru yapılmış.”**
+---
+
+# 54. Ton ve Terim Sözlüğü
+
+Arayüzdeki bütün metinler tek bir ses ile konuşur. Yeni bir metin eklerken veya mevcut bir metni değiştirirken bu bölüm esas alınır. Metinlerin tek kaynağı `scripts/services/localization_manager.gd` içindeki `DICTIONARY_EN` ve `DICTIONARY_TR` sözlükleridir.
+
+## 54.1 Ton
+
+- **Sakin ve kısa.** Bir cümle yetiyorsa iki cümle yazılmaz. Teknik açıklama yerine oyuncunun ne yapacağı söylenir.
+- **Türkçede "sen" dili.** "Başlat", "dene", "serini koru". "Siz" dili kullanılmaz.
+- **Tek dil.** Türkçe metinde parantez içinde İngilizce karşılık verilmez ("Tekrar Oyna (Master it again)" yerine "Yeniden Çöz").
+- **Ünlem işareti sadece kutlamada.** Bulmaca çözüldüğünde ve yeni rekorda kullanılır. Bildirimler ve hatalar düz cümledir.
+- **Dürüst etiketler.** Düğme ne yapıyorsa onu söyler ("Harika!" değil, "Menüye Dön").
+- **Üç nokta tek karakterdir:** `…`
+
+## 54.2 Büyük harf
+
+| Yer | Kural | Örnek |
+|---|---|---|
+| Ekran ve pencere başlıkları, düğmeler, menü öğeleri | Her Kelimenin İlk Harfi Büyük | Yeni Oyun, Bulmacayı Paylaş |
+| Ayar adları, açıklamalar, bildirimler, hata metinleri | Cümle düzeni | Notları otomatik sil |
+| Küçük bölüm etiketleri (kart üstü, filtre başlığı) | Metin cümle/başlık düzeninde yazılır; büyük harfe kod çevirir | Genel Bakış → GENEL BAKIŞ |
+
+Metinler sözlükte hiçbir zaman TAMAMEN BÜYÜK HARFLE yazılmaz. Küçük etiketlerde görsel büyük harf `LocalizationManager.upper()` ile uygulanır; Godot'nun `to_upper()` fonksiyonu Türkçe "i" harfini "I" yaptığı için doğrudan kullanılmaz.
+
+## 54.3 Terimler
+
+| Kavram | Türkçe | İngilizce | Kullanılmayan |
+|---|---|---|---|
+| 9×9 bulmacanın kendisi | bulmaca | puzzle | sudoku tablosu |
+| Bir bulmacayı oynama oturumu (kayıtlı olan) | oyun | game | save, slot |
+| Bulmacanın kimliği (seed) | bulmaca numarası, "No. 123…" | puzzle number, "No. 123…" | seed (arayüzde) |
+| 81 karakterlik bulmaca metni | bulmaca kodu | puzzle code | 81 karakterlik string |
+| Başka cihaza taşınan kayıt metni | dışa aktarılmış oyun | exported game | save JSON, save durumu |
+| Bulmacada baştan verilen rakamlar | başlangıç rakamları | starting digits | ipucu (clue) |
+| Oyuncunun yazdığı küçük rakamlar | not | note | pencil mark, aday notu |
+| Hücreye girebilecek rakam (otomatik) | aday | candidate | — |
+| 3×3 bölge | kutu | box | blok |
+| Satır / sütun / kutu, genel ad | bölge | unit/area | — |
+| Kural ihlali (aynı rakam iki kez) | çakışma | conflict | — |
+| Çözümle uyuşmayan rakam | yanlış rakam, hata | wrong digit, mistake | — |
+| Yardım alma | ipucu | hint | — |
+| Puan | skor | score | performans skoru |
+| Çözülmüş bulmacayı tekrar oynama | yeniden çöz, tekrar | solve again, replay | master it again |
+| Günlük bulmaca | Günün Sudokusu | Daily Sudoku | günlük bulmaca, daily |
+| Ardışık günler | seri | streak | — |
+| Zorluk seviyeleri | Kolay, Orta, Zor, Uzman | Easy, Medium, Hard, Expert | — |
+
+Çözüm teknikleri Türkçede Türkçe adlarıyla yazılır: Son Hücre, Açık Tekli, Gizli Tekli, Kilitli Adaylar, Açık İkili, Gizli İkili, Açık Üçlü, Gizli Üçlü, Doğrudan Çözüm, İleri Çıkarım. Türkçe karşılığı yerleşmemiş özel adlar olduğu gibi kalır: X-Wing, XY-Wing, XYZ-Wing, Swordfish.
+
+## 54.4 İstisnalar
+
+- **Dil seçimi** iki dilde yazılır ("Dil / Language"), böylece arayüz dilini anlamayan biri de dili değiştirebilir.
+- **Paylaşım metni** ("Seed: …", "Kod: …" satırları) makine tarafından da okunur; içe aktarma bu etiketlere göre çalıştığı için değiştirilmez.
+- **Uygulama adı** "Just Sudoku" çevrilmez.

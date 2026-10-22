@@ -50,6 +50,9 @@ func _init() -> void:
 	title_label.theme_type_variation = "Header"
 	title_label.add_theme_font_size_override("font_size", 20)
 	title_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	# The empty-state title is a short phrase; let it take a second line instead of an ellipsis
+	title_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	title_label.max_lines_visible = 2
 	title_label.mouse_filter = MOUSE_FILTER_IGNORE
 	info.add_child(title_label)
 

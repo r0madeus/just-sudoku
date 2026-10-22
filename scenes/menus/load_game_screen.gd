@@ -187,7 +187,6 @@ func _add_remaining_items(games: Array[Dictionary], from: int, build_id: int) ->
 			i += 1
 
 func _add_game_item(g: Dictionary) -> void:
-	var is_tr := (LocalizationManager.get_locale() == LocalizationManager.LOCALE_TR)
 	var item := GameRecordItem.new()
 	item.setup_saved_game(g)
 	item.play_pressed.connect(func(id): game_selected.emit(id))
@@ -198,7 +197,7 @@ func _add_game_item(g: Dictionary) -> void:
 				slot_state.seed_value, slot_state.difficulty, slot_state.initial_puzzle
 			)
 			PuzzleShareService.copy_to_clipboard(text)
-			btn.text = "Tamam" if is_tr else "Copied"
+			btn.text = LocalizationManager.translate("COPIED_FEEDBACK")
 			var t := create_tween()
 			if t != null:
 				t.tween_interval(1.5)
@@ -208,7 +207,11 @@ func _add_game_item(g: Dictionary) -> void:
 				)
 	)
 	item.delete_pressed.connect(func(id):
-		SaveManager.delete_game_slot(id)
-		refresh_list()
+		AppModal.ask(self, LocalizationManager.translate("DELETE_GAME_TITLE"),
+			LocalizationManager.translate("DELETE_GAME_BODY"), LocalizationManager.translate("BTN_DELETE"),
+			func():
+				SaveManager.delete_game_slot(id)
+				refresh_list(),
+			true)
 	)
 	list_vbox.add_child(item)

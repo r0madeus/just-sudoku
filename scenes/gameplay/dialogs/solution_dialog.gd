@@ -385,9 +385,16 @@ func _render_full_solution() -> void:
 	full_unique_label.text = LocalizationManager.translate("FULL_SOL_UNIQUE")
 
 func _on_apply_solution_pressed() -> void:
-	if solved_board != null:
-		solution_applied.emit(solved_board)
-		close_modal()
+	if solved_board == null:
+		return
+	# It ends the game, so it asks first
+	var board := solved_board
+	AppModal.ask(get_parent(), LocalizationManager.translate("BTN_APPLY_SOLUTION"),
+		LocalizationManager.translate("SOLUTION_APPLY_CONFIRM"), LocalizationManager.translate("BTN_APPLY"),
+		func():
+			close_modal()
+			solution_applied.emit(board),
+		true)
 
 func _on_close_pressed() -> void:
 	close_modal()
