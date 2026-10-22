@@ -8,6 +8,8 @@ const SudokuGenerator = preload("res://scripts/core/sudoku_generator.gd")
 
 static var _current_request_id: int = 0
 static var _active_tasks: Dictionary = {}
+## req_id -> WorkerThreadPool task id; every pool task must be waited for once to be released
+static var _pool_tasks: Dictionary = {}
 
 ## Requests puzzle generation in background thread.
 ## callback must have signature func(puzzle: SudokuGenerator.GeneratedPuzzle)
@@ -32,7 +34,7 @@ static func request_puzzle_async(
 		var result = SudokuGenerator.generate(seed_val, difficulty, is_cancelled_check, worker_count)
 		_dispatch_completion.call_deferred(req_id, result, callback)
 
-	WorkerThreadPool.add_task(task_callable, true)
+	_pool_tasks[req_id] = WorkerThreadPool.add_task(task_callable, true)
 	return req_id
 
 ## True while the request is running and has not been cancelled
@@ -49,7 +51,20 @@ static func cancel_all() -> void:
 	for k in _active_tasks.keys():
 		_active_tasks[k] = true
 
+## Cancels every request and blocks until their threads have returned. Must run before the
+## app exits: a generator still running GDScript while the engine shuts down crashes or hangs
+## the exit. Cancellation is checked between generation steps, so this returns quickly.
+static func shutdown() -> void:
+	cancel_all()
+	for req_id in _pool_tasks.keys():
+		WorkerThreadPool.wait_for_task_completion(_pool_tasks[req_id])
+	_pool_tasks.clear()
+
 static func _dispatch_completion(req_id: int, result: SudokuGenerator.GeneratedPuzzle, callback: Callable) -> void:
+	# The task queued this call as its last step, so this wait only covers its return
+	if _pool_tasks.has(req_id):
+		WorkerThreadPool.wait_for_task_completion(_pool_tasks[req_id])
+		_pool_tasks.erase(req_id)
 	var was_cancelled: bool = _active_tasks.get(req_id, false)
 	_active_tasks.erase(req_id)
 
