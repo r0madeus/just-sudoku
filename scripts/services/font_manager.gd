@@ -21,33 +21,35 @@ static var _listeners: Array[Callable] = []
 static func _static_init() -> void:
 	_init_font_cache()
 
+## Bundled with the game, so each family looks the same on every device. The system font lists
+## used before named fonts Android does not have (no rounded or serif one among them): there
+## "Rounded" showed Roboto and "Classic" whatever serif the phone had.
+const FONT_PATH_NUNITO: String = "res://assets/fonts/Nunito[wght].ttf"
+
 static func _init_font_cache() -> void:
-	# 1. Modern Sans (Default: Clean geometric sans-serif)
-	var modern := SystemFont.new()
-	modern.font_names = PackedStringArray([
-		"Segoe UI", "Inter", "Roboto", "SF Pro Display", "Helvetica Neue", "Cantarell", "Noto Sans", "sans-serif"
-	])
-	modern.subpixel_positioning = TextServer.SUBPIXEL_POSITIONING_AUTO
-	modern.oversampling = 2.0
-	_font_cache[FONT_MODERN_SANS] = modern
+	# 1. Modern Sans: Inter, clean geometric sans-serif
+	_font_cache[FONT_MODERN_SANS] = _bundled(ThemeManager.FONT_PATH_INTER, ["Inter", "Roboto", "sans-serif"])
+	# 2. Rounded Sans: Nunito, soft and friendly
+	_font_cache[FONT_ROUNDED_SANS] = _bundled(FONT_PATH_NUNITO, ["Nunito", "Quicksand", "sans-serif"])
+	# 3. Classic Serif: Source Serif 4, book style
+	_font_cache[FONT_CLASSIC_SERIF] = _bundled(ThemeManager.FONT_PATH_SERIF_REGULAR, ["Noto Serif", "Georgia", "serif"])
 
-	# 2. Rounded Sans (Soft & friendly game-focused sans-serif)
-	var rounded := SystemFont.new()
-	rounded.font_names = PackedStringArray([
-		"Comfortaa", "Nunito", "Quicksand", "Arial Rounded MT Bold", "Varela Round", "Segoe UI", "sans-serif"
-	])
-	rounded.subpixel_positioning = TextServer.SUBPIXEL_POSITIONING_AUTO
-	rounded.oversampling = 2.0
-	_font_cache[FONT_ROUNDED_SANS] = rounded
-
-	# 3. Classic Serif (Traditional / Premium newspaper & book style)
-	var serif := SystemFont.new()
-	serif.font_names = PackedStringArray([
-		"Georgia", "Times New Roman", "Merriweather", "Noto Serif", "Palatino", "serif"
-	])
-	serif.subpixel_positioning = TextServer.SUBPIXEL_POSITIONING_AUTO
-	serif.oversampling = 2.0
-	_font_cache[FONT_CLASSIC_SERIF] = serif
+## The bundled font, with the system's font of that kind behind it for any rare symbol it lacks
+## (and in its place if the file were missing)
+static func _bundled(path: String, system_names: Array[String]) -> Font:
+	var system := SystemFont.new()
+	system.font_names = PackedStringArray(system_names)
+	var font: Font = load(path) as Font if ResourceLoader.exists(path) else null
+	if font == null:
+		return system
+	# Variable fonts start at their axis default, which for Nunito is ExtraLight (200): pin Regular
+	var regular := FontVariation.new()
+	regular.base_font = font
+	var weight_tag: int = TextServerManager.get_primary_interface().name_to_tag("weight")
+	if font.get_supported_variation_list().has(weight_tag):
+		regular.variation_opentype = {weight_tag: 400}
+	regular.fallbacks = [system]
+	return regular
 
 static func add_listener(cb: Callable) -> void:
 	if not _listeners.has(cb):

@@ -76,7 +76,7 @@ func run_bounded_test(title: String, test_fn: Callable) -> void:
 		assert_true(false, "TIMEOUT FAIL: Test %d ms sürdü, izin verilen %d ms tavanını aştı!" % [elapsed, PER_TEST_TIMEOUT_MSEC])
 
 # -----------------------------------------------------------------------------
-# BOYUT 1: Font Aileleri & SystemFont Geçerliliği (GDD §39)
+# BOYUT 1: Font Aileleri & Yedek Zinciri (GDD §39)
 # -----------------------------------------------------------------------------
 func test_dimension_1_font_families_and_systemfont_validity() -> void:
 	# 1. Family definitions
@@ -85,13 +85,13 @@ func test_dimension_1_font_families_and_systemfont_validity() -> void:
 	assert_true(FontManager.FONT_FAMILIES.has(FontManager.FONT_ROUNDED_SANS), "Rounded Sans mevcut")
 	assert_true(FontManager.FONT_FAMILIES.has(FontManager.FONT_CLASSIC_SERIF), "Classic Serif mevcut")
 
-	# 2. Validity of SystemFont objects
+	# 2. Each family is a bundled font with a SystemFont chain behind it for rare symbols
 	for family in FontManager.FONT_FAMILIES:
 		var f := FontManager.get_font(family)
 		assert_true(f != null, "Font nesnesi geçerli: %s" % family)
-		assert_true(f is SystemFont, "Font nesnesi SystemFont türünde: %s" % family)
-		var sf := f as SystemFont
-		assert_true(sf.font_names.size() > 0, "SystemFont fallback zinciri tanımlı (%d font): %s" % [sf.font_names.size(), family])
+		assert_true(f is FontVariation and f.base_font is FontFile, "Oyunla gelen font (FontVariation + FontFile): %s" % family)
+		var sf: SystemFont = f.fallbacks[0] as SystemFont if not f.fallbacks.is_empty() else null
+		assert_true(sf != null and sf.font_names.size() > 0, "SystemFont yedek zinciri tanımlı (%d font): %s" % [sf.font_names.size() if sf != null else 0, family])
 
 	# 3. Default font
 	assert_true(FontManager.get_current_font() != null, "Aktif font nesnesi geçerli")

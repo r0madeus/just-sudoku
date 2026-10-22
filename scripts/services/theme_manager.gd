@@ -610,11 +610,10 @@ static func build_godot_theme() -> Theme:
 	var font_serif_semi: Font = get_font_serif_semibold()
 	var font_mono: Font = get_font_mono()
 
-	var active_font: Font = font_inter
-	if FontManager.current_font_name != FontManager.FONT_MODERN_SANS:
-		active_font = FontManager.get_current_font()
-	elif active_font == null:
-		active_font = FontManager.get_current_font()
+	# The chosen family (bundled, regular weight, with a system font behind it for rare symbols)
+	var active_font: Font = FontManager.get_current_font()
+	if active_font == null:
+		active_font = font_inter
 
 	if active_font != null:
 		theme.default_font = active_font
