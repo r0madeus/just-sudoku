@@ -1,3 +1,10 @@
 # Godot 4+ specific ignores
 .godot/
 /android/
+
+# Android signing keys and build outputs: never commit
+*.keystore
+*.jks
+*.apk
+*.aab
+*.idsig
