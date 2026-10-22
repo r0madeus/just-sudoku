@@ -19,6 +19,8 @@ var main_container: Container
 var grid_container: GridContainer
 var selected_digit: int = 0
 var is_compact_mode: bool = false
+## Tablet scale of the keys (1 on phones)
+var size_scale: float = 1.0
 
 func _init() -> void:
 	custom_minimum_size = Vector2(0, 242)
@@ -41,23 +43,28 @@ func set_selected_digit(val: int) -> void:
 	_update_selected_visuals()
 
 func set_compact_mode(compact: bool) -> void:
-	if is_compact_mode == compact:
+	set_layout(compact, size_scale)
+
+## Key size for short screens (compact) and for tablets (`scale` > 1, see ResponsiveManager.tablet_factor)
+func set_layout(compact: bool, scale: float = 1.0) -> void:
+	if is_compact_mode == compact and is_equal_approx(size_scale, scale):
 		return
 	is_compact_mode = compact
-	var btn_size := Vector2(62, 62) if is_compact_mode else Vector2(74, 74)
-	var separation := 6 if is_compact_mode else 10
-	var total_h := (btn_size.y * 3.0) + (float(separation) * 2.0)
+	size_scale = scale
+	var key: float = roundf((62.0 if is_compact_mode else 74.0) * size_scale)
+	var separation: int = roundi((6.0 if is_compact_mode else 10.0) * size_scale)
+	var total_h := (key * 3.0) + (float(separation) * 2.0)
 	custom_minimum_size = Vector2(0, total_h)
 	if grid_container != null:
 		grid_container.custom_minimum_size = Vector2(total_h, total_h)
 		grid_container.add_theme_constant_override("h_separation", separation)
 		grid_container.add_theme_constant_override("v_separation", separation)
 	for btn in num_buttons:
-		btn.custom_minimum_size = btn_size
+		btn.custom_minimum_size = Vector2(key, key)
 	_update_selected_visuals()
 
 func _update_selected_visuals() -> void:
-	var font_sz: int = 21 if is_compact_mode else 25
+	var font_sz: int = roundi((21.0 if is_compact_mode else 25.0) * size_scale)
 	for d in range(1, 10):
 		if d - 1 < num_buttons.size():
 			var btn: Button = num_buttons[d - 1]

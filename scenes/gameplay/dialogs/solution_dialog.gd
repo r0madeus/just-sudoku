@@ -101,7 +101,7 @@ func _build_ui() -> void:
 
 	# 2. 9x9 Responsive Solution Grid
 	grid_aspect = AspectRatioContainer.new()
-	grid_aspect.custom_minimum_size = Vector2(230, 230)
+	grid_aspect.custom_minimum_size = Vector2(GRID_MIN_SIDE, GRID_MIN_SIDE)
 	grid_aspect.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	grid_aspect.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	grid_aspect.ratio = 1.0
@@ -409,10 +409,15 @@ func _on_apply_solution_pressed() -> void:
 const NAV_LABELS_MIN_WIDTH: float = 360.0
 var _nav_compact: bool = false
 
+## Board side on a phone; a tablet's wider dialog shows it larger
+const GRID_MIN_SIDE: float = 230.0
+
 func _apply_responsive_layout() -> void:
 	super()
 	if modal_panel == null or btn_prev == null:
 		return
+	var side: float = roundf(GRID_MIN_SIDE * ResponsiveManager.tablet_factor(ResponsiveManager.get_viewport_size(self)))
+	grid_aspect.custom_minimum_size = Vector2(side, side)
 	var compact: bool = modal_panel.custom_minimum_size.x < NAV_LABELS_MIN_WIDTH
 	if compact != _nav_compact:
 		_nav_compact = compact

@@ -138,7 +138,9 @@ func _apply_responsive_layout() -> void:
 		mid_spacer,
 		numpad_spacer,
 		bottom_spacer,
-		numpad
+		numpad,
+		ResponsiveManager.MAX_BOARD_WIDTH,
+		action_dock
 	)
 	_fit_dock()
 
