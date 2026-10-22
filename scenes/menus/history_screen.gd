@@ -57,8 +57,13 @@ var _is_built: bool = false
 var _history_dirty: bool = true
 var _pending_records: Array[Dictionary] = []
 var _pending_best_map: Dictionary = {}
-var _batch_token: int = 0
-const BATCH_SIZE: int = 25
+var _pager: ListPager
+## Rows per page; the next page is built when scrolling gets near the end
+const PAGE_SIZE: int = 25
+
+## Set once _ready is done: every screen is still visible during it, before the app shows
+## only the menu, so lists are not built then
+var _started: bool = false
 
 func _init() -> void:
 	set_anchors_preset(PRESET_FULL_RECT)
@@ -70,6 +75,7 @@ func _ready() -> void:
 	_apply_responsive_layout()
 	_update_locale_texts()
 	LocalizationManager.add_listener(_update_locale_texts)
+	_started = true
 
 func _exit_tree() -> void:
 	LocalizationManager.remove_listener(_update_locale_texts)
@@ -236,6 +242,7 @@ func _build_ui() -> void:
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
 	root_vbox.add_child(scroll)
+	_pager = ListPager.new(scroll, PAGE_SIZE)
 
 	# Rows sit together in one card, like the groups in Settings (one glass surface per list)
 	var list_pad := MarginContainer.new()
@@ -292,7 +299,8 @@ func _update_locale_texts() -> void:
 		sort_opt.add_item(LocalizationManager.translate("SORT_BEST_SCORE"))
 		sort_opt.selected = cur_s if cur_s >= 0 else 0
 
-	if is_visible_in_tree():
+	# Not from _ready: every screen is still visible then, before the app shows only the menu
+	if is_visible_in_tree() and _started:
 		refresh_history()
 	else:
 		_history_dirty = true
@@ -301,9 +309,6 @@ func refresh_history() -> void:
 	_history_dirty = false
 	if list_vbox == null or diff_opt == null or sort_opt == null:
 		return
-
-	_batch_token += 1
-	var current_token := _batch_token
 
 	for c in list_vbox.get_children():
 		list_vbox.remove_child(c)
@@ -319,6 +324,7 @@ func refresh_history() -> void:
 
 	var records := HistoryManager.get_filtered_history(diff_filter, status_filter, sort_filter)
 	if records.is_empty():
+		_pager.start(0, Callable())
 		var empty_container := VBoxContainer.new()
 		empty_container.alignment = BoxContainer.ALIGNMENT_CENTER
 		empty_container.custom_minimum_size = Vector2(0, 160)
@@ -335,33 +341,14 @@ func refresh_history() -> void:
 
 	_pending_records = records
 	_pending_best_map = HistoryManager.get_best_records_map()
+	_pager.start(records.size(), _add_record_row)
 
-	# Render first batch immediately (fills viewport with 25 items in ~7ms)
-	_render_record_batch(0, current_token)
+func _add_record_row(i: int) -> void:
+	var r: Dictionary = _pending_records[i]
+	var seed_val: int = int(r.get("seed", 0))
+	var best_record: Dictionary = _pending_best_map.get(seed_val, {})
+	var item := GameRecordItem.new()
+	item.setup_history(r, best_record)
+	item.replay_pressed.connect(func(s, d): replay_requested.emit(s, d))
+	list_vbox.add_child(item)
 
-func _render_record_batch(start_idx: int, token: int) -> void:
-	if token != _batch_token or list_vbox == null:
-		return
-
-	var total: int = _pending_records.size()
-	var end_idx: int = mini(start_idx + BATCH_SIZE, total)
-
-	for i in range(start_idx, end_idx):
-		var r: Dictionary = _pending_records[i]
-		var seed_val: int = int(r.get("seed", 0))
-		var best_record: Dictionary = _pending_best_map.get(seed_val, {})
-		var item := GameRecordItem.new()
-		item.setup_history(r, best_record)
-		item.replay_pressed.connect(func(s, d): replay_requested.emit(s, d))
-		list_vbox.add_child(item)
-
-	if end_idx < total:
-		_render_next_frame(end_idx, token)
-
-## call_deferred would run the next batch later in this same frame; wait for a real frame so
-## the screen can draw between batches
-func _render_next_frame(start_idx: int, token: int) -> void:
-	if not is_inside_tree():
-		return
-	await get_tree().process_frame
-	_render_record_batch(start_idx, token)

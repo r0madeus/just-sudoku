@@ -19,8 +19,7 @@ var candidates_mask: int = 0
 var bg_panel: PanelContainer
 var bg_style: StyleBoxFlat
 var num_label: Label
-var notes_container: GridContainer
-var note_labels: Array[Label] = []
+var notes_view: NotesView
 
 var _shake_tween: Tween = null
 var _scale_tween: Tween = null
@@ -28,6 +27,40 @@ var _flash_rect: ColorRect = null
 var _flash_tween: Tween = null
 var _original_pos_x: float = 0.0
 var _is_shaking: bool = false
+
+# What is on screen now. The grid refreshes all 81 cells on every tap, and each theme override
+# makes Godot re-shape the label's text, so only what actually changed is applied.
+var _shown_text_col: Color = Color(0, 0, 0, 0)
+var _shown_font_h: float = -1.0
+
+## The candidate notes, drawn in one go. Nine Labels in a GridContainer per cell made the board
+## 729 note labels (over 1,000 nodes with the rest), which made the game screen slow to build.
+class NotesView extends Control:
+	var mask: int = 0
+	var color: Color = Color.WHITE
+	var font_size: int = 10
+
+	func _notification(what: int) -> void:
+		# A new font (Settings) arrives as a theme change
+		if what == NOTIFICATION_THEME_CHANGED:
+			queue_redraw()
+
+	func _draw() -> void:
+		if mask == 0 or size.x <= 0.0:
+			return
+		var font: Font = get_theme_font("font", "Label")
+		var cw: float = size.x / 3.0
+		var ch: float = size.y / 3.0
+		var ascent: float = font.get_ascent(font_size)
+		var line_h: float = ascent + font.get_descent(font_size)
+		for d in range(1, 10):
+			if mask & (1 << d) == 0:
+				continue
+			var col: int = (d - 1) % 3
+			var row: int = (d - 1) / 3
+			# Centred in its third of the cell the way a Label centres its line
+			var baseline := Vector2(col * cw, row * ch + (ch - line_h) * 0.5 + ascent)
+			draw_string(font, baseline, str(d), HORIZONTAL_ALIGNMENT_CENTER, cw, font_size, color)
 
 func _exit_tree() -> void:
 	if _shake_tween != null and _shake_tween.is_valid():
@@ -72,24 +105,11 @@ func _ready() -> void:
 	num_label.mouse_filter = MOUSE_FILTER_IGNORE
 	add_child(num_label)
 
-	notes_container = GridContainer.new()
-	notes_container.set_anchors_preset(PRESET_FULL_RECT)
-	notes_container.columns = 3
-	notes_container.mouse_filter = MOUSE_FILTER_IGNORE
-	add_child(notes_container)
-
-	note_labels.clear()
-	for d in range(1, 10):
-		var nl := Label.new()
-		nl.size_flags_horizontal = SIZE_EXPAND_FILL
-		nl.size_flags_vertical = SIZE_EXPAND_FILL
-		nl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		nl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		nl.mouse_filter = MOUSE_FILTER_IGNORE
-		nl.text = str(d)
-		nl.visible = false
-		notes_container.add_child(nl)
-		note_labels.append(nl)
+	notes_view = NotesView.new()
+	notes_view.set_anchors_preset(PRESET_FULL_RECT)
+	notes_view.mouse_filter = MOUSE_FILTER_IGNORE
+	notes_view.visible = false
+	add_child(notes_view)
 
 	_update_visuals()
 
@@ -259,11 +279,11 @@ func animate_digit_completed(delay: float = 0.0) -> void:
 
 func _update_font_sizes() -> void:
 	var h: float = size.y
-	if h > 10.0:
+	if h > 10.0 and h != _shown_font_h:
+		_shown_font_h = h
 		num_label.add_theme_font_size_override("font_size", maxi(8, int(h * 0.62)))
-		var note_fs: int = maxi(9, int(h * 0.22))
-		for nl in note_labels:
-			nl.add_theme_font_size_override("font_size", note_fs)
+		notes_view.font_size = maxi(9, int(h * 0.22))
+		notes_view.queue_redraw()
 
 func _update_visuals() -> void:
 	if bg_panel == null or bg_style == null:
@@ -273,36 +293,33 @@ func _update_visuals() -> void:
 	var bg_col: Color = ThemeManager.get_color("cell_bg")
 	if is_selected:
 		bg_col = ThemeManager.get_color("cell_selected")
-		bg_style.set_border_width_all(2)
-		bg_style.border_color = ThemeManager.get_color("border_focus")
+		_set_border(2, ThemeManager.get_color("border_focus"))
 	elif is_conflict:
 		bg_col = Color(ThemeManager.get_color("text_conflict"), 0.22)
-		bg_style.set_border_width_all(1)
-		bg_style.border_color = ThemeManager.get_color("text_conflict")
+		_set_border(1, ThemeManager.get_color("text_conflict"))
 	elif is_wrong:
 		bg_col = Color(ThemeManager.get_color("text_wrong"), 0.28)
-		bg_style.set_border_width_all(1)
-		bg_style.border_color = ThemeManager.get_color("text_wrong")
+		_set_border(1, ThemeManager.get_color("text_wrong"))
 	elif is_same_number and value != 0:
 		bg_col = ThemeManager.get_color("cell_same_num")
-		bg_style.set_border_width_all(0)
-		bg_style.border_color = Color.TRANSPARENT
+		_set_border(0, Color.TRANSPARENT)
 	elif is_peer:
 		bg_col = ThemeManager.get_color("cell_peer")
-		bg_style.set_border_width_all(0)
-		bg_style.border_color = Color.TRANSPARENT
+		_set_border(0, Color.TRANSPARENT)
 	else:
-		bg_style.set_border_width_all(0)
-		bg_style.border_color = Color.TRANSPARENT
+		_set_border(0, Color.TRANSPARENT)
 
-	bg_style.bg_color = bg_col
-	bg_panel.queue_redraw()
+	if bg_style.bg_color != bg_col:
+		bg_style.bg_color = bg_col
+		bg_panel.queue_redraw()
 
 	# 2. Main Number vs Notes
 	if value != 0:
 		num_label.visible = true
-		notes_container.visible = false
-		num_label.text = str(value)
+		notes_view.visible = false
+		var digit := str(value)
+		if num_label.text != digit:
+			num_label.text = digit
 
 		var text_col: Color = ThemeManager.get_color("text_user")
 		if is_given:
@@ -312,18 +329,24 @@ func _update_visuals() -> void:
 		elif is_wrong:
 			text_col = ThemeManager.get_color("text_wrong")
 
-		num_label.add_theme_color_override("font_color", text_col)
+		if text_col != _shown_text_col:
+			_shown_text_col = text_col
+			num_label.add_theme_color_override("font_color", text_col)
 	else:
 		num_label.visible = false
-		num_label.text = ""
-		notes_container.visible = (candidates_mask != 0)
-
+		if num_label.text != "":
+			num_label.text = ""
+		notes_view.visible = (candidates_mask != 0)
 		var note_col: Color = ThemeManager.get_color("text_notes")
-		for d in range(1, 10):
-			var bit: int = 1 << d
-			var has_c: bool = (candidates_mask & bit) != 0
-			var nl: Label = note_labels[d - 1]
-			nl.visible = has_c
-			nl.add_theme_color_override("font_color", note_col)
+		if notes_view.mask != candidates_mask or notes_view.color != note_col:
+			notes_view.mask = candidates_mask
+			notes_view.color = note_col
+			notes_view.queue_redraw()
 
 	_update_font_sizes()
+
+func _set_border(width: int, color: Color) -> void:
+	if bg_style.border_width_top != width or bg_style.border_color != color:
+		bg_style.set_border_width_all(width)
+		bg_style.border_color = color
+		bg_panel.queue_redraw()
