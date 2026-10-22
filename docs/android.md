@@ -76,3 +76,16 @@ Bu adımlar Android SDK'nın (Android Studio ile gelir) kurulu olduğu bir bilgi
 - Tek izin titreşim. İnternet izni yok; yedekleme kapalı: oyun verisi cihazdan çıkmaz (GDD §45). Cihaz değiştirirken oyunlar İçe/Dışa Aktar ile taşınır.
 - Telefonlarda dikey; tabletlerde (kısa kenar 600 dp ve üstü) ekran dönebilir.
 - Uyumluluk (OpenGL ES 3) çizicisi: 2D bir oyun için en geniş cihaz desteği; testler de bu çiziciyle yapılıyor.
+
+## Küçültülmüş motor (daha küçük APK)
+
+Resmi Godot şablonu 3D, fizik, Vulkan ve oyunun kullanmadığı onlarca modülü içerir. `engine/custom.py` yalnızca oyunun kullandıklarıyla derlenmiş bir şablon tanımlar: APK 28,2 MB'tan 14,5 MB'a iner (motor kütüphanesi telefonda 71 MB yerine 31 MB yer kaplar).
+
+- **Hazır APK:** GitHub'da *Actions → Android APK (slim engine)* altındaki son başarılı çalıştırmanın *Artifacts* bölümünden `JustSudoku-slim-apk` indirilir. Bir test anahtarıyla imzalıdır: telefona kurup denemek içindir, Play Store'a yüklenmez.
+- **Şablonu kendin derlemek:** Godot 4.7 kaynak kodu, Android NDK (`platform/android/detect.py` içindeki sürüm) ve Java 17 ile:
+  ```
+  scons platform=android target=template_release arch=arm64 swappy=no profile=<oyun>/engine/custom.py
+  cd platform/android/java && ./gradlew generateGodotTemplates
+  ```
+  Çıkan `bin/android_release.apk` dosyasını *Proje → Dışa Aktar → Android → Custom Template → Release* alanına ver.
+- Oyun koduna yeni bir özellik eklerken `tests/test_engine_profile.gd` küçültülmüş motorda olmayan bir şey kullanılırsa uyarır. Godot'nun kullanımdan kaldırılmış (deprecated) işlevleri de bu motorda yoktur.
