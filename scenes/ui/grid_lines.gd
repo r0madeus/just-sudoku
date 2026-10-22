@@ -3,7 +3,7 @@ extends RefCounted
 
 ## Draws a 9x9 Sudoku frame and its lines so they stay crisp at any screen scale.
 ##
-## The UI is laid out at 540 px and scaled to the device (2x, 1.33x, 0.75x ...), and a cell is
+## The UI is laid out in dp and scaled to the device (2.625x, 2x, 1.14x ...), and a cell is
 ## grid/9 wide, so lines land between device pixels and get smeared over two of them, each a
 ## little differently. Here every line is a filled rectangle whose edges sit on device pixel
 ## boundaries and whose width is a whole number of device pixels; the inner lines also stop at

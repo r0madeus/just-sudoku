@@ -73,7 +73,7 @@ func _exit_tree() -> void:
 
 func _build_ui() -> void:
 	cancel_btn.visible = false
-	primary_btn.custom_minimum_size = Vector2(0, 40)
+	primary_btn.custom_minimum_size = Vector2(0, ResponsiveManager.HEIGHT_BUTTON_PRIMARY)
 
 	# 1. Mode Selector Tabs
 	mode_tabs = HBoxContainer.new()
@@ -83,7 +83,7 @@ func _build_ui() -> void:
 
 	btn_step_mode = Button.new()
 	btn_step_mode.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	btn_step_mode.custom_minimum_size = Vector2(0, 34)
+	btn_step_mode.custom_minimum_size = Vector2(0, ResponsiveManager.HEIGHT_SEGMENT)
 	btn_step_mode.theme_type_variation = "PrimaryButton"
 	btn_step_mode.add_theme_font_size_override("font_size", 13)
 	btn_step_mode.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
@@ -92,7 +92,7 @@ func _build_ui() -> void:
 
 	btn_full_mode = Button.new()
 	btn_full_mode.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	btn_full_mode.custom_minimum_size = Vector2(0, 34)
+	btn_full_mode.custom_minimum_size = Vector2(0, ResponsiveManager.HEIGHT_SEGMENT)
 	btn_full_mode.theme_type_variation = "SecondaryButton"
 	btn_full_mode.add_theme_font_size_override("font_size", 13)
 	btn_full_mode.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
@@ -155,7 +155,7 @@ func _build_ui() -> void:
 	body_vbox.add_child(step_nav_bar)
 
 	btn_first = Button.new()
-	btn_first.custom_minimum_size = Vector2(40, 40)
+	btn_first.custom_minimum_size = Vector2(44, 44)
 	btn_first.text = ""
 	btn_first.icon = ThemeManager.get_icon("rotate-ccw")
 	btn_first.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -166,7 +166,7 @@ func _build_ui() -> void:
 	step_nav_bar.add_child(btn_first)
 
 	btn_prev = Button.new()
-	btn_prev.custom_minimum_size = Vector2(76, 40)
+	btn_prev.custom_minimum_size = Vector2(76, 44)
 	btn_prev.theme_type_variation = "SecondaryButton"
 	btn_prev.icon = ThemeManager.get_icon("chevron-left")
 	btn_prev.add_theme_constant_override("icon_max_width", 16)
@@ -183,7 +183,7 @@ func _build_ui() -> void:
 	step_nav_bar.add_child(step_counter_label)
 
 	btn_next = Button.new()
-	btn_next.custom_minimum_size = Vector2(76, 40)
+	btn_next.custom_minimum_size = Vector2(76, 44)
 	btn_next.theme_type_variation = "SecondaryButton"
 	btn_next.icon = ThemeManager.get_icon("chevron-right")
 	btn_next.icon_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -194,7 +194,7 @@ func _build_ui() -> void:
 	step_nav_bar.add_child(btn_next)
 
 	btn_last = Button.new()
-	btn_last.custom_minimum_size = Vector2(40, 40)
+	btn_last.custom_minimum_size = Vector2(44, 44)
 	btn_last.text = ""
 	btn_last.icon = ThemeManager.get_icon("check")
 	btn_last.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -267,7 +267,7 @@ func _build_ui() -> void:
 	f_vbox.add_child(full_unique_label)
 
 	apply_btn = Button.new()
-	apply_btn.custom_minimum_size = Vector2(0, 36)
+	apply_btn.custom_minimum_size = Vector2(0, ResponsiveManager.TOUCH_TARGET_MIN)
 	apply_btn.theme_type_variation = "PrimaryButton"
 	apply_btn.add_theme_font_size_override("font_size", 13)
 	apply_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
@@ -405,6 +405,30 @@ func _on_apply_solution_pressed() -> void:
 			solution_applied.emit(board),
 		true)
 
+## Narrower than this, Previous / Next show only their arrows so the step row fits a 360 dp phone
+const NAV_LABELS_MIN_WIDTH: float = 360.0
+var _nav_compact: bool = false
+
+func _apply_responsive_layout() -> void:
+	super()
+	if modal_panel == null or btn_prev == null:
+		return
+	var compact: bool = modal_panel.custom_minimum_size.x < NAV_LABELS_MIN_WIDTH
+	if compact != _nav_compact:
+		_nav_compact = compact
+		_update_nav_labels()
+
+func _update_nav_labels() -> void:
+	if btn_prev == null or btn_next == null:
+		return
+	for pair in [[btn_prev, "BTN_PREV_STEP", HORIZONTAL_ALIGNMENT_LEFT], [btn_next, "BTN_NEXT_STEP", HORIZONTAL_ALIGNMENT_RIGHT]]:
+		var b: Button = pair[0]
+		var label: String = LocalizationManager.translate(pair[1])
+		b.text = "" if _nav_compact else label
+		b.tooltip_text = label
+		b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER if _nav_compact else pair[2]
+		b.custom_minimum_size.x = ResponsiveManager.TOUCH_TARGET_MIN if _nav_compact else 76.0
+
 func _on_close_pressed() -> void:
 	close_modal()
 
@@ -414,8 +438,7 @@ func _update_locale_texts() -> void:
 
 	btn_step_mode.text = LocalizationManager.translate("BTN_STEP_BY_STEP")
 	btn_full_mode.text = LocalizationManager.translate("BTN_FULL_SOLUTION")
-	btn_prev.text = LocalizationManager.translate("BTN_PREV_STEP")
-	btn_next.text = LocalizationManager.translate("BTN_NEXT_STEP")
+	_update_nav_labels()
 	apply_btn.text = LocalizationManager.translate("BTN_APPLY_SOLUTION")
 	apply_btn.icon = ThemeManager.get_icon("check")
 	apply_btn.add_theme_constant_override("icon_max_width", 16)

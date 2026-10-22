@@ -285,7 +285,7 @@ func _build_ui() -> void:
 	daily_info_vbox.add_child(daily_meta_label)
 
 	daily_btn = Button.new()
-	daily_btn.custom_minimum_size = Vector2(112, 42)
+	daily_btn.custom_minimum_size = Vector2(112, ResponsiveManager.TOUCH_TARGET_MIN)
 	daily_btn.clip_text = false
 	daily_btn.theme_type_variation = "CompactSecondaryButton"
 	daily_btn.add_theme_font_size_override("font_size", 14)

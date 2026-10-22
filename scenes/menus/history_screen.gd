@@ -43,6 +43,9 @@ const DIFF_KEYS: Array[String] = [
 	DifficultyAnalyzer.LEVEL_EXPERT
 ]
 
+## Narrowest a filter column gets: room for the longest option next to the arrow
+const FILTER_MIN_WIDTH: float = 140.0
+
 const SORT_KEYS: Array[String] = [
 	"Newest",
 	"Oldest",
@@ -148,13 +151,17 @@ func _build_ui() -> void:
 	filter_card = GlassPanel.card(20.0, 14, 10)
 	root_vbox.add_child(filter_card)
 
-	var filter_cols := HBoxContainer.new()
-	filter_cols.add_theme_constant_override("separation", 10)
+	# Three filters in a row where they fit; on a phone Sort moves to its own full-width line,
+	# so no picker is too narrow for its longest option ("En İyi Skor")
+	var filter_cols := HFlowContainer.new()
+	filter_cols.add_theme_constant_override("h_separation", 10)
+	filter_cols.add_theme_constant_override("v_separation", 8)
 	filter_card.add_child(filter_cols)
 
 	# Column 1: Status Filter
 	var col_status := VBoxContainer.new()
 	col_status.size_flags_horizontal = SIZE_EXPAND_FILL
+	col_status.custom_minimum_size.x = FILTER_MIN_WIDTH
 	col_status.add_theme_constant_override("separation", 2)
 	filter_cols.add_child(col_status)
 
@@ -166,10 +173,9 @@ func _build_ui() -> void:
 
 	status_opt = OptionButton.new()
 	status_opt.size_flags_horizontal = SIZE_EXPAND_FILL
-	# Size to the selected item, not the longest one, so three filters fit a 360 px phone
 	status_opt.fit_to_longest_item = false
 	status_opt.clip_text = true
-	status_opt.custom_minimum_size = Vector2(0, 38)
+	status_opt.custom_minimum_size = Vector2(0, ResponsiveManager.HEIGHT_INPUT)
 	for s in STATUS_KEYS:
 		status_opt.add_item(s)
 	status_opt.item_selected.connect(func(_idx): refresh_history())
@@ -178,6 +184,7 @@ func _build_ui() -> void:
 	# Column 2: Difficulty Filter
 	var col_diff := VBoxContainer.new()
 	col_diff.size_flags_horizontal = SIZE_EXPAND_FILL
+	col_diff.custom_minimum_size.x = FILTER_MIN_WIDTH
 	col_diff.add_theme_constant_override("separation", 2)
 	filter_cols.add_child(col_diff)
 
@@ -189,10 +196,9 @@ func _build_ui() -> void:
 
 	diff_opt = OptionButton.new()
 	diff_opt.size_flags_horizontal = SIZE_EXPAND_FILL
-	# Size to the selected item, not the longest one, so three filters fit a 360 px phone
 	diff_opt.fit_to_longest_item = false
 	diff_opt.clip_text = true
-	diff_opt.custom_minimum_size = Vector2(0, 38)
+	diff_opt.custom_minimum_size = Vector2(0, ResponsiveManager.HEIGHT_INPUT)
 	for d in DIFF_KEYS:
 		diff_opt.add_item(d)
 	diff_opt.item_selected.connect(func(_idx): refresh_history())
@@ -201,6 +207,7 @@ func _build_ui() -> void:
 	# Column 3: Sort Filter
 	var col_sort := VBoxContainer.new()
 	col_sort.size_flags_horizontal = SIZE_EXPAND_FILL
+	col_sort.custom_minimum_size.x = FILTER_MIN_WIDTH
 	col_sort.add_theme_constant_override("separation", 2)
 	filter_cols.add_child(col_sort)
 
@@ -212,10 +219,9 @@ func _build_ui() -> void:
 
 	sort_opt = OptionButton.new()
 	sort_opt.size_flags_horizontal = SIZE_EXPAND_FILL
-	# Size to the selected item, not the longest one, so three filters fit a 360 px phone
 	sort_opt.fit_to_longest_item = false
 	sort_opt.clip_text = true
-	sort_opt.custom_minimum_size = Vector2(0, 38)
+	sort_opt.custom_minimum_size = Vector2(0, ResponsiveManager.HEIGHT_INPUT)
 	for s in SORT_KEYS:
 		sort_opt.add_item(s)
 	sort_opt.item_selected.connect(func(_idx): refresh_history())

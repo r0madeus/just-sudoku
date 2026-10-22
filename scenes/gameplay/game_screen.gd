@@ -309,7 +309,7 @@ func _build_ui() -> void:
 	# --- 5. Check Button (Calm, Centered Action - No Overbearing Blue Block) ---
 	check_btn = Button.new()
 	check_btn.text = LocalizationManager.translate("BTN_CHECK")
-	check_btn.custom_minimum_size = Vector2(210, 36)
+	check_btn.custom_minimum_size = Vector2(210, ResponsiveManager.TOUCH_TARGET_MIN)
 	check_btn.size_flags_horizontal = SIZE_SHRINK_CENTER
 	check_btn.visible = false
 	check_btn.pressed.connect(_on_check_pressed)
@@ -322,7 +322,7 @@ func _build_ui() -> void:
 	root_vbox.add_child(dock_center)
 
 	action_dock = GameActionDock.new()
-	action_dock.custom_minimum_size = Vector2(300, 44)
+	action_dock.custom_minimum_size = Vector2(300, ResponsiveManager.HEIGHT_ACTION_DOCK)
 	action_dock.undo_pressed.connect(_on_undo_pressed)
 	action_dock.redo_pressed.connect(_on_redo_pressed)
 	action_dock.notes_toggled.connect(_on_action_dock_notes_toggled)

@@ -26,8 +26,10 @@ DevTools="*res://scripts/dev/dev_tools.gd"
 
 [display]
 
-window/size/viewport_width=540
-window/size/viewport_height=960
+window/size/viewport_width=390
+window/size/viewport_height=844
+window/size/window_width_override=540
+window/size/window_height_override=960
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 window/handheld/orientation=1
