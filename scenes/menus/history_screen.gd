@@ -27,6 +27,7 @@ var diff_opt: OptionButton
 var sort_lbl: Label
 var sort_opt: OptionButton
 var list_vbox: VBoxContainer
+var list_card: PanelContainer
 
 const STATUS_KEYS: Array[String] = [
 	"All",
@@ -230,10 +231,19 @@ func _build_ui() -> void:
 	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
 	root_vbox.add_child(scroll)
 
+	# Rows sit together in one card, like the groups in Settings (one glass surface per list)
+	var list_pad := MarginContainer.new()
+	list_pad.size_flags_horizontal = SIZE_EXPAND_FILL
+	list_pad.add_theme_constant_override("margin_bottom", 16)
+	scroll.add_child(list_pad)
+	list_card = GlassPanel.card(20.0, 14, 4)
+	list_card.size_flags_vertical = SIZE_SHRINK_BEGIN
+	list_pad.add_child(list_card)
+
 	list_vbox = VBoxContainer.new()
 	list_vbox.size_flags_horizontal = SIZE_EXPAND_FILL
 	list_vbox.add_theme_constant_override("separation", 0)
-	scroll.add_child(list_vbox)
+	list_card.add_child(list_vbox)
 
 func _update_locale_texts() -> void:
 	if back_btn != null:

@@ -1,14 +1,17 @@
 class_name GameRecordItem
 extends PanelContainer
 
-## Reusable GameRecordItem Component
-## Swiss Editorial list item component for History and Saved Games.
-## Replaces heavy card borders with clean hairline-divided rows, high data density,
-## and refined typography.
+## One row of a game list (Saved games, History), built the same way everywhere:
+## a thumbnail of the board, a title line (level, score), a quiet detail line, and a single
+## round primary action on the right. Rows sit together in one card (see ListCard); each row
+## draws the hairline that separates it from the row above.
+## Saved games keep Share and Delete one tap away behind "⋯", so the row has one main action.
 
 const ThemeManager = preload("res://scripts/services/theme_manager.gd")
 const LocalizationManager = preload("res://scripts/services/localization_manager.gd")
 const GameTimer = preload("res://scripts/gameplay/game_timer.gd")
+const MiniBoard = preload("res://scenes/ui/mini_board.gd")
+const AppModal = preload("res://scenes/ui/app_modal.gd")
 
 signal replay_pressed(seed_val: int, difficulty: String)
 signal play_pressed(game_id: String)
@@ -18,8 +21,12 @@ signal delete_pressed(game_id: String)
 enum Mode { HISTORY, SAVED_GAME }
 var current_mode: Mode = Mode.HISTORY
 
+const THUMB_SIZE: float = 52.0
+const ACTION_SIZE: float = 44.0
+
 # UI Elements
 var root_container: Container
+var thumbnail: MiniBoard
 var diff_label: Label
 var score_label: Label
 var best_score_label: Label
@@ -33,6 +40,8 @@ var secondary_labels: Array[Label] = []
 # Action Buttons
 var replay_btn: Button
 var resume_btn: Button
+var more_btn: Button
+## Live only while the actions sheet ("⋯") is open
 var share_btn: Button
 var delete_btn: Button
 
@@ -47,12 +56,18 @@ func _init() -> void:
 func _exit_tree() -> void:
 	ThemeManager.remove_listener(_apply_theme)
 
-func setup_history(record: Dictionary, best_record: Dictionary = {}) -> void:
-	current_mode = Mode.HISTORY
-	current_data = record
-	_clear_children()
+func _notification(what: int) -> void:
+	# The divider depends on the position in the list
+	if what == NOTIFICATION_PARENTED or what == NOTIFICATION_MOVED_IN_PARENT:
+		queue_redraw()
 
-	# Direct child 0 is an HBoxContainer to preserve test compatibility and horizontal layout
+func _draw() -> void:
+	if get_index() > 0:
+		draw_line(Vector2(0, 0), Vector2(size.x, 0), ThemeManager.get_color("border_subtle"), 1.0)
+
+## Row skeleton: [thumbnail] [title line / detail line] ... actions are appended by the caller
+func _build_row() -> Array:
+	_clear_children()
 	var hbox := HBoxContainer.new()
 	hbox.add_theme_constant_override("separation", 12)
 	hbox.size_flags_horizontal = SIZE_EXPAND_FILL
@@ -60,228 +75,180 @@ func setup_history(record: Dictionary, best_record: Dictionary = {}) -> void:
 	add_child(hbox)
 	root_container = hbox
 
-	var is_tr := (LocalizationManager.get_locale() == LocalizationManager.LOCALE_TR)
-	var raw_diff: String = record.get("difficulty", "Medium")
-	var diff_text := LocalizationManager.get_difficulty_name(raw_diff)
-	var score: int = int(record.get("score", 0))
-	var time_s: float = float(record.get("time", 0.0))
-	var mistakes: int = int(record.get("mistakes", 0))
-	var hints: int = int(record.get("hints", 0))
-	var is_replay: bool = bool(record.get("is_replay", false))
-	var seed_val: int = int(record.get("seed", 0))
-	var best_score: int = int(best_record.get("score", score)) if not best_record.is_empty() else score
+	thumbnail = MiniBoard.new()
+	thumbnail.custom_minimum_size = Vector2(THUMB_SIZE, THUMB_SIZE)
+	thumbnail.size_flags_vertical = SIZE_SHRINK_CENTER
+	hbox.add_child(thumbnail)
 
-	var info_vbox := VBoxContainer.new()
-	info_vbox.size_flags_horizontal = SIZE_EXPAND_FILL
-	info_vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	info_vbox.add_theme_constant_override("separation", 3)
-	hbox.add_child(info_vbox)
+	var info := VBoxContainer.new()
+	info.size_flags_horizontal = SIZE_EXPAND_FILL
+	info.alignment = BoxContainer.ALIGNMENT_CENTER
+	info.add_theme_constant_override("separation", 3)
+	hbox.add_child(info)
 
-	# Row 1: Difficulty, Replay badge, Score, Best comparison
-	var row1 := HBoxContainer.new()
-	row1.add_theme_constant_override("separation", 8)
-	row1.alignment = BoxContainer.ALIGNMENT_BEGIN
-	info_vbox.add_child(row1)
+	var title_row := HBoxContainer.new()
+	title_row.add_theme_constant_override("separation", 8)
+	info.add_child(title_row)
+
+	var detail_row := HBoxContainer.new()
+	detail_row.add_theme_constant_override("separation", 6)
+	info.add_child(detail_row)
 
 	diff_label = Label.new()
-	diff_label.text = diff_text
 	diff_label.theme_type_variation = "Body"
 	diff_label.add_theme_font_size_override("font_size", 15)
-	row1.add_child(diff_label)
+	title_row.add_child(diff_label)
+	return [hbox, title_row, detail_row]
 
-	if is_replay:
+func _caption(text: String, parent: Container, expand: bool = false) -> Label:
+	var lbl := Label.new()
+	lbl.text = text
+	lbl.theme_type_variation = "Caption"
+	lbl.add_theme_font_size_override("font_size", 12)
+	if expand:
+		# Only the last label of a line may shorten; an ellipsis label has no minimum width,
+		# so on the others it would let the line squeeze them away entirely
+		lbl.size_flags_horizontal = SIZE_EXPAND_FILL
+		lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	secondary_labels.append(lbl)
+	parent.add_child(lbl)
+	return lbl
+
+func _round_action(icon_name: String, tooltip: String, primary: bool) -> Button:
+	var btn := Button.new()
+	btn.text = ""
+	btn.tooltip_text = tooltip
+	btn.custom_minimum_size = Vector2(ACTION_SIZE, ACTION_SIZE)
+	btn.theme_type_variation = "IconButton"
+	btn.icon = ThemeManager.get_icon(icon_name)
+	btn.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	btn.add_theme_constant_override("icon_max_width", 20)
+	btn.size_flags_vertical = SIZE_SHRINK_CENTER
+	btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	btn.set_meta("primary", primary)
+	return btn
+
+func setup_history(record: Dictionary, best_record: Dictionary = {}) -> void:
+	current_mode = Mode.HISTORY
+	current_data = record
+	var parts := _build_row()
+	var hbox: HBoxContainer = parts[0]
+	var title_row: HBoxContainer = parts[1]
+	var detail_row: HBoxContainer = parts[2]
+
+	var raw_diff: String = record.get("difficulty", "Medium")
+	var score: int = int(record.get("score", 0))
+	var seed_val: int = int(record.get("seed", 0))
+	var best_score: int = int(best_record.get("score", score)) if not best_record.is_empty() else score
+	thumbnail.set_strings(String(record.get("puzzle", "")))
+
+	diff_label.text = LocalizationManager.get_difficulty_name(raw_diff)
+	if bool(record.get("is_replay", false)):
 		replay_badge = Label.new()
 		replay_badge.text = LocalizationManager.translate("BADGE_REPLAY")
 		replay_badge.theme_type_variation = "TechnicalLabel"
 		replay_badge.add_theme_font_size_override("font_size", 11)
+		replay_badge.size_flags_vertical = SIZE_SHRINK_CENTER
 		secondary_labels.append(replay_badge)
-		row1.add_child(replay_badge)
+		title_row.add_child(replay_badge)
 
 	score_label = Label.new()
 	score_label.text = LocalizationManager.translate("RECORD_SCORE") % score
 	score_label.theme_type_variation = "Body"
 	score_label.add_theme_font_size_override("font_size", 14)
-	row1.add_child(score_label)
-
+	title_row.add_child(score_label)
 	if best_score > score:
-		best_score_label = Label.new()
-		best_score_label.text = LocalizationManager.translate("RECORD_BEST_SCORE") % best_score
-		best_score_label.theme_type_variation = "Caption"
-		best_score_label.add_theme_font_size_override("font_size", 11)
-		secondary_labels.append(best_score_label)
-		row1.add_child(best_score_label)
+		best_score_label = _caption(LocalizationManager.translate("RECORD_BEST_SCORE") % best_score, title_row)
 
-	# Row 2: Secondary stats (Time, Mistakes, Hints separated by middot)
-	var row2 := HBoxContainer.new()
-	row2.add_theme_constant_override("separation", 6)
-	row2.alignment = BoxContainer.ALIGNMENT_BEGIN
-	info_vbox.add_child(row2)
+	time_label = _caption(GameTimer.format_seconds(float(record.get("time", 0.0))), detail_row)
+	_caption("•", detail_row)
+	mistakes_label = _caption(LocalizationManager.translate("RECORD_MISTAKES") % int(record.get("mistakes", 0)), detail_row)
+	_caption("•", detail_row)
+	hints_label = _caption(LocalizationManager.translate("RECORD_HINTS") % int(record.get("hints", 0)), detail_row, true)
 
-	time_label = Label.new()
-	time_label.text = LocalizationManager.translate("RECORD_TIME") % GameTimer.format_seconds(time_s)
-	time_label.theme_type_variation = "Caption"
-	time_label.add_theme_font_size_override("font_size", 12)
-	secondary_labels.append(time_label)
-	row2.add_child(time_label)
-
-	var dot1 := Label.new()
-	dot1.text = "•"
-	dot1.theme_type_variation = "Caption"
-	dot1.add_theme_font_size_override("font_size", 12)
-	secondary_labels.append(dot1)
-	row2.add_child(dot1)
-
-	mistakes_label = Label.new()
-	mistakes_label.text = LocalizationManager.translate("RECORD_MISTAKES") % mistakes
-	mistakes_label.theme_type_variation = "Caption"
-	mistakes_label.add_theme_font_size_override("font_size", 12)
-	secondary_labels.append(mistakes_label)
-	row2.add_child(mistakes_label)
-
-	var dot2 := Label.new()
-	dot2.text = "•"
-	dot2.theme_type_variation = "Caption"
-	dot2.add_theme_font_size_override("font_size", 12)
-	secondary_labels.append(dot2)
-	row2.add_child(dot2)
-
-	hints_label = Label.new()
-	hints_label.text = LocalizationManager.translate("RECORD_HINTS") % hints
-	hints_label.theme_type_variation = "Caption"
-	hints_label.add_theme_font_size_override("font_size", 12)
-	secondary_labels.append(hints_label)
-	row2.add_child(hints_label)
-
-	# Replay Action Button (icon-only circular control, 44x44 on mobile)
-	replay_btn = Button.new()
+	replay_btn = _round_action("rotate-ccw", LocalizationManager.translate("BTN_REPLAY_ACTION"), true)
 	replay_btn.name = "ReplayButton"
-	replay_btn.text = ""
-	replay_btn.tooltip_text = LocalizationManager.translate("BTN_REPLAY_ACTION")
-	replay_btn.custom_minimum_size = Vector2(44, 44)
-	replay_btn.theme_type_variation = "IconButton"
-	replay_btn.icon = ThemeManager.get_icon("rotate-ccw")
-	replay_btn.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	replay_btn.add_theme_constant_override("icon_max_width", 20)
-	replay_btn.size_flags_vertical = SIZE_SHRINK_CENTER
-	replay_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	replay_btn.pressed.connect(func(): replay_pressed.emit(seed_val, raw_diff))
 	hbox.add_child(replay_btn)
-
 	_apply_theme()
 
 func setup_saved_game(game_data: Dictionary) -> void:
 	current_mode = Mode.SAVED_GAME
 	current_data = game_data
-	_clear_children()
-
-	var is_tr := (LocalizationManager.get_locale() == LocalizationManager.LOCALE_TR)
-	var raw_diff: String = game_data.get("difficulty", "Medium")
-	var diff_name := LocalizationManager.get_difficulty_name(raw_diff)
-	var pct_int: int = int(game_data.get("progress_percentage", 0))
-	var pct_str := LocalizationManager.format_percentage(pct_int)
-	var time_str := GameTimer.format_seconds(game_data.get("elapsed_time", 0.0))
+	var parts := _build_row()
+	var hbox: HBoxContainer = parts[0]
+	var detail_row: HBoxContainer = parts[2]
 	var gid: String = game_data.get("game_id", "")
+	thumbnail.set_strings(String(game_data.get("current", "")), String(game_data.get("initial", "")))
 
-	var item_vbox := VBoxContainer.new()
-	item_vbox.add_theme_constant_override("separation", 6)
-	item_vbox.size_flags_horizontal = SIZE_EXPAND_FILL
-	add_child(item_vbox)
-	root_container = item_vbox
+	diff_label.text = LocalizationManager.get_difficulty_name(game_data.get("difficulty", "Medium"))
+	var pct := LocalizationManager.format_percentage(int(game_data.get("progress_percentage", 0)))
+	progress_label = _caption(LocalizationManager.translate("PROGRESS_LABEL") % pct, detail_row)
+	_caption("•", detail_row)
+	time_label = _caption(GameTimer.format_seconds(float(game_data.get("elapsed_time", 0.0))), detail_row, true)
 
-	# Row 1: Difficulty, Progress, and Primary action (Oyna / Play)
-	var row1 := HBoxContainer.new()
-	row1.alignment = BoxContainer.ALIGNMENT_CENTER
-	row1.size_flags_horizontal = SIZE_EXPAND_FILL
-	row1.add_theme_constant_override("separation", 8)
-	item_vbox.add_child(row1)
+	more_btn = _round_action("more-horizontal", LocalizationManager.translate("BTN_MORE_ACTIONS"), false)
+	more_btn.custom_minimum_size = Vector2(36, ACTION_SIZE)
+	more_btn.pressed.connect(open_actions)
+	hbox.add_child(more_btn)
 
-	diff_label = Label.new()
-	diff_label.text = diff_name
-	diff_label.theme_type_variation = "Body"
-	diff_label.add_theme_font_size_override("font_size", 15)
-	row1.add_child(diff_label)
-
-	var dot_lbl := Label.new()
-	dot_lbl.text = "•"
-	dot_lbl.theme_type_variation = "Caption"
-	dot_lbl.add_theme_font_size_override("font_size", 12)
-	secondary_labels.append(dot_lbl)
-	row1.add_child(dot_lbl)
-
-	progress_label = Label.new()
-	progress_label.text = LocalizationManager.translate("PROGRESS_LABEL") % pct_str
-	progress_label.theme_type_variation = "Caption"
-	progress_label.add_theme_font_size_override("font_size", 12)
-	progress_label.size_flags_horizontal = SIZE_EXPAND_FILL
-	secondary_labels.append(progress_label)
-	row1.add_child(progress_label)
-
-	resume_btn = Button.new()
-	resume_btn.text = LocalizationManager.translate("BTN_PLAY")
-	resume_btn.custom_minimum_size = Vector2(80, 36)
-	resume_btn.theme_type_variation = "CompactPrimaryButton"
-	resume_btn.icon = ThemeManager.get_icon("play")
-	resume_btn.add_theme_constant_override("icon_max_width", 16)
-	resume_btn.add_theme_font_size_override("font_size", 13)
-	resume_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	resume_btn = _round_action("play", LocalizationManager.translate("BTN_PLAY"), true)
 	resume_btn.pressed.connect(func(): play_pressed.emit(gid))
-	row1.add_child(resume_btn)
-
-	# Row 2: Elapsed time & secondary actions (Share, Delete)
-	var row2 := HBoxContainer.new()
-	row2.alignment = BoxContainer.ALIGNMENT_CENTER
-	row2.size_flags_horizontal = SIZE_EXPAND_FILL
-	row2.add_theme_constant_override("separation", 6)
-	item_vbox.add_child(row2)
-
-	time_label = Label.new()
-	time_label.text = LocalizationManager.translate("RECORD_TIME") % time_str
-	time_label.theme_type_variation = "Caption"
-	time_label.add_theme_font_size_override("font_size", 12)
-	time_label.size_flags_horizontal = SIZE_EXPAND_FILL
-	secondary_labels.append(time_label)
-	row2.add_child(time_label)
-
-	share_btn = Button.new()
-	share_btn.text = LocalizationManager.translate("BTN_SHARE")
-	share_btn.custom_minimum_size = Vector2(76, 34)
-	share_btn.theme_type_variation = "CompactSecondaryButton"
-	share_btn.icon = ThemeManager.get_icon("upload")
-	share_btn.add_theme_constant_override("icon_max_width", 16)
-	share_btn.add_theme_font_size_override("font_size", 13)
-	share_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	share_btn.pressed.connect(func(): share_pressed.emit(gid, share_btn))
-	row2.add_child(share_btn)
-
-	delete_btn = Button.new()
-	delete_btn.text = LocalizationManager.translate("BTN_DELETE")
-	delete_btn.custom_minimum_size = Vector2(50, 34)
-	delete_btn.theme_type_variation = "GhostButton"
-	delete_btn.icon = ThemeManager.get_icon("x")
-	delete_btn.add_theme_constant_override("icon_max_width", 16)
-	delete_btn.add_theme_font_size_override("font_size", 13)
-	delete_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	delete_btn.pressed.connect(func(): delete_pressed.emit(gid))
-	row2.add_child(delete_btn)
-
+	hbox.add_child(resume_btn)
 	_apply_theme()
+
+## Share / Delete for a saved game, in a small sheet over the screen. Returns the sheet.
+func open_actions() -> AppModal:
+	var gid: String = current_data.get("game_id", "")
+	var sheet := AppModal.new()
+	sheet.title = "%s • %s" % [diff_label.text, progress_label.text if progress_label != null else ""]
+	sheet.dismissible_backdrop = true
+	sheet.primary_btn.visible = false
+	sheet.cancel_button_text = LocalizationManager.translate("BTN_CANCEL")
+	share_btn = sheet.add_button(LocalizationManager.translate("BTN_SHARE_PUZZLE"), true, "share")
+	share_btn.icon = ThemeManager.get_icon("upload")
+	share_btn.add_theme_constant_override("icon_max_width", 18)
+	delete_btn = sheet.add_button(LocalizationManager.translate("BTN_DELETE"), true, "delete")
+	delete_btn.add_theme_color_override("font_color", ThemeManager.get_color("text_conflict"))
+	sheet.custom_action.connect(func(action: String):
+		if action == "share":
+			# Stays open so the button can show "Copied"
+			share_pressed.emit(gid, share_btn)
+		elif action == "delete":
+			sheet.close_modal()
+			delete_pressed.emit(gid)
+	)
+	sheet.visibility_changed.connect(func():
+		if not sheet.visible:
+			sheet.queue_free()
+	)
+	_modal_host().add_child(sheet)
+	sheet.open_modal()
+	return sheet
+
+## Modals belong to the outermost Control (the app root), so they cover the whole screen and
+## pick up the app theme
+func _modal_host() -> Node:
+	var host: Node = self
+	while host.get_parent() is Control:
+		host = host.get_parent()
+	return host
 
 func _clear_children() -> void:
 	secondary_labels.clear()
+	replay_badge = null
+	best_score_label = null
+	progress_label = null
 	for c in get_children():
+		remove_child(c)
 		c.queue_free()
 
 func _apply_theme() -> void:
-	# Clean editorial hairline row separator: 1px bottom border
-	var border_col: Color = ThemeManager.get_color("border_subtle")
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color.TRANSPARENT
-	sb.border_width_bottom = 1
-	sb.border_color = border_col
-	sb.content_margin_left = 6
-	sb.content_margin_right = 6
-	sb.content_margin_top = 8
-	sb.content_margin_bottom = 8
+	var sb := StyleBoxEmpty.new()
+	sb.content_margin_left = 4
+	sb.content_margin_right = 0
+	sb.content_margin_top = 10
+	sb.content_margin_bottom = 10
 	add_theme_stylebox_override("panel", sb)
 
 	var sec_col := ThemeManager.get_color("text_secondary")
@@ -291,4 +258,16 @@ func _apply_theme() -> void:
 	if diff_label != null and is_instance_valid(diff_label):
 		diff_label.add_theme_color_override("font_color", ThemeManager.get_color("text_given"))
 	if score_label != null and is_instance_valid(score_label):
-		score_label.add_theme_color_override("font_color", ThemeManager.get_color("text_user"))
+		score_label.add_theme_color_override("font_color", ThemeManager.get_color("accent"))
+	for btn in [replay_btn, resume_btn, more_btn]:
+		if btn == null or not is_instance_valid(btn):
+			continue
+		if btn.get_meta("primary", false):
+			# The row's one main action: a filled accent circle
+			var sb_btn := ThemeManager.create_flat_stylebox(ThemeManager.get_color("accent"), int(ACTION_SIZE / 2))
+			for state in ["normal", "hover", "pressed", "focus"]:
+				btn.add_theme_stylebox_override(state, sb_btn)
+			btn.add_theme_color_override("icon_normal_color", Color.WHITE)
+			btn.add_theme_color_override("icon_hover_color", Color.WHITE)
+			btn.add_theme_color_override("icon_pressed_color", Color.WHITE)
+	queue_redraw()
