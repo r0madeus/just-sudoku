@@ -165,7 +165,7 @@ func refresh_stats() -> void:
 	var hero_title := Label.new()
 	hero_title.text = LocalizationManager.upper(LocalizationManager.translate("STAT_ALL_TIME"))
 	hero_title.theme_type_variation = "Caption"
-	hero_title.add_theme_font_size_override("font_size", 11)
+	ThemeManager.set_font_size(hero_title, 11)
 	hero_title.add_theme_color_override("font_color", text_sec)
 	hero_header_row.add_child(hero_title)
 
@@ -218,7 +218,7 @@ func refresh_stats() -> void:
 	var streak_title := Label.new()
 	streak_title.text = LocalizationManager.upper(LocalizationManager.translate("STAT_DAILY_STREAK_BANNER"))
 	streak_title.theme_type_variation = "Caption"
-	streak_title.add_theme_font_size_override("font_size", 11)
+	ThemeManager.set_font_size(streak_title, 11)
 	streak_title.add_theme_color_override("font_color", text_sec)
 	streak_header.add_child(streak_title)
 
@@ -247,7 +247,7 @@ func refresh_stats() -> void:
 	var streak_desc := Label.new()
 	streak_desc.text = LocalizationManager.translate("STAT_DAILY_STREAK_DESC")
 	streak_desc.theme_type_variation = "Caption"
-	streak_desc.add_theme_font_size_override("font_size", 11)
+	ThemeManager.set_font_size(streak_desc, 11)
 	streak_desc.add_theme_color_override("font_color", text_sec)
 	streak_desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	streak_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -263,7 +263,7 @@ func refresh_stats() -> void:
 	var diff_title := Label.new()
 	diff_title.text = LocalizationManager.upper(LocalizationManager.translate("STAT_DIFFICULTIES"))
 	diff_title.theme_type_variation = "Caption"
-	diff_title.add_theme_font_size_override("font_size", 11)
+	ThemeManager.set_font_size(diff_title, 11)
 	diff_title.add_theme_color_override("font_color", text_sec)
 
 	var diff_dict: Dictionary = details.get("difficulties", {})
@@ -297,14 +297,14 @@ func refresh_stats() -> void:
 		var d_lbl := Label.new()
 		d_lbl.text = LocalizationManager.get_difficulty_name(d_name)
 		d_lbl.theme_type_variation = "Subheader"
-		d_lbl.add_theme_font_size_override("font_size", 15)
+		ThemeManager.set_font_size(d_lbl, 15)
 		d_lbl.add_theme_color_override("font_color", text_given)
 		header_hbox.add_child(d_lbl)
 
 		var count_lbl := Label.new()
 		count_lbl.text = LocalizationManager.plural("STAT_GAMES_COUNT", count)
 		count_lbl.theme_type_variation = "Caption"
-		count_lbl.add_theme_font_size_override("font_size", 12)
+		ThemeManager.set_font_size(count_lbl, 12)
 		count_lbl.add_theme_color_override("font_color", text_sec)
 		count_lbl.size_flags_horizontal = SIZE_EXPAND_FILL
 		count_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -327,7 +327,7 @@ func refresh_stats() -> void:
 			var empty_diff := Label.new()
 			empty_diff.text = LocalizationManager.translate("HISTORY_EMPTY")
 			empty_diff.theme_type_variation = "Caption"
-			empty_diff.add_theme_font_size_override("font_size", 12)
+			ThemeManager.set_font_size(empty_diff, 12)
 			empty_diff.add_theme_color_override("font_color", text_sec)
 			item_vbox.add_child(empty_diff)
 
@@ -352,14 +352,14 @@ func _add_achievements_card() -> void:
 	var title_lbl := Label.new()
 	title_lbl.text = LocalizationManager.upper(LocalizationManager.translate("STAT_ACHIEVEMENTS"))
 	title_lbl.theme_type_variation = "Caption"
-	title_lbl.add_theme_font_size_override("font_size", 11)
+	ThemeManager.set_font_size(title_lbl, 11)
 	title_lbl.add_theme_color_override("font_color", text_sec)
 	title_lbl.size_flags_horizontal = SIZE_EXPAND_FILL
 	header.add_child(title_lbl)
 	var count_lbl := Label.new()
 	count_lbl.text = LocalizationManager.translate("ACH_PROGRESS") % [AchievementManager.unlocked_count(st), AchievementManager.ALL.size()]
 	count_lbl.theme_type_variation = "Caption"
-	count_lbl.add_theme_font_size_override("font_size", 11)
+	ThemeManager.set_font_size(count_lbl, 11)
 	count_lbl.add_theme_color_override("font_color", accent_col)
 	header.add_child(count_lbl)
 
@@ -390,13 +390,13 @@ func _add_achievements_card() -> void:
 		var name_lbl := Label.new()
 		name_lbl.text = AchievementManager.title(id)
 		name_lbl.theme_type_variation = "Subheader"
-		name_lbl.add_theme_font_size_override("font_size", 15)
+		ThemeManager.set_font_size(name_lbl, 15)
 		name_lbl.add_theme_color_override("font_color", text_given)
 		text_col.add_child(name_lbl)
 		var desc_lbl := Label.new()
 		desc_lbl.text = AchievementManager.description(id)
 		desc_lbl.theme_type_variation = "Caption"
-		desc_lbl.add_theme_font_size_override("font_size", 12)
+		ThemeManager.set_font_size(desc_lbl, 12)
 		desc_lbl.add_theme_color_override("font_color", text_sec)
 		desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		text_col.add_child(desc_lbl)
@@ -413,7 +413,7 @@ func _add_achievements_card() -> void:
 			side_lbl.name = "Side"
 			side_lbl.text = side
 			side_lbl.theme_type_variation = "Caption"
-			side_lbl.add_theme_font_size_override("font_size", 12)
+			ThemeManager.set_font_size(side_lbl, 12)
 			side_lbl.add_theme_color_override("font_color", accent_col if unlocked else text_sec)
 			side_lbl.size_flags_vertical = SIZE_SHRINK_CENTER
 			row.add_child(side_lbl)
@@ -443,7 +443,7 @@ func _add_stat_callout(parent: Control, val_text: String, label_text: String, ic
 	val_lbl.text = val_text
 	val_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	val_lbl.theme_type_variation = "StatValue"
-	val_lbl.add_theme_font_size_override("font_size", 24)
+	ThemeManager.set_font_size(val_lbl, 24)
 	val_lbl.add_theme_color_override("font_color", ThemeManager.get_color("text_given"))
 	if is_mono:
 		var mono_font := ThemeManager.get_font_mono()
@@ -455,7 +455,7 @@ func _add_stat_callout(parent: Control, val_text: String, label_text: String, ic
 	name_lbl.text = label_text
 	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_lbl.theme_type_variation = "Caption"
-	name_lbl.add_theme_font_size_override("font_size", 11)
+	ThemeManager.set_font_size(name_lbl, 11)
 	name_lbl.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
 	name_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	col.add_child(name_lbl)
@@ -469,14 +469,14 @@ func _add_key_value(parent: Control, label_text: String, val_text: String, is_mo
 	var k_lbl := Label.new()
 	k_lbl.text = LocalizationManager.upper(label_text)
 	k_lbl.theme_type_variation = "Caption"
-	k_lbl.add_theme_font_size_override("font_size", 10)
+	ThemeManager.set_font_size(k_lbl, 10)
 	k_lbl.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
 	item_vbox.add_child(k_lbl)
 
 	var v_lbl := Label.new()
 	v_lbl.text = val_text
 	v_lbl.theme_type_variation = "Body"
-	v_lbl.add_theme_font_size_override("font_size", 14)
+	ThemeManager.set_font_size(v_lbl, 14)
 	v_lbl.add_theme_color_override("font_color", ThemeManager.get_color("text_given"))
 	if is_mono:
 		var mono_font := ThemeManager.get_font_mono()

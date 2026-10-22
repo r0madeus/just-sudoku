@@ -124,14 +124,14 @@ func _build_ui() -> void:
 		lbl.set_anchors_preset(Control.PRESET_FULL_RECT)
 		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		lbl.add_theme_font_size_override("font_size", 15)
+		ThemeManager.set_font_size(lbl, 15)
 		cell_panel.add_child(lbl)
 
 		var notes_lbl := Label.new()
 		notes_lbl.set_anchors_preset(Control.PRESET_FULL_RECT)
 		notes_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		notes_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		notes_lbl.add_theme_font_size_override("font_size", 8)
+		ThemeManager.set_font_size(notes_lbl, 8)
 		cell_panel.add_child(notes_lbl)
 
 		preview_cells.append({
@@ -171,7 +171,7 @@ func _build_ui() -> void:
 		btn.size_flags_horizontal = SIZE_EXPAND_FILL
 		btn.custom_minimum_size = Vector2(0, ResponsiveManager.TOUCH_TARGET_MIN)
 		btn.theme_type_variation = "SegmentButton"
-		btn.add_theme_font_size_override("font_size", ThemeManager.FONT_SIZE_SUBTITLE)
+		ThemeManager.set_font_size(btn, ThemeManager.FONT_SIZE_SUBTITLE)
 		btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 		btn.pressed.connect(func(): _copy_preset(p_name))
 		preset_row.add_child(btn)
@@ -237,7 +237,7 @@ func _add_picker_row(parent: Control, key: String) -> void:
 
 	var lbl := Label.new()
 	lbl.theme_type_variation = "Body"
-	lbl.add_theme_font_size_override("font_size", 12)
+	ThemeManager.set_font_size(lbl, 12)
 	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	row.add_child(lbl)

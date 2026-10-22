@@ -48,7 +48,7 @@ func _init() -> void:
 
 	title_label = Label.new()
 	title_label.theme_type_variation = "Header"
-	title_label.add_theme_font_size_override("font_size", 20)
+	ThemeManager.set_font_size(title_label, 20)
 	title_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	# The empty-state title is a short phrase; let it take a second line instead of an ellipsis
 	title_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -58,13 +58,13 @@ func _init() -> void:
 
 	meta_label = Label.new()
 	meta_label.theme_type_variation = "TechnicalLabel"
-	meta_label.add_theme_font_size_override("font_size", 12)
+	ThemeManager.set_font_size(meta_label, 12)
 	meta_label.mouse_filter = MOUSE_FILTER_IGNORE
 	info.add_child(meta_label)
 
 	body_label = Label.new()
 	body_label.theme_type_variation = "Caption"
-	body_label.add_theme_font_size_override("font_size", 12)
+	ThemeManager.set_font_size(body_label, 12)
 	body_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	body_label.custom_minimum_size.x = 140.0
 	body_label.mouse_filter = MOUSE_FILTER_IGNORE
@@ -79,7 +79,7 @@ func _init() -> void:
 
 	progress_label = Label.new()
 	progress_label.theme_type_variation = "Caption"
-	progress_label.add_theme_font_size_override("font_size", 11)
+	ThemeManager.set_font_size(progress_label, 11)
 	progress_label.mouse_filter = MOUSE_FILTER_IGNORE
 	info.add_child(progress_label)
 
@@ -111,7 +111,7 @@ func set_compact(compact: bool) -> void:
 	mini_board.custom_minimum_size = Vector2(108, 108) if compact else Vector2(148, 148)
 	pad_v = 12 if compact else 16
 	pad_h = 14 if compact else 16
-	title_label.add_theme_font_size_override("font_size", 18 if compact else 20)
+	ThemeManager.set_font_size(title_label, 18 if compact else 20)
 
 ## Shows `state` (or the empty invitation when null)
 func set_game(state: GameState) -> void:

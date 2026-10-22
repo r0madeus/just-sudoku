@@ -54,7 +54,7 @@ static var PALETTES: Dictionary = {
 		"text_secondary": Color("#7e899b"),
 
 		# Interactive & Brand (Quiet Precision: Focused Accent)
-		"accent": Color("#2563eb"),
+		"accent": Color("#3b82f6"),
 		"accent_blue": Color("#2563eb"),
 		"accent_text": Color("#ffffff"),
 		"button_normal": Color("#1c212a"),
@@ -85,11 +85,11 @@ static var PALETTES: Dictionary = {
 		"text_user": Color("#60a5fa"),
 		"text_conflict": Color("#ef4444"),
 		"text_wrong": Color("#dc2626"),
-		"text_notes": Color("#737373"),
-		"text_secondary": Color("#737373"),
+		"text_notes": Color("#7c7c7c"),
+		"text_secondary": Color("#7c7c7c"),
 
 		# Interactive & Brand
-		"accent": Color("#2563eb"),
+		"accent": Color("#3b82f6"),
 		"accent_blue": Color("#2563eb"),
 		"accent_text": Color("#ffffff"),
 		"button_normal": Color("#101010"),
@@ -155,11 +155,11 @@ static var PALETTES: Dictionary = {
 		"text_user": Color("#af3a03"),
 		"text_conflict": Color("#cc241d"),
 		"text_wrong": Color("#9d0006"),
-		"text_notes": Color("#7c6f64"),
-		"text_secondary": Color("#7c6f64"),
+		"text_notes": Color("#6a5e54"),
+		"text_secondary": Color("#6a5e54"),
 
 		# Interactive & Brand
-		"accent": Color("#b57614"),
+		"accent": Color("#8c590c"),
 		"accent_blue": Color("#af3a03"),
 		"accent_text": Color("#ffffff"),
 		"button_normal": Color("#ede2c8"),
@@ -347,6 +347,48 @@ const FONT_SIZE_BODY: int = 14
 const FONT_SIZE_SUBTITLE: int = 13
 const FONT_SIZE_CAPTION: int = 12
 const FONT_SIZE_MICRO: int = 10
+
+## Text size (Settings, accessibility): UI text grows by up to this factor (see fs()). Board
+## digits and the number keys are sized to their cells and keep their size; notes grow a little.
+const TEXT_SIZE_NORMAL: String = "normal"
+const TEXT_SIZE_LARGE: String = "large"
+const TEXT_SIZE_XLARGE: String = "xlarge"
+const TEXT_SIZES: Dictionary = {TEXT_SIZE_NORMAL: 1.0, TEXT_SIZE_LARGE: 1.15, TEXT_SIZE_XLARGE: 1.3}
+const BASE_FONT_SIZE_META: StringName = &"base_font_size"
+static var text_size: String = TEXT_SIZE_NORMAL
+static var text_scale: float = 1.0
+
+## A font size at the chosen text size. Small text grows fully; display text grows less and
+## the largest not at all (it is already easy to read, and growing it costs the most room).
+static func fs(px: float) -> int:
+	var weight: float = clampf((28.0 - px) / 12.0, 0.0, 1.0)
+	return roundi(px * (1.0 + (text_scale - 1.0) * weight))
+
+## Sets a control's font size at the chosen text size, and remembers `px` so a later change of
+## text size can resize it in place
+static func set_font_size(ctrl: Control, px: float) -> void:
+	ctrl.set_meta(BASE_FONT_SIZE_META, px)
+	ctrl.add_theme_font_size_override("font_size", fs(px))
+
+## Changes the text size: resizes every text already on screen (`root`, when given), then lets
+## the listeners rebuild the theme and anything sized from it
+static func set_text_size(size_name: String, root: Node = null) -> void:
+	if not TEXT_SIZES.has(size_name):
+		size_name = TEXT_SIZE_NORMAL
+	if size_name == text_size:
+		return
+	text_size = size_name
+	text_scale = TEXT_SIZES[size_name]
+	if root != null:
+		var controls: Array[Node] = root.find_children("*", "Control", true, false)
+		for n in controls:
+			if n.has_meta(BASE_FONT_SIZE_META):
+				n.add_theme_font_size_override("font_size", fs(float(n.get_meta(BASE_FONT_SIZE_META))))
+		# Then whatever measures its text, now that every text has its new size
+		for n in controls:
+			if n.has_method("_on_text_size_changed"):
+				n._on_text_size_changed()
+	_notify_listeners()
 
 # Bundled Font Resources & Paths (res://assets/fonts/)
 const FONT_PATH_INTER: String = "res://assets/fonts/Inter[opsz,wght].ttf"
@@ -615,6 +657,8 @@ static func build_godot_theme() -> Theme:
 	if active_font == null:
 		active_font = font_inter
 
+	# Controls without a size of their own follow the text size too (Godot's default is 16)
+	theme.default_font_size = fs(16)
 	if active_font != null:
 		theme.default_font = active_font
 		theme.set_font("font", "Button", active_font)
@@ -670,7 +714,7 @@ static func build_godot_theme() -> Theme:
 	theme.set_color("icon_pressed_color", "Button", text_primary)
 	theme.set_color("icon_disabled_color", "Button", btn_text_disabled)
 	theme.set_color("icon_focus_color", "Button", text_primary)
-	theme.set_font_size("font_size", "Button", FONT_SIZE_BODY)
+	theme.set_font_size("font_size", "Button", fs(FONT_SIZE_BODY))
 
 	# -------------------------------------------------------------------------
 	# 2. Button Type Variations (Coherent Quiet Precision Capsule Language)
@@ -697,7 +741,7 @@ static func build_godot_theme() -> Theme:
 	theme.set_color("icon_hover_color", "PrimaryButton", Color.WHITE)
 	theme.set_color("icon_pressed_color", "PrimaryButton", Color.WHITE)
 	theme.set_color("icon_disabled_color", "PrimaryButton", btn_text_disabled)
-	theme.set_font_size("font_size", "PrimaryButton", FONT_SIZE_TITLE_SM)
+	theme.set_font_size("font_size", "PrimaryButton", fs(FONT_SIZE_TITLE_SM))
 
 	# SecondaryButton (Opaque elevated surface capsule: counterpart to PrimaryButton)
 	theme.set_type_variation("SecondaryButton", "Button")
@@ -720,7 +764,7 @@ static func build_godot_theme() -> Theme:
 	theme.set_color("icon_hover_color", "SecondaryButton", text_primary)
 	theme.set_color("icon_pressed_color", "SecondaryButton", text_primary)
 	theme.set_color("icon_disabled_color", "SecondaryButton", btn_text_disabled)
-	theme.set_font_size("font_size", "SecondaryButton", FONT_SIZE_TITLE_SM)
+	theme.set_font_size("font_size", "SecondaryButton", fs(FONT_SIZE_TITLE_SM))
 
 	# CompactSecondaryButton & CompactButton (Compact surface capsule for lists, daily and inline actions)
 	theme.set_type_variation("CompactSecondaryButton", "Button")
@@ -744,7 +788,7 @@ static func build_godot_theme() -> Theme:
 		theme.set_color("icon_hover_color", c_sec, text_primary)
 		theme.set_color("icon_pressed_color", c_sec, text_primary)
 		theme.set_color("icon_disabled_color", c_sec, btn_text_disabled)
-		theme.set_font_size("font_size", c_sec, FONT_SIZE_BODY)
+		theme.set_font_size("font_size", c_sec, fs(FONT_SIZE_BODY))
 
 	# CompactPrimaryButton (Compact filled accent capsule for inline high-priority actions)
 	theme.set_type_variation("CompactPrimaryButton", "Button")
@@ -766,7 +810,7 @@ static func build_godot_theme() -> Theme:
 	theme.set_color("icon_hover_color", "CompactPrimaryButton", Color.WHITE)
 	theme.set_color("icon_pressed_color", "CompactPrimaryButton", Color.WHITE)
 	theme.set_color("icon_disabled_color", "CompactPrimaryButton", btn_text_disabled)
-	theme.set_font_size("font_size", "CompactPrimaryButton", FONT_SIZE_BODY)
+	theme.set_font_size("font_size", "CompactPrimaryButton", fs(FONT_SIZE_BODY))
 
 	# GhostButton (Border-less, transparent until interaction, smooth capsule hover/press)
 	theme.set_type_variation("GhostButton", "Button")
@@ -786,7 +830,7 @@ static func build_godot_theme() -> Theme:
 	theme.set_color("icon_hover_color", "GhostButton", text_primary)
 	theme.set_color("icon_pressed_color", "GhostButton", text_primary)
 	theme.set_color("icon_disabled_color", "GhostButton", btn_text_disabled)
-	theme.set_font_size("font_size", "GhostButton", FONT_SIZE_BODY)
+	theme.set_font_size("font_size", "GhostButton", fs(FONT_SIZE_BODY))
 
 	# IconButton (Circular for square aspect, compact capsule for elongated aspect)
 	theme.set_type_variation("IconButton", "Button")
@@ -805,7 +849,7 @@ static func build_godot_theme() -> Theme:
 	theme.set_color("icon_hover_color", "IconButton", text_primary)
 	theme.set_color("icon_pressed_color", "IconButton", text_primary)
 	theme.set_color("icon_disabled_color", "IconButton", btn_text_disabled)
-	theme.set_font_size("font_size", "IconButton", FONT_SIZE_BODY)
+	theme.set_font_size("font_size", "IconButton", fs(FONT_SIZE_BODY))
 
 	# ToolbarButton (In-game action bar controls: Undo, Redo, Notes, Hint)
 	theme.set_type_variation("ToolbarButton", "Button")
@@ -825,7 +869,7 @@ static func build_godot_theme() -> Theme:
 	theme.set_color("icon_hover_color", "ToolbarButton", text_primary)
 	theme.set_color("icon_pressed_color", "ToolbarButton", text_primary)
 	theme.set_color("icon_disabled_color", "ToolbarButton", btn_text_disabled)
-	theme.set_font_size("font_size", "ToolbarButton", FONT_SIZE_BODY)
+	theme.set_font_size("font_size", "ToolbarButton", fs(FONT_SIZE_BODY))
 
 	# SegmentButton (Compact difficulty & tab segment controls)
 	theme.set_type_variation("SegmentButton", "Button")
@@ -846,7 +890,7 @@ static func build_godot_theme() -> Theme:
 	theme.set_color("icon_hover_color", "SegmentButton", text_primary)
 	theme.set_color("icon_pressed_color", "SegmentButton", Color.WHITE)
 	theme.set_color("icon_disabled_color", "SegmentButton", Color.WHITE)
-	theme.set_font_size("font_size", "SegmentButton", FONT_SIZE_SUBTITLE)
+	theme.set_font_size("font_size", "SegmentButton", fs(FONT_SIZE_SUBTITLE))
 
 	for btn_var in ["PrimaryButton", "SecondaryButton", "CompactButton", "CompactPrimaryButton", "CompactSecondaryButton", "GhostButton", "IconButton", "ToolbarButton", "SegmentButton"]:
 		if active_font != null:
@@ -856,14 +900,14 @@ static func build_godot_theme() -> Theme:
 	# 3. Label & Typography Variations (Swiss Editorial Scale)
 	# -------------------------------------------------------------------------
 	theme.set_color("font_color", "Label", text_primary)
-	theme.set_font_size("font_size", "Label", FONT_SIZE_BODY)
+	theme.set_font_size("font_size", "Label", fs(FONT_SIZE_BODY))
 
 	# Primary UI Variations (Inter variable TTF)
 	# Display (28px, Hero / Title)
 	for d_name in ["Display", "DisplayLabel"]:
 		theme.set_type_variation(d_name, "Label")
 		theme.set_color("font_color", d_name, text_primary)
-		theme.set_font_size("font_size", d_name, FONT_SIZE_DISPLAY)
+		theme.set_font_size("font_size", d_name, fs(FONT_SIZE_DISPLAY))
 		if active_font != null:
 			theme.set_font("font", d_name, active_font)
 
@@ -871,7 +915,7 @@ static func build_godot_theme() -> Theme:
 	for h_name in ["Header", "HeaderLabel"]:
 		theme.set_type_variation(h_name, "Label")
 		theme.set_color("font_color", h_name, text_primary)
-		theme.set_font_size("font_size", h_name, FONT_SIZE_HEADER)
+		theme.set_font_size("font_size", h_name, fs(FONT_SIZE_HEADER))
 		if active_font != null:
 			theme.set_font("font", h_name, active_font)
 
@@ -879,7 +923,7 @@ static func build_godot_theme() -> Theme:
 	for s_name in ["Subtitle", "SubtitleLabel"]:
 		theme.set_type_variation(s_name, "Label")
 		theme.set_color("font_color", s_name, text_secondary)
-		theme.set_font_size("font_size", s_name, FONT_SIZE_SUBTITLE)
+		theme.set_font_size("font_size", s_name, fs(FONT_SIZE_SUBTITLE))
 		if active_font != null:
 			theme.set_font("font", s_name, active_font)
 
@@ -887,7 +931,7 @@ static func build_godot_theme() -> Theme:
 	for b_name in ["Body", "BodyLabel"]:
 		theme.set_type_variation(b_name, "Label")
 		theme.set_color("font_color", b_name, text_primary)
-		theme.set_font_size("font_size", b_name, FONT_SIZE_BODY)
+		theme.set_font_size("font_size", b_name, fs(FONT_SIZE_BODY))
 		if active_font != null:
 			theme.set_font("font", b_name, active_font)
 
@@ -895,7 +939,7 @@ static func build_godot_theme() -> Theme:
 	for c_name in ["Caption", "CaptionLabel"]:
 		theme.set_type_variation(c_name, "Label")
 		theme.set_color("font_color", c_name, text_secondary)
-		theme.set_font_size("font_size", c_name, FONT_SIZE_CAPTION)
+		theme.set_font_size("font_size", c_name, fs(FONT_SIZE_CAPTION))
 		if active_font != null:
 			theme.set_font("font", c_name, active_font)
 
@@ -903,7 +947,7 @@ static func build_godot_theme() -> Theme:
 	for st_name in ["StatValue", "StatValueLabel"]:
 		theme.set_type_variation(st_name, "Label")
 		theme.set_color("font_color", st_name, text_user)
-		theme.set_font_size("font_size", st_name, FONT_SIZE_STAT)
+		theme.set_font_size("font_size", st_name, fs(FONT_SIZE_STAT))
 		if active_font != null:
 			theme.set_font("font", st_name, active_font)
 
@@ -911,19 +955,19 @@ static func build_godot_theme() -> Theme:
 	var brand_font: Font = font_serif_semi if font_serif_semi != null else (font_serif_reg if font_serif_reg != null else active_font)
 	theme.set_type_variation("BrandTitle", "Label")
 	theme.set_color("font_color", "BrandTitle", text_primary)
-	theme.set_font_size("font_size", "BrandTitle", FONT_SIZE_BRAND)
+	theme.set_font_size("font_size", "BrandTitle", fs(FONT_SIZE_BRAND))
 	if brand_font != null:
 		theme.set_font("font", "BrandTitle", brand_font)
 
 	theme.set_type_variation("BrandHeader", "Label")
 	theme.set_color("font_color", "BrandHeader", text_primary)
-	theme.set_font_size("font_size", "BrandHeader", 24)
+	theme.set_font_size("font_size", "BrandHeader", fs(24))
 	if brand_font != null:
 		theme.set_font("font", "BrandHeader", brand_font)
 
 	theme.set_type_variation("EditorialHeader", "Label")
 	theme.set_color("font_color", "EditorialHeader", text_primary)
-	theme.set_font_size("font_size", "EditorialHeader", FONT_SIZE_HEADER)
+	theme.set_font_size("font_size", "EditorialHeader", fs(FONT_SIZE_HEADER))
 	if brand_font != null:
 		theme.set_font("font", "EditorialHeader", brand_font)
 
@@ -931,7 +975,7 @@ static func build_godot_theme() -> Theme:
 	for reg_name in ["EditorialRegular", "EditorialBody"]:
 		theme.set_type_variation(reg_name, "Label")
 		theme.set_color("font_color", reg_name, text_primary)
-		theme.set_font_size("font_size", reg_name, 18)
+		theme.set_font_size("font_size", reg_name, fs(18))
 		if editorial_reg_font != null:
 			theme.set_font("font", reg_name, editorial_reg_font)
 
@@ -940,21 +984,21 @@ static func build_godot_theme() -> Theme:
 	for tech_name in ["MonoLabel", "TechnicalLabel", "SeedLabel", "TechnicalValue"]:
 		theme.set_type_variation(tech_name, "Label")
 		theme.set_color("font_color", tech_name, text_secondary)
-		theme.set_font_size("font_size", tech_name, FONT_SIZE_BODY)
+		theme.set_font_size("font_size", tech_name, fs(FONT_SIZE_BODY))
 		if technical_font != null:
 			theme.set_font("font", tech_name, technical_font)
 
 	for tech_cap in ["MonoCaption", "SeedCaption", "TechnicalCaption"]:
 		theme.set_type_variation(tech_cap, "Label")
 		theme.set_color("font_color", tech_cap, text_secondary)
-		theme.set_font_size("font_size", tech_cap, FONT_SIZE_CAPTION)
+		theme.set_font_size("font_size", tech_cap, fs(FONT_SIZE_CAPTION))
 		if technical_font != null:
 			theme.set_font("font", tech_cap, technical_font)
 
 	for tech_stat in ["MonoStat", "TechnicalStat"]:
 		theme.set_type_variation(tech_stat, "Label")
 		theme.set_color("font_color", tech_stat, text_user)
-		theme.set_font_size("font_size", tech_stat, FONT_SIZE_STAT)
+		theme.set_font_size("font_size", tech_stat, fs(FONT_SIZE_STAT))
 		if technical_font != null:
 			theme.set_font("font", tech_stat, technical_font)
 
@@ -1011,7 +1055,7 @@ static func build_godot_theme() -> Theme:
 	theme.set_color("font_hover_color", "OptionButton", text_primary)
 	theme.set_color("font_pressed_color", "OptionButton", text_primary)
 	theme.set_color("font_disabled_color", "OptionButton", btn_text_disabled)
-	theme.set_font_size("font_size", "OptionButton", FONT_SIZE_BODY)
+	theme.set_font_size("font_size", "OptionButton", fs(FONT_SIZE_BODY))
 	theme.set_icon("arrow", "OptionButton", get_icon_sized("chevron-down", 16))
 	theme.set_constant("arrow_margin", "OptionButton", 10)
 
@@ -1053,7 +1097,7 @@ static func build_godot_theme() -> Theme:
 	theme.set_constant("item_end_padding", "PopupMenu", 8)
 	if active_font != null:
 		theme.set_font("font", "PopupMenu", active_font)
-	theme.set_font_size("font_size", "PopupMenu", FONT_SIZE_BODY)
+	theme.set_font_size("font_size", "PopupMenu", fs(FONT_SIZE_BODY))
 
 	# CheckBox (Anti-aliased, high-contrast theme-aware custom textures)
 	var tex_cb_unchecked := _create_checkbox_texture(false, false, false)
@@ -1085,7 +1129,7 @@ static func build_godot_theme() -> Theme:
 	theme.set_stylebox("pressed", "CheckBox", sb_empty)
 	theme.set_stylebox("disabled", "CheckBox", sb_empty)
 	theme.set_stylebox("focus", "CheckBox", sb_empty)
-	theme.set_font_size("font_size", "CheckBox", FONT_SIZE_BODY)
+	theme.set_font_size("font_size", "CheckBox", fs(FONT_SIZE_BODY))
 
 	# HSeparator (1px hairline subtle line)
 	var sb_sep := create_flat_stylebox(border, 0, 0, Color.TRANSPARENT, 0, 1)
@@ -1097,8 +1141,8 @@ static func build_godot_theme() -> Theme:
 	theme.set_stylebox("normal", "TextEdit", sb_edit)
 	theme.set_color("font_color", "LineEdit", text_primary)
 	theme.set_color("font_color", "TextEdit", text_primary)
-	theme.set_font_size("font_size", "LineEdit", FONT_SIZE_BODY)
-	theme.set_font_size("font_size", "TextEdit", FONT_SIZE_BODY)
+	theme.set_font_size("font_size", "LineEdit", fs(FONT_SIZE_BODY))
+	theme.set_font_size("font_size", "TextEdit", fs(FONT_SIZE_BODY))
 
 	# ScrollBars (Clean, transparent, invisible minimalist feel globally)
 	var sb_scroll_empty := StyleBoxEmpty.new()

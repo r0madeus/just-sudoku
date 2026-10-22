@@ -20,6 +20,7 @@ var bg_panel: PanelContainer
 var bg_style: StyleBoxFlat
 var num_label: Label
 var notes_view: NotesView
+var error_mark: ErrorMark
 
 var _shake_tween: Tween = null
 var _scale_tween: Tween = null
@@ -61,6 +62,21 @@ class NotesView extends Control:
 			# Centred in its third of the cell the way a Label centres its line
 			var baseline := Vector2(col * cw, row * ch + (ch - line_h) * 0.5 + ascent)
 			draw_string(font, baseline, str(d), HORIZONTAL_ALIGNMENT_CENTER, cw, font_size, color)
+
+## A bar under a wrong or clashing digit: the error shows by shape too, not by colour alone
+## (red and the other digit colours are hard to tell apart with colour-blindness)
+class ErrorMark extends Control:
+	var color: Color = Color.RED
+
+	func _draw() -> void:
+		var thickness: float = maxf(2.0, roundf(size.y * 0.07))
+		var w: float = roundf(size.x * 0.42)
+		var rect := Rect2((size.x - w) * 0.5, roundf(size.y * 0.84) - thickness * 0.5, w, thickness)
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = color
+		sb.set_corner_radius_all(int(ceilf(thickness * 0.5)))
+		sb.anti_aliasing_size = ThemeManager.edge_aa()
+		draw_style_box(sb, rect)
 
 func _exit_tree() -> void:
 	if _shake_tween != null and _shake_tween.is_valid():
@@ -110,6 +126,12 @@ func _ready() -> void:
 	notes_view.mouse_filter = MOUSE_FILTER_IGNORE
 	notes_view.visible = false
 	add_child(notes_view)
+
+	error_mark = ErrorMark.new()
+	error_mark.set_anchors_preset(PRESET_FULL_RECT)
+	error_mark.mouse_filter = MOUSE_FILTER_IGNORE
+	error_mark.visible = false
+	add_child(error_mark)
 
 	_update_visuals()
 
@@ -277,12 +299,18 @@ func animate_digit_completed(delay: float = 0.0) -> void:
 			tint_tween.tween_property(num_label, "modulate", Color(1.25, 1.25, 1.45), 0.10).set_trans(Tween.TRANS_SINE)
 			tint_tween.tween_property(num_label, "modulate", Color.WHITE, 0.14).set_trans(Tween.TRANS_SINE)
 
+func _on_text_size_changed() -> void:
+	_shown_font_h = -1.0
+	_update_font_sizes()
+
 func _update_font_sizes() -> void:
 	var h: float = size.y
 	if h > 10.0 and h != _shown_font_h:
 		_shown_font_h = h
 		num_label.add_theme_font_size_override("font_size", maxi(8, int(h * 0.62)))
-		notes_view.font_size = maxi(9, int(h * 0.22))
+		# Notes are the smallest text in the game: they grow with a larger text size, up to what
+		# still fits three to a row
+		notes_view.font_size = maxi(9, int(h * 0.22 * minf(ThemeManager.text_scale, 1.2)))
 		notes_view.queue_redraw()
 
 func _update_visuals() -> void:
@@ -332,8 +360,15 @@ func _update_visuals() -> void:
 		if text_col != _shown_text_col:
 			_shown_text_col = text_col
 			num_label.add_theme_color_override("font_color", text_col)
+
+		var marked: bool = is_conflict or is_wrong
+		if error_mark.visible != marked or (marked and error_mark.color != text_col):
+			error_mark.visible = marked
+			error_mark.color = text_col
+			error_mark.queue_redraw()
 	else:
 		num_label.visible = false
+		error_mark.visible = false
 		if num_label.text != "":
 			num_label.text = ""
 		notes_view.visible = (candidates_mask != 0)

@@ -85,7 +85,7 @@ func _build_ui() -> void:
 	btn_step_mode.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	btn_step_mode.custom_minimum_size = Vector2(0, ResponsiveManager.HEIGHT_SEGMENT)
 	btn_step_mode.theme_type_variation = "PrimaryButton"
-	btn_step_mode.add_theme_font_size_override("font_size", 13)
+	ThemeManager.set_font_size(btn_step_mode, 13)
 	btn_step_mode.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	btn_step_mode.pressed.connect(func(): switch_view_mode(Mode.STEP_BY_STEP))
 	mode_tabs.add_child(btn_step_mode)
@@ -94,7 +94,7 @@ func _build_ui() -> void:
 	btn_full_mode.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	btn_full_mode.custom_minimum_size = Vector2(0, ResponsiveManager.HEIGHT_SEGMENT)
 	btn_full_mode.theme_type_variation = "SecondaryButton"
-	btn_full_mode.add_theme_font_size_override("font_size", 13)
+	ThemeManager.set_font_size(btn_full_mode, 13)
 	btn_full_mode.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	btn_full_mode.pressed.connect(func(): switch_view_mode(Mode.FULL_SOLUTION))
 	mode_tabs.add_child(btn_full_mode)
@@ -130,7 +130,7 @@ func _build_ui() -> void:
 		lbl.set_anchors_preset(Control.PRESET_FULL_RECT)
 		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		lbl.add_theme_font_size_override("font_size", 14)
+		ThemeManager.set_font_size(lbl, 14)
 		cell_panel.add_child(lbl)
 
 		cells.append({
@@ -170,7 +170,7 @@ func _build_ui() -> void:
 	btn_prev.theme_type_variation = "SecondaryButton"
 	btn_prev.icon = ThemeManager.get_icon("chevron-left")
 	btn_prev.add_theme_constant_override("icon_max_width", 16)
-	btn_prev.add_theme_font_size_override("font_size", 12)
+	ThemeManager.set_font_size(btn_prev, 12)
 	btn_prev.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	btn_prev.pressed.connect(func(): set_step(current_step_idx - 1))
 	step_nav_bar.add_child(btn_prev)
@@ -179,7 +179,7 @@ func _build_ui() -> void:
 	step_counter_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	step_counter_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	step_counter_label.theme_type_variation = "Caption"
-	step_counter_label.add_theme_font_size_override("font_size", 12)
+	ThemeManager.set_font_size(step_counter_label, 12)
 	step_nav_bar.add_child(step_counter_label)
 
 	btn_next = Button.new()
@@ -188,7 +188,7 @@ func _build_ui() -> void:
 	btn_next.icon = ThemeManager.get_icon("chevron-right")
 	btn_next.icon_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	btn_next.add_theme_constant_override("icon_max_width", 16)
-	btn_next.add_theme_font_size_override("font_size", 12)
+	ThemeManager.set_font_size(btn_next, 12)
 	btn_next.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	btn_next.pressed.connect(func(): set_step(current_step_idx + 1))
 	step_nav_bar.add_child(btn_next)
@@ -220,18 +220,18 @@ func _build_ui() -> void:
 
 	step_coord_badge = Label.new()
 	step_coord_badge.theme_type_variation = "StatValue"
-	step_coord_badge.add_theme_font_size_override("font_size", 13)
+	ThemeManager.set_font_size(step_coord_badge, 13)
 	badge_row.add_child(step_coord_badge)
 
 	step_tech_badge = Label.new()
 	step_tech_badge.theme_type_variation = "Subtitle"
-	step_tech_badge.add_theme_font_size_override("font_size", 12)
+	ThemeManager.set_font_size(step_tech_badge, 12)
 	badge_row.add_child(step_tech_badge)
 
 	step_desc_label = Label.new()
 	step_desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	step_desc_label.theme_type_variation = "Body"
-	step_desc_label.add_theme_font_size_override("font_size", 12)
+	ThemeManager.set_font_size(step_desc_label, 12)
 	s_vbox.add_child(step_desc_label)
 
 	# 5. Full Solution Card
@@ -252,24 +252,24 @@ func _build_ui() -> void:
 
 	full_givens_label = Label.new()
 	full_givens_label.theme_type_variation = "Body"
-	full_givens_label.add_theme_font_size_override("font_size", 12)
+	ThemeManager.set_font_size(full_givens_label, 12)
 	stat_row.add_child(full_givens_label)
 
 	full_solved_label = Label.new()
 	full_solved_label.theme_type_variation = "Body"
-	full_solved_label.add_theme_font_size_override("font_size", 12)
+	ThemeManager.set_font_size(full_solved_label, 12)
 	stat_row.add_child(full_solved_label)
 
 	full_unique_label = Label.new()
 	full_unique_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	full_unique_label.theme_type_variation = "Caption"
-	full_unique_label.add_theme_font_size_override("font_size", 11)
+	ThemeManager.set_font_size(full_unique_label, 11)
 	f_vbox.add_child(full_unique_label)
 
 	apply_btn = Button.new()
 	apply_btn.custom_minimum_size = Vector2(0, ResponsiveManager.TOUCH_TARGET_MIN)
 	apply_btn.theme_type_variation = "PrimaryButton"
-	apply_btn.add_theme_font_size_override("font_size", 13)
+	ThemeManager.set_font_size(apply_btn, 13)
 	apply_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	apply_btn.pressed.connect(_on_apply_solution_pressed)
 	f_vbox.add_child(apply_btn)

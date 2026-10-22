@@ -316,7 +316,7 @@ func _build_base_ui() -> void:
 	title_label = Label.new()
 	title_label.size_flags_horizontal = SIZE_EXPAND_FILL
 	title_label.theme_type_variation = "Header"
-	title_label.add_theme_font_size_override("font_size", ThemeManager.FONT_SIZE_HEADER)
+	ThemeManager.set_font_size(title_label, ThemeManager.FONT_SIZE_HEADER)
 	header_hbox.add_child(title_label)
 
 	close_btn = Button.new()
@@ -342,7 +342,7 @@ func _build_base_ui() -> void:
 	message_label.size_flags_horizontal = SIZE_EXPAND_FILL
 	message_label.autowrap_mode = TextServer.AUTOWRAP_WORD
 	message_label.theme_type_variation = "Body"
-	message_label.add_theme_font_size_override("font_size", ThemeManager.FONT_SIZE_BODY)
+	ThemeManager.set_font_size(message_label, ThemeManager.FONT_SIZE_BODY)
 	message_label.visible = false
 	body_vbox.add_child(message_label)
 
@@ -356,7 +356,7 @@ func _build_base_ui() -> void:
 	primary_btn.size_flags_horizontal = SIZE_EXPAND_FILL
 	primary_btn.custom_minimum_size = Vector2(0, ResponsiveManager.HEIGHT_BUTTON_PRIMARY)
 	primary_btn.theme_type_variation = "PrimaryButton"
-	primary_btn.add_theme_font_size_override("font_size", 15)
+	ThemeManager.set_font_size(primary_btn, 15)
 	primary_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	primary_btn.pressed.connect(_on_confirmed)
 	actions_vbox.add_child(primary_btn)
@@ -365,7 +365,7 @@ func _build_base_ui() -> void:
 	cancel_btn.size_flags_horizontal = SIZE_EXPAND_FILL
 	cancel_btn.custom_minimum_size = Vector2(0, ResponsiveManager.HEIGHT_BUTTON_SECONDARY)
 	cancel_btn.theme_type_variation = "GhostButton"
-	cancel_btn.add_theme_font_size_override("font_size", 14)
+	ThemeManager.set_font_size(cancel_btn, 14)
 	cancel_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	cancel_btn.pressed.connect(_on_canceled)
 	actions_vbox.add_child(cancel_btn)

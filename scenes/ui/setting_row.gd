@@ -12,6 +12,12 @@ var title_label: Label
 var desc_label: Label
 var control_holder: HBoxContainer
 var control_node: Control
+## The control sits under the title instead of beside it (narrow phone, large text)
+var stacked: bool = false
+
+## Narrowest the title column may get beside the control before the control moves under it,
+## at normal text size (it grows with the text)
+const MIN_TITLE_WIDTH: float = 110.0
 
 func _init(p_title: String = "", p_desc: String = "", p_control: Control = null) -> void:
 	size_flags_horizontal = SIZE_EXPAND_FILL
@@ -87,6 +93,34 @@ func set_control(ctrl: Control) -> void:
 			mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 		else:
 			mouse_default_cursor_shape = Control.CURSOR_ARROW
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_RESIZED:
+		_update_stacking.call_deferred()
+
+## A wide control (a picker, a button) next to a long title on a narrow row would squeeze the
+## title to a word per line; then the control goes under the title. Check boxes always fit.
+func _update_stacking() -> void:
+	if control_node == null or control_node is CheckBox or size.x <= 0.0:
+		return
+	var sep: float = get_theme_constant("separation")
+	var want: bool = size.x - control_node.get_combined_minimum_size().x - sep < MIN_TITLE_WIDTH * ThemeManager.text_scale
+	if want == stacked:
+		return
+	stacked = want
+	control_holder.get_parent().remove_child(control_holder)
+	if stacked:
+		text_vbox.add_child(control_holder)
+		control_holder.alignment = BoxContainer.ALIGNMENT_BEGIN
+		control_holder.size_flags_horizontal = SIZE_EXPAND_FILL
+	else:
+		add_child(control_holder)
+		control_holder.alignment = BoxContainer.ALIGNMENT_END
+		control_holder.size_flags_horizontal = SIZE_SHRINK_END
+	text_vbox.add_theme_constant_override("separation", 6 if stacked else 2)
+
+func _on_text_size_changed() -> void:
+	_update_stacking.call_deferred()
 
 func get_control() -> Control:
 	return control_node
