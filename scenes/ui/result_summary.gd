@@ -3,9 +3,11 @@ extends VBoxContainer
 
 const ThemeManager = preload("res://scripts/services/theme_manager.gd")
 const LocalizationManager = preload("res://scripts/services/localization_manager.gd")
+const AchievementManager = preload("res://scripts/data/achievement_manager.gd")
 
 ## Body of the "Puzzle Solved" dialog: the score large, time / mistakes / hints below it, and
-## up to two lines that put the solve in context (record, average, Daily streak).
+## up to two lines that put the solve in context (record, average, Daily streak), and any
+## achievement this game earned.
 
 ## Within this many seconds of the average counts as "right on your average"
 const AVERAGE_TOLERANCE: float = 5.0
@@ -17,6 +19,9 @@ var score_label: Label
 var score_caption: Label
 var stats_row: HBoxContainer
 var highlight_labels: Array[Label] = []
+var achievement_row: HBoxContainer
+var achievement_icon: TextureRect
+var achievement_label: Label
 var _stat_values: Array[Label] = []
 var _stat_captions: Array[Label] = []
 
@@ -79,11 +84,30 @@ func _build() -> void:
 		line.visible = false
 		add_child(line)
 		highlight_labels.append(line)
+
+	achievement_row = HBoxContainer.new()
+	achievement_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	achievement_row.add_theme_constant_override("separation", ThemeManager.SPACE_SM)
+	achievement_row.visible = false
+	add_child(achievement_row)
+	achievement_icon = TextureRect.new()
+	achievement_icon.texture = ThemeManager.get_icon("award")
+	achievement_icon.custom_minimum_size = Vector2(18, 18)
+	achievement_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	achievement_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	achievement_icon.size_flags_vertical = SIZE_SHRINK_CENTER
+	achievement_row.add_child(achievement_icon)
+	achievement_label = Label.new()
+	achievement_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	achievement_label.theme_type_variation = "Body"
+	achievement_label.add_theme_font_size_override("font_size", 14)
+	achievement_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	achievement_row.add_child(achievement_label)
 	_apply_theme()
 
 ## Fills the card. `highlights` come from build_highlights(); the score is hidden when the
-## solution was shown, since it was not earned.
-func show_result(summary: Dictionary, highlights: Array[String]) -> void:
+## solution was shown, since it was not earned. `achievements` are the ids this game unlocked.
+func show_result(summary: Dictionary, highlights: Array[String], achievements: Array[String] = []) -> void:
 	var assisted: bool = summary.get("assisted", false)
 	score_box.visible = not assisted
 	score_label.text = str(int(summary.get("score", 0)))
@@ -102,7 +126,34 @@ func show_result(summary: Dictionary, highlights: Array[String]) -> void:
 	for i in range(highlight_labels.size()):
 		highlight_labels[i].visible = i < highlights.size()
 		highlight_labels[i].text = highlights[i] if i < highlights.size() else ""
+
+	achievement_row.visible = not achievements.is_empty()
+	var titles: Array = achievements.map(func(id): return AchievementManager.title(id))
+	var key := "ACH_NEW" if achievements.size() == 1 else "ACH_NEW_MANY"
+	achievement_label.text = LocalizationManager.translate(key) % " · ".join(titles) if not achievements.is_empty() else ""
 	_apply_theme()
+	_fit_achievement_label()
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_RESIZED:
+		_fit_achievement_label()
+
+## As wide as its text when that fits, so a short line sits centred like the lines above it;
+## otherwise it fills the row and wraps, and never widens the dialog
+func _fit_achievement_label() -> void:
+	if achievement_label == null or achievement_label.text.is_empty():
+		return
+	var font: Font = achievement_label.get_theme_font("font")
+	var font_size: int = achievement_label.get_theme_font_size("font_size")
+	var text_w: float = ceilf(font.get_string_size(achievement_label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x) + 1.0
+	var room: float = size.x - achievement_icon.custom_minimum_size.x - ThemeManager.SPACE_SM
+	var fits: bool = size.x > 0.0 and text_w <= room
+	var flags: int = SIZE_FILL if fits else SIZE_EXPAND_FILL
+	var min_w: float = text_w if fits else 0.0
+	if achievement_label.size_flags_horizontal != flags:
+		achievement_label.size_flags_horizontal = flags
+	if achievement_label.custom_minimum_size.x != min_w:
+		achievement_label.custom_minimum_size.x = min_w
 
 ## Context lines for a finished game, most important first (at most two):
 ## a shown solution says so and nothing else; a replay compares with the best score for that
@@ -161,3 +212,5 @@ func _apply_theme() -> void:
 	for i in range(highlight_labels.size()):
 		# The first line is the headline (record, new best); the second is supporting context
 		highlight_labels[i].add_theme_color_override("font_color", accent if i == 0 else secondary)
+	achievement_icon.modulate = accent
+	achievement_label.add_theme_color_override("font_color", primary)

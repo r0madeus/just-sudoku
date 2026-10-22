@@ -6,6 +6,7 @@ const ThemeManager = preload("res://scripts/services/theme_manager.gd")
 const ResponsiveManager = preload("res://scripts/services/responsive_manager.gd")
 const AmbientBackdrop = preload("res://scenes/ui/ambient_backdrop.gd")
 const GlassPanel = preload("res://scenes/ui/glass_panel.gd")
+const AchievementManager = preload("res://scripts/data/achievement_manager.gd")
 
 ## Performance and Progression Statistics Screen (GDD §33, §44)
 ## Swiss Editorial layout: High data-density typographic callouts and hairline dividers,
@@ -329,6 +330,93 @@ func refresh_stats() -> void:
 			empty_diff.add_theme_font_size_override("font_size", 12)
 			empty_diff.add_theme_color_override("font_color", text_sec)
 			item_vbox.add_child(empty_diff)
+
+	_add_achievements_card()
+
+## Section 4: Achievements (GDD §36), earned ones with their date, the rest with their progress
+func _add_achievements_card() -> void:
+	var text_given := ThemeManager.get_color("text_given")
+	var text_sec := ThemeManager.get_color("text_secondary")
+	var accent_col := ThemeManager.get_color("accent")
+	var st := AchievementManager.status()
+
+	var card := GlassPanel.card(20.0, 16, 12)
+	card.name = "AchievementsCard"
+	stats_vbox.add_child(card)
+	var rows := VBoxContainer.new()
+	rows.add_theme_constant_override("separation", 12)
+	card.add_child(rows)
+
+	var header := HBoxContainer.new()
+	rows.add_child(header)
+	var title_lbl := Label.new()
+	title_lbl.text = LocalizationManager.upper(LocalizationManager.translate("STAT_ACHIEVEMENTS"))
+	title_lbl.theme_type_variation = "Caption"
+	title_lbl.add_theme_font_size_override("font_size", 11)
+	title_lbl.add_theme_color_override("font_color", text_sec)
+	title_lbl.size_flags_horizontal = SIZE_EXPAND_FILL
+	header.add_child(title_lbl)
+	var count_lbl := Label.new()
+	count_lbl.text = LocalizationManager.translate("ACH_PROGRESS") % [AchievementManager.unlocked_count(st), AchievementManager.ALL.size()]
+	count_lbl.theme_type_variation = "Caption"
+	count_lbl.add_theme_font_size_override("font_size", 11)
+	count_lbl.add_theme_color_override("font_color", accent_col)
+	header.add_child(count_lbl)
+
+	for a in AchievementManager.ALL:
+		var id: String = a["id"]
+		var entry: Dictionary = st[id]
+		var unlocked: bool = entry["unlocked"]
+		rows.add_child(HSeparator.new())
+		var row := HBoxContainer.new()
+		row.name = "Achievement_" + id
+		row.add_theme_constant_override("separation", 12)
+		row.modulate.a = 1.0 if unlocked else 0.6
+		rows.add_child(row)
+
+		var ico := TextureRect.new()
+		ico.texture = ThemeManager.get_icon("award" if unlocked else "lock")
+		ico.custom_minimum_size = Vector2(20, 20)
+		ico.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		ico.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		ico.size_flags_vertical = SIZE_SHRINK_CENTER
+		ico.modulate = accent_col if unlocked else text_sec
+		row.add_child(ico)
+
+		var text_col := VBoxContainer.new()
+		text_col.size_flags_horizontal = SIZE_EXPAND_FILL
+		text_col.add_theme_constant_override("separation", 2)
+		row.add_child(text_col)
+		var name_lbl := Label.new()
+		name_lbl.text = AchievementManager.title(id)
+		name_lbl.theme_type_variation = "Subheader"
+		name_lbl.add_theme_font_size_override("font_size", 15)
+		name_lbl.add_theme_color_override("font_color", text_given)
+		text_col.add_child(name_lbl)
+		var desc_lbl := Label.new()
+		desc_lbl.text = AchievementManager.description(id)
+		desc_lbl.theme_type_variation = "Caption"
+		desc_lbl.add_theme_font_size_override("font_size", 12)
+		desc_lbl.add_theme_color_override("font_color", text_sec)
+		desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		text_col.add_child(desc_lbl)
+
+		# Earned: the date; on the way to a count: how far along; otherwise nothing
+		var side := ""
+		if unlocked:
+			if int(entry["date"]) > 0:
+				side = AchievementManager.date_text(int(entry["date"]))
+		elif int(entry["target"]) > 1:
+			side = LocalizationManager.translate("ACH_PROGRESS") % [int(entry["progress"]), int(entry["target"])]
+		if not side.is_empty():
+			var side_lbl := Label.new()
+			side_lbl.name = "Side"
+			side_lbl.text = side
+			side_lbl.theme_type_variation = "Caption"
+			side_lbl.add_theme_font_size_override("font_size", 12)
+			side_lbl.add_theme_color_override("font_color", accent_col if unlocked else text_sec)
+			side_lbl.size_flags_vertical = SIZE_SHRINK_CENTER
+			row.add_child(side_lbl)
 
 func _add_stat_callout(parent: Control, val_text: String, label_text: String, icon_name: String = "", is_mono: bool = false) -> void:
 	var col := VBoxContainer.new()
