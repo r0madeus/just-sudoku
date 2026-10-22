@@ -243,7 +243,8 @@ func _test_secondary_screens_content_margins() -> void:
 		if margin_ctrl != null:
 			var side_margin: int = margin_ctrl.get_theme_constant("margin_left", "MarginContainer")
 			var content_w: float = 1280.0 - float(side_margin * 2)
-			_assert(is_equal_approx(content_w, ResponsiveManager.MAX_CONTENT_WIDTH), "%s on 1280px desktop centers column to exactly 480px (margin=%dpx)" % [sname, side_margin])
+			var col_w: float = ResponsiveManager.MAX_CONTENT_WIDTH * ResponsiveManager.tablet_factor(Vector2(1280, 720))
+			_assert(absf(content_w - col_w) <= 1.0, "%s on 1280px desktop centers column to exactly %dpx (margin=%dpx)" % [sname, int(col_w), side_margin])
 
 		scr.queue_free()
 
@@ -256,7 +257,8 @@ func _test_app_modal_responsive_clamping() -> void:
 	modal1.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	modal1.size = Vector2(1280, 720)
 	modal1._apply_responsive_layout()
-	_assert(modal1.modal_panel.custom_minimum_size.x <= ResponsiveManager.MAX_MODAL_WIDTH, "Modal width on 1280px screen clamped to max %dpx" % int(ResponsiveManager.MAX_MODAL_WIDTH))
+	var modal_cap: float = ResponsiveManager.MAX_MODAL_WIDTH * ResponsiveManager.tablet_factor(Vector2(1280, 720))
+	_assert(modal1.modal_panel.custom_minimum_size.x <= modal_cap + 0.5, "Modal width on 1280px screen clamped to max %dpx" % int(modal_cap))
 	modal1.queue_free()
 
 	var modal2 := AppModal.new()
@@ -311,7 +313,9 @@ func _game_at(r: Vector2) -> GameScreen:
 func _test_tablet_room() -> void:
 	print("\n--- 9. Tablets use their room ---")
 	_assert(is_equal_approx(ResponsiveManager.tablet_factor(Vector2(390, 844)), 1.0) and is_equal_approx(ResponsiveManager.tablet_factor(Vector2(360, 640)), 1.0), "Phones: factor 1")
-	_assert(is_equal_approx(ResponsiveManager.tablet_factor(Vector2(1280, 800)), 1.0), "Landscape (desktop layout): factor 1")
+	_assert(is_equal_approx(ResponsiveManager.tablet_factor(Vector2(1280, 800)), ResponsiveManager.tablet_factor(Vector2(800, 1280))), "A tablet turned to landscape keeps its room (factor follows the shorter side)")
+	_assert(not ResponsiveManager.is_tablet_screen(Vector2i(1080, 2340), 2.625) and not ResponsiveManager.is_tablet_screen(Vector2i(720, 1280), 2.0), "Phones (411 and 360 dp wide) stay in portrait")
+	_assert(ResponsiveManager.is_tablet_screen(Vector2i(1600, 2560), 2.0) and ResponsiveManager.is_tablet_screen(Vector2i(1920, 1200), 2.0), "Tablets (600 dp and up, either way round) may rotate")
 	_assert(absf(ResponsiveManager.tablet_factor(Vector2(800, 1280)) - 1.333) < 0.01, "10\" tablet (800 dp): factor 1.33")
 	_assert(ResponsiveManager.get_device_category(Vector2(1024, 1366)) == ResponsiveManager.DeviceCategory.TABLET and is_equal_approx(ResponsiveManager.tablet_factor(Vector2(1024, 1366)), 1.4), "12.9\" tablet in portrait is a tablet, factor capped at 1.4")
 
@@ -328,6 +332,15 @@ func _test_tablet_room() -> void:
 	_assert(board >= 640.0, "Tablet: board uses the width (%d px of 800)" % int(board))
 	_assert(key >= 95.0 and btn_h >= 58.0, "Tablet: number keys (%d) and dock buttons (%d) grow with the board" % [int(key), int(btn_h)])
 	tab.queue_free()
+
+	# Turned to landscape: board beside controls that keep its proportions
+	var land := _game_at(Vector2(1280, 800))
+	var l_board: float = land.grid_container.custom_minimum_size.x
+	var l_key: float = land.numpad.num_buttons[0].custom_minimum_size.x
+	_assert(land._landscape and l_board >= 680.0, "Tablet landscape: board beside the controls (%d px of 800 high)" % int(l_board))
+	_assert(l_key >= 95.0 and land.action_dock.size_scale > 1.3 and land.side_panel.custom_minimum_size.x >= 440.0,
+		"Tablet landscape: keys (%d), dock and side panel (%d) grow with the board" % [int(l_key), int(land.side_panel.custom_minimum_size.x)])
+	land.queue_free()
 
 	var modal := AppModal.new()
 	modal.set_anchors_preset(Control.PRESET_TOP_LEFT)

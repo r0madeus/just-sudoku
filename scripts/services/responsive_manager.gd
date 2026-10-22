@@ -156,14 +156,28 @@ static func get_device_category(viewport_size: Vector2) -> DeviceCategory:
 static func is_game_landscape(viewport_size: Vector2) -> bool:
 	return viewport_size.x > 0.0 and viewport_size.y > 0.0 and viewport_size.x / viewport_size.y >= 1.15
 
-## How much roomier a tablet's layout is than a phone's: 1 on phones and desktop, growing with
-## the tablet's shorter side (600 dp -> 1.0, 800 dp -> 1.33, at most 1.4). Column, dialog and board
-## width caps and the game's number pad and action dock are multiplied by it, so a tablet uses
-## its room instead of showing a phone-sized column in the middle; text keeps its size.
+## How much roomier a big screen's layout is than a phone's: 1 on phones, growing with the
+## screen's shorter side on tablets in either orientation and on large windows (600 dp -> 1.0,
+## 800 dp -> 1.33, at most 1.4). Column, dialog and board width caps and the game's number pad
+## and action dock are multiplied by it, so a tablet uses its room instead of showing a
+## phone-sized column in the middle; text keeps its size.
 static func tablet_factor(viewport_size: Vector2) -> float:
-	if get_device_category(viewport_size) != DeviceCategory.TABLET:
+	var cat := get_device_category(viewport_size)
+	if cat == DeviceCategory.PHONE or cat == DeviceCategory.COMPACT_PHONE:
 		return 1.0
 	return clampf(minf(viewport_size.x, viewport_size.y) / 600.0, 1.0, 1.4)
+
+## Shorter side, in dp, from which a device counts as a tablet
+const TABLET_MIN_SHORT_SIDE: float = 600.0
+
+static func is_tablet_screen(screen_px: Vector2i, density: float) -> bool:
+	return density > 0.0 and minf(screen_px.x, screen_px.y) / density >= TABLET_MIN_SHORT_SIDE
+
+## Phones stay in portrait (the project setting); a tablet may be turned either way, and the game
+## screen has a side-by-side layout for landscape
+static func apply_device_orientation(density: float = screen_density()) -> void:
+	if is_tablet_screen(DisplayServer.screen_get_size(), density):
+		DisplayServer.screen_set_orientation(DisplayServer.SCREEN_SENSOR)
 
 ## Computes a smooth clamped scaling factor relative to BASE_WIDTH (390px)
 static func get_scale_factor(viewport_size: Vector2) -> float:
@@ -420,9 +434,7 @@ static func apply_game_layout(
 	var cat := get_device_category(vp_size)
 
 	if is_game_landscape(vp_size):
-		if dock != null and dock.has_method("set_size_scale"):
-			dock.set_size_scale(1.0)
-		_apply_game_layout_landscape(vp_size, safe, margin_container, grid_container, [top_spacer, mid_spacer, numpad_spacer, bottom_spacer], numpad)
+		_apply_game_layout_landscape(vp_size, safe, margin_container, grid_container, [top_spacer, mid_spacer, numpad_spacer, bottom_spacer], numpad, dock)
 		return
 
 	# Clamps board width on desktop/tablet; a tablet's board and controls grow with its size
@@ -482,13 +494,23 @@ static func apply_game_layout(
 		bottom_spacer.custom_minimum_size.y = 10.0 + extra_h * 0.30
 
 ## Landscape: board on the left (height-bound), dock + numpad in a side panel on the right
+## Landscape board cap: grows with a tall screen (a tablet held sideways), up to 1.3x
+static func landscape_board_cap(viewport_h: float) -> float:
+	return MAX_BOARD_WIDTH_LANDSCAPE * clampf(viewport_h / 800.0, 1.0, 1.3)
+
+## Size of the landscape side panel (number pad, dock) next to a board this big: phone-sized
+## up to a 520 px board, then growing with it so the controls keep the board's proportions
+static func landscape_panel_scale(board_size: float) -> float:
+	return clampf(board_size / MAX_BOARD_WIDTH, 1.0, 1.4)
+
 static func _apply_game_layout_landscape(
 	vp_size: Vector2,
 	safe: Dictionary,
 	margin_container: MarginContainer,
 	grid_container: Control,
 	spacers: Array,
-	numpad: Control
+	numpad: Control,
+	dock: Control = null
 ) -> void:
 	var w: float = vp_size.x
 	var h: float = vp_size.y
@@ -498,10 +520,15 @@ static func _apply_game_layout_landscape(
 	var edge: float = 24.0
 
 	var avail_h: float = maxf(100.0, h - header_h - 16.0 - float(top_margin + bottom_margin))
-	var avail_w: float = maxf(100.0, w - edge * 2.0 - float(safe.left + safe.right) - LANDSCAPE_SIDE_PANEL_W - LANDSCAPE_GAP)
-	var grid_size: float = minf(MAX_BOARD_WIDTH_LANDSCAPE, minf(avail_h, avail_w))
+	var side_w := func(board: float) -> float:
+		return w - edge * 2.0 - float(safe.left + safe.right) - LANDSCAPE_SIDE_PANEL_W * landscape_panel_scale(board) - LANDSCAPE_GAP
+	var grid_size: float = minf(landscape_board_cap(h), avail_h)
+	# A wider panel leaves less room for the board; settle on a board that fits next to its panel
+	if grid_size > side_w.call(grid_size):
+		grid_size = maxf(100.0, side_w.call(grid_size))
+	var scale: float = landscape_panel_scale(grid_size)
 
-	var body_w: float = grid_size + LANDSCAPE_GAP + LANDSCAPE_SIDE_PANEL_W
+	var body_w: float = grid_size + LANDSCAPE_GAP + LANDSCAPE_SIDE_PANEL_W * scale
 	var side_margin: int = maxi(int(edge), int((w - body_w) * 0.5))
 
 	margin_container.add_theme_constant_override("margin_left", side_margin + safe.left)
@@ -509,10 +536,12 @@ static func _apply_game_layout_landscape(
 	margin_container.add_theme_constant_override("margin_top", top_margin)
 	margin_container.add_theme_constant_override("margin_bottom", bottom_margin)
 
-	# Side panel holds: dock (46) + numpad + gaps, so tight heights need the compact numpad
+	# Side panel holds the dock + number pad + gaps, so tight heights need the compact pad
 	var is_compact: bool = grid_size < 420.0
 	if numpad != null and numpad.has_method("set_layout"):
-		numpad.set_layout(is_compact, 1.0)
+		numpad.set_layout(is_compact, scale)
+	if dock != null and dock.has_method("set_size_scale"):
+		dock.set_size_scale(scale)
 
 	if grid_container != null:
 		grid_container.custom_minimum_size = Vector2(grid_size, grid_size)
