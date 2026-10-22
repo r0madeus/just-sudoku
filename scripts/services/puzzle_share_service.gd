@@ -18,7 +18,25 @@ static func export_puzzle_share_text(seed_val: int, difficulty: String, board: S
 	var diff_label: String = LocalizationManager.translate("SHARE_DIFF_LABEL")
 	var seed_label: String = LocalizationManager.translate("SHARE_SEED_LABEL")
 	var code_label: String = LocalizationManager.translate("SHARE_CODE_LABEL")
-	return "Just Sudoku\n%s: %s\n%s: %d\n%s: %s" % [diff_label, difficulty, seed_label, seed_val, code_label, code_str]
+	return "Just Sudoku\n%s: %s\n%s: %d\n%s: %s" % [
+		diff_label, LocalizationManager.get_difficulty_name(difficulty), seed_label, seed_val, code_label, code_str
+	]
+
+## Labels the share text has used, in any language, so a text shared from another language
+## or an older version still imports
+const _SEED_LABELS: Array[String] = ["seed", "puzzle no", "bulmaca no", "no"]
+const _CODE_LABELS: Array[String] = ["code", "kod", "puzzle code", "bulmaca kodu"]
+const _DIFF_LABELS: Array[String] = ["difficulty", "zorluk"]
+
+## Difficulty level named in `text`, in English or Turkish, or "" when none is
+static func _difficulty_from_text(text: String) -> String:
+	var low := text.to_lower()
+	for level in [DifficultyAnalyzer.LEVEL_EASY, DifficultyAnalyzer.LEVEL_MEDIUM, DifficultyAnalyzer.LEVEL_HARD, DifficultyAnalyzer.LEVEL_EXPERT]:
+		var key: String = "DIFF_" + level.to_upper()
+		for name in [level, LocalizationManager.DICTIONARY_EN.get(key, level), LocalizationManager.DICTIONARY_TR.get(key, level)]:
+			if low.contains(String(name).to_lower()):
+				return level
+	return ""
 
 static func copy_to_clipboard(text: String) -> void:
 	DisplayServer.clipboard_set(text)
@@ -67,18 +85,20 @@ static func parse_import_string(raw_text: String, default_difficulty: String = D
 
 	for line in lines:
 		var l: String = line.strip_edges()
-		if l.to_lower().begins_with("kod:") or l.to_lower().begins_with("code:"):
-			extracted_code = l.substr(l.find(":") + 1).strip_edges()
-		elif l.to_lower().begins_with("seed:"):
-			var seed_part := l.substr(l.find(":") + 1).strip_edges()
-			if seed_part.is_valid_int():
-				extracted_seed = int(seed_part)
-		elif l.to_lower().begins_with("zorluk:") or l.to_lower().begins_with("difficulty:"):
-			var diff_part := l.substr(l.find(":") + 1).strip_edges()
-			for d in [DifficultyAnalyzer.LEVEL_EASY, DifficultyAnalyzer.LEVEL_MEDIUM, DifficultyAnalyzer.LEVEL_HARD, DifficultyAnalyzer.LEVEL_EXPERT]:
-				if diff_part.to_lower().contains(d.to_lower()):
-					extracted_diff = d
-					break
+		var colon: int = l.find(":")
+		if colon <= 0:
+			continue
+		var label: String = l.substr(0, colon).strip_edges().to_lower().trim_suffix(".")
+		var value: String = l.substr(colon + 1).strip_edges()
+		if _CODE_LABELS.has(label):
+			extracted_code = value
+		elif _SEED_LABELS.has(label):
+			if value.is_valid_int():
+				extracted_seed = int(value)
+		elif _DIFF_LABELS.has(label):
+			var level := _difficulty_from_text(value)
+			if not level.is_empty():
+				extracted_diff = level
 
 	# 3. Try parsing as 81-character puzzle string
 	var candidate_code: String = extracted_code if not extracted_code.is_empty() else clean

@@ -172,17 +172,17 @@ func test_dimension_4_theme_manager_and_hotswap() -> void:
 func test_dimension_5_localization_sync() -> void:
 	# 1. TR translations
 	LocalizationManager.set_locale(LocalizationManager.LOCALE_TR)
-	assert_true(LocalizationManager.translate("SETTING_FONT") == "Yazı Tipi / Font", "TR Çeviri: SETTING_FONT doğru")
-	assert_true(LocalizationManager.translate("FONT_MODERN_SANS").contains("Modern Sans"), "TR Çeviri: FONT_MODERN_SANS mevcut")
-	assert_true(LocalizationManager.translate("FONT_ROUNDED_SANS").contains("Rounded Sans"), "TR Çeviri: FONT_ROUNDED_SANS mevcut")
-	assert_true(LocalizationManager.translate("FONT_CLASSIC_SERIF").contains("Classic Serif"), "TR Çeviri: FONT_CLASSIC_SERIF mevcut")
+	assert_true(LocalizationManager.translate("SETTING_FONT") == "Yazı tipi", "TR Çeviri: SETTING_FONT doğru")
+	assert_true(LocalizationManager.translate("FONT_MODERN_SANS").contains("Modern"), "TR Çeviri: FONT_MODERN_SANS mevcut")
+	assert_true(LocalizationManager.translate("FONT_ROUNDED_SANS") == "Yuvarlak", "TR Çeviri: FONT_ROUNDED_SANS mevcut")
+	assert_true(LocalizationManager.translate("FONT_CLASSIC_SERIF") == "Klasik", "TR Çeviri: FONT_CLASSIC_SERIF mevcut")
 
 	# 2. EN translations
 	LocalizationManager.set_locale(LocalizationManager.LOCALE_EN)
-	assert_true(LocalizationManager.translate("SETTING_FONT") == "Font Family", "EN Çeviri: SETTING_FONT doğru")
-	assert_true(LocalizationManager.translate("FONT_MODERN_SANS").contains("Modern Sans"), "EN Çeviri: FONT_MODERN_SANS mevcut")
-	assert_true(LocalizationManager.translate("FONT_ROUNDED_SANS").contains("Rounded Sans"), "EN Çeviri: FONT_ROUNDED_SANS mevcut")
-	assert_true(LocalizationManager.translate("FONT_CLASSIC_SERIF").contains("Classic Serif"), "EN Çeviri: FONT_CLASSIC_SERIF mevcut")
+	assert_true(LocalizationManager.translate("SETTING_FONT") == "Font", "EN Çeviri: SETTING_FONT doğru")
+	assert_true(LocalizationManager.translate("FONT_MODERN_SANS").contains("Modern"), "EN Çeviri: FONT_MODERN_SANS mevcut")
+	assert_true(LocalizationManager.translate("FONT_ROUNDED_SANS") == "Rounded", "EN Çeviri: FONT_ROUNDED_SANS mevcut")
+	assert_true(LocalizationManager.translate("FONT_CLASSIC_SERIF") == "Classic", "EN Çeviri: FONT_CLASSIC_SERIF mevcut")
 
 # -----------------------------------------------------------------------------
 # BOYUT 6: Hücre Tipografisi & Sıfır-Gecikme Stres Testi (GDD §49)

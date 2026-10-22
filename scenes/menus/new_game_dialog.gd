@@ -260,7 +260,7 @@ func _update_preview_display() -> void:
 	var diff_name := LocalizationManager.get_difficulty_name(current_generated.difficulty)
 	preview_diff_label.text = diff_name
 	var est_mins: int = int(round(float(current_generated.estimated_seconds) / 60.0))
-	preview_time_label.text = LocalizationManager.translate("ESTIMATED_TIME") % [est_mins, 0]
+	preview_time_label.text = LocalizationManager.translate("ESTIMATED_TIME") % est_mins
 
 	var tech_names: Array[String] = []
 	var count: int = 0

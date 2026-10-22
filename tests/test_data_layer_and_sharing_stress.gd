@@ -323,8 +323,8 @@ func test_dimension_6_share_export_and_multi_format_import() -> void:
 	# 1. Share text export
 	var export_txt := PuzzleShareService.export_puzzle_share_text(1001, DifficultyAnalyzer.LEVEL_EASY, board)
 	assert_true(export_txt.contains("Just Sudoku"), "Paylaşım Metni: 'Just Sudoku' başlığı içeriyor")
-	assert_true(export_txt.contains("Seed: 1001"), "Paylaşım Metni: Seed bilgisini içeriyor")
-	assert_true(export_txt.contains("Kod:"), "Paylaşım Metni: 81 karakterlik bulmaca kodunu içeriyor")
+	assert_true(export_txt.contains(LocalizationManager.translate("SHARE_SEED_LABEL") + ": 1001"), "Paylaşım Metni: bulmaca numarasını içeriyor")
+	assert_true(export_txt.contains(LocalizationManager.translate("SHARE_CODE_LABEL") + ":"), "Paylaşım Metni: 81 karakterlik bulmaca kodunu içeriyor")
 
 	# 2. Import format: Structured text
 	var res1 := PuzzleShareService.parse_import_string(export_txt)

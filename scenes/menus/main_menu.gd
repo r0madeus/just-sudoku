@@ -112,6 +112,8 @@ func _apply_responsive_layout() -> void:
 func refresh_buttons() -> void:
 	var has_active := SaveManager.has_active_game()
 	continue_btn.disabled = not has_active
+	# With nothing to resume the button is noise; New Game takes the primary spot instead
+	continue_btn.visible = has_active
 
 	if has_active:
 		continue_btn.theme_type_variation = "PrimaryButton"
@@ -444,7 +446,7 @@ func _update_locale_texts() -> void:
 	if title_label != null:
 		title_label.text = "JUST SUDOKU"
 	if subtitle_label != null:
-		subtitle_label.text = LocalizationManager.translate("SUBTITLE_CALM")
+		subtitle_label.text = LocalizationManager.upper(LocalizationManager.translate("SUBTITLE_CALM"))
 	if continue_btn != null:
 		continue_btn.text = LocalizationManager.translate("BTN_CONTINUE")
 	if new_game_btn != null:

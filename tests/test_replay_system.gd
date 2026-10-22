@@ -240,6 +240,8 @@ func test_game_screen_replay_action_and_score_comparison() -> void:
 		"is_replay": true
 	}
 	screen._on_game_completed(replay_summary)
-	assert_true(screen.complete_dialog.dialog_text.contains("Yeni En İyi") or screen.complete_dialog.dialog_text.contains("New Best") or screen.complete_dialog.dialog_text.contains("Best:"), "Replay completion contains best score comparison text")
+	var result_text: String = screen.complete_dialog.dialog_text
+	var comparison_prefix: String = LocalizationManager.translate("SCORE_BEST_COMPARISON").split("%")[0]
+	assert_true(result_text.contains(LocalizationManager.translate("NEW_BEST_SCORE")) or result_text.contains(comparison_prefix), "Replay completion contains best score comparison text")
 
 	screen.queue_free()

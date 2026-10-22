@@ -32,7 +32,6 @@ var header_bar: HBoxContainer
 var back_btn: Button
 var title_container: VBoxContainer
 var info_label: Label
-var seed_btn: Button
 var timer_label: Label
 var pause_btn: Button
 var timer_capsule: PanelContainer
@@ -249,22 +248,6 @@ func _build_ui() -> void:
 	info_label.add_theme_font_size_override("font_size", 16)
 	title_container.add_child(info_label)
 
-	seed_btn = Button.new()
-	seed_btn.size_flags_horizontal = SIZE_SHRINK_CENTER
-	seed_btn.theme_type_variation = "GhostButton"
-	seed_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	seed_btn.add_theme_font_size_override("font_size", 11)
-	seed_btn.add_theme_font_override("font", ThemeManager.get_font_mono())
-	seed_btn.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
-	var sb_seed_empty := StyleBoxEmpty.new()
-	sb_seed_empty.content_margin_top = 0
-	sb_seed_empty.content_margin_bottom = 0
-	sb_seed_empty.content_margin_left = 6
-	sb_seed_empty.content_margin_right = 6
-	seed_btn.add_theme_stylebox_override("normal", sb_seed_empty)
-	seed_btn.text = "Seed: ---"
-	seed_btn.pressed.connect(_on_seed_btn_pressed)
-	title_container.add_child(seed_btn)
 
 	timer_capsule = PanelContainer.new()
 	timer_capsule.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
@@ -515,8 +498,6 @@ func setup_game(state: GameState) -> void:
 		info_label.text = LocalizationManager.translate("BTN_DAILY_SUDOKU") + " • " + diff_text
 	else:
 		info_label.text = diff_text
-	if seed_btn != null:
-		seed_btn.text = "Seed: %d" % game_state.seed_value
 	# A pause overlay left open by the previous game must not cover the new one
 	if pause_overlay != null and pause_overlay.visible:
 		_hide_pause_overlay()
@@ -561,7 +542,10 @@ func toggle_pause() -> void:
 		if pause_btn != null:
 			pause_btn.icon = ThemeManager.get_icon("play")
 		if pause_info_label != null:
-			pause_info_label.text = "%s • Seed: %d" % [LocalizationManager.get_difficulty_name(game_state.difficulty), game_state.seed_value]
+			pause_info_label.text = "%s • %s" % [
+				LocalizationManager.get_difficulty_name(game_state.difficulty),
+				LocalizationManager.translate("PUZZLE_NUMBER") % game_state.seed_value
+			]
 		if pause_toast_label != null:
 			pause_toast_label.visible = false
 		if pause_overlay is AppModal:
@@ -608,22 +592,6 @@ func _on_export_save_pressed() -> void:
 		var text := SaveManager.export_game_to_string(game_state)
 		PuzzleShareService.copy_to_clipboard(text)
 		_show_pause_toast(LocalizationManager.translate("TOAST_SAVE_COPIED"))
-
-func _on_seed_btn_pressed() -> void:
-	if game_state == null:
-		return
-	DisplayServer.clipboard_set(str(game_state.seed_value))
-	seed_btn.text = LocalizationManager.translate("COPIED_FEEDBACK")
-	seed_btn.add_theme_color_override("font_color", ThemeManager.get_color("accent"))
-	SoundManager.play_button_tap()
-	var t := create_tween()
-	if t != null:
-		t.tween_interval(1.2)
-		t.tween_callback(func():
-			if is_instance_valid(seed_btn) and game_state != null:
-				seed_btn.text = "Seed: %d" % game_state.seed_value
-				seed_btn.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
-		)
 
 func _on_pause_settings_pressed() -> void:
 	if game_state != null and not game_state.is_completed:
@@ -895,9 +863,6 @@ func _apply_theme_polish() -> void:
 		back_btn.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
 	if info_label != null:
 		info_label.add_theme_color_override("font_color", ThemeManager.get_color("text_given"))
-	if seed_btn != null:
-		seed_btn.add_theme_font_override("font", ThemeManager.get_font_mono())
-		seed_btn.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
 	if timer_label != null:
 		timer_label.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
 	if pause_btn != null:

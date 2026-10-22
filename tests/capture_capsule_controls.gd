@@ -91,19 +91,13 @@ func _run_captures() -> void:
 		app.main_menu.refresh_buttons()
 		await _save_screenshot("qa_capsule_" + prefix + "_home.png")
 
-		# 2. Game Screen with Seed underneath difficulty
-		print("  2. Game Screen with Seed Button...")
+		# 2. Game Screen (the puzzle number lives in the pause menu now)
+		print("  2. Game Screen...")
 		app._start_game_session(state)
 		app.game_screen.size = Vector2(res.x, res.y)
 		app.game_screen._apply_responsive_layout()
 		await _wait_frames(8)
-		assert(app.game_screen.seed_btn != null, "seed_btn exists")
-		assert(app.game_screen.seed_btn.text.contains("123456789"), "seed_btn displays seed value")
 		await _save_screenshot("qa_phase3_game_standard.png")
-		
-		# Test seed button tap feedback
-		app.game_screen._on_seed_btn_pressed()
-		assert(app.game_screen.seed_btn.text == LocalizationManager.translate("COPIED_FEEDBACK"), "seed_btn displays copied feedback")
 		await _wait_frames(10)
 		await _save_screenshot("qa_capsule_" + prefix + "_game.png")
 		if res.x == 390:

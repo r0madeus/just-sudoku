@@ -523,11 +523,11 @@ func _update_locale_texts() -> void:
 
 	# Section titles
 	if sec_appearance_lbl != null:
-		sec_appearance_lbl.text = LocalizationManager.translate("SETTINGS_SEC_APPEARANCE")
+		sec_appearance_lbl.text = LocalizationManager.upper(LocalizationManager.translate("SETTINGS_SEC_APPEARANCE"))
 	if sec_gameplay_lbl != null:
-		sec_gameplay_lbl.text = LocalizationManager.translate("SETTINGS_SEC_GAMEPLAY")
+		sec_gameplay_lbl.text = LocalizationManager.upper(LocalizationManager.translate("SETTINGS_SEC_GAMEPLAY"))
 	if sec_feedback_lbl != null:
-		sec_feedback_lbl.text = LocalizationManager.translate("SETTINGS_SEC_FEEDBACK")
+		sec_feedback_lbl.text = LocalizationManager.upper(LocalizationManager.translate("SETTINGS_SEC_FEEDBACK"))
 
 	var is_tr := (LocalizationManager.get_locale() == LocalizationManager.LOCALE_TR)
 

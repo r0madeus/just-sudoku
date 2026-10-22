@@ -35,7 +35,7 @@ func _init() -> void:
 		board.from_string_flat("53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79", true)
 		var text := PuzzleShareService.export_puzzle_share_text(12345678, "Medium", board)
 
-		return text.contains("Just Sudoku") and text.contains("12345678") and text.contains("Medium") and text.contains("53..7")
+		return text.contains("Just Sudoku") and text.contains("12345678") and text.contains(LocalizationManager.get_difficulty_name("Medium")) and text.contains("53..7")
 	)
 
 	# 2. Parsing formatted share text

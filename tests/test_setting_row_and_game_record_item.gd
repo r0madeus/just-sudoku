@@ -109,7 +109,7 @@ func test_game_record_item_history_mode() -> void:
 	assert_true(found_btn, "HBoxContainer contains Replay button")
 
 	assert_true(item.diff_label != null and item.diff_label.text.length() > 0, "Difficulty label displayed")
-	assert_true(item.replay_badge != null and item.replay_badge.text == "[Replay]", "Replay badge displayed")
+	assert_true(item.replay_badge != null and item.replay_badge.text == LocalizationManager.translate("BADGE_REPLAY"), "Replay badge displayed")
 	assert_true(item.best_score_label != null, "Best score comparison displayed")
 	assert_true(item.time_label != null, "Time label displayed")
 	assert_true(item.mistakes_label != null, "Mistakes label displayed")
