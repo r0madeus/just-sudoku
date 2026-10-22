@@ -185,6 +185,12 @@ func _build_ui() -> void:
 	pickers_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	pickers_vbox.add_theme_constant_override("separation", 10)
 	scroll.add_child(pickers_vbox)
+	# Tall enough for every picker, so the last row is never cut off by a hidden scroll edge;
+	# only a short screen caps it (and then it scrolls)
+	pickers_vbox.minimum_size_changed.connect(func():
+		var cap: float = get_viewport_rect().size.y * 0.4 if is_inside_tree() else 400.0
+		scroll.custom_minimum_size.y = minf(pickers_vbox.get_combined_minimum_size().y, maxf(160.0, cap))
+	)
 
 	# Group 1: Board & Surfaces
 	group_board_lbl = Label.new()
@@ -237,8 +243,14 @@ func _add_picker_row(parent: Control, key: String) -> void:
 	field_labels[key] = lbl
 
 	var cpb := ColorPickerButton.new()
-	cpb.custom_minimum_size = Vector2(40, 26)
+	cpb.custom_minimum_size = Vector2(48, 30)
 	cpb.edit_alpha = false
+	# The swatch is drawn inside the stylebox margins; the theme's pill buttons have wide ones,
+	# which squeezed the colour into a thin bar. A small rounded frame shows it whole.
+	for state in ["normal", "hover", "pressed", "focus"]:
+		var frame := ThemeManager.create_flat_stylebox(ThemeManager.get_color("surface"), ThemeManager.RADIUS_SM,
+			ThemeManager.BORDER_HAIRLINE, ThemeManager.get_color("border_focus" if state == "hover" else "border_subtle"), 3, 3)
+		cpb.add_theme_stylebox_override(state, frame)
 	cpb.color = _working_palette.get(key, Color.WHITE)
 	cpb.color_changed.connect(func(c: Color): _on_color_changed(key, c))
 	row.add_child(cpb)
@@ -330,6 +342,9 @@ func _update_locale_texts() -> void:
 	cancel_button_text = LocalizationManager.translate("BTN_CANCEL")
 	if preset_prompt_label != null:
 		preset_prompt_label.text = LocalizationManager.translate("PRESET_BASE_PROMPT")
+	for btn in preset_buttons:
+		# The palette ids ("Dark", "Sepia") are names in code, not in the UI
+		btn.text = LocalizationManager.translate("THEME_" + String(btn.get_meta("preset")).to_upper())
 
 	if group_board_lbl != null:
 		group_board_lbl.text = LocalizationManager.translate("THEME_GROUP_BOARD")

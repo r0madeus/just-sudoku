@@ -1172,7 +1172,10 @@ static func apply_numpad_button_style(btn: Button, corner_radius: int = -1, is_s
 	# middle, so the disabled fill is flattened onto the background into an opaque colour
 	var dis_fill: Color = get_color("button_disabled")
 	dis_fill = get_color("bg").lerp(Color(dis_fill, 1.0), dis_fill.a)
-	var sb_d := create_flat_stylebox(dis_fill, radius, BORDER_HAIRLINE, get_color("border_subtle").darkened(0.2), 0, 0)
+	# Disabled keys recede: a fainter outline than an active key, never a stronger one
+	var dis_border: Color = get_color("border_subtle")
+	dis_border.a *= 0.5
+	var sb_d := create_flat_stylebox(dis_fill, radius, BORDER_HAIRLINE, dis_border, 0, 0)
 
 	btn.add_theme_stylebox_override("normal", sb_n)
 	btn.add_theme_stylebox_override("hover", sb_h)

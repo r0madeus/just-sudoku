@@ -279,6 +279,8 @@ func _build_ui() -> void:
 	pause_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	pause_btn.pressed.connect(toggle_pause)
 	timer_box.add_child(pause_btn)
+	# The timer makes the right side wider than the back button; keep the level centred
+	ResponsiveManager.balance_header(header_bar, title_container)
 
 	# --- 2. Top Spacer (Airy breathing room between Header and Grid) ---
 	top_spacer = Control.new()

@@ -114,6 +114,7 @@ func _build_ui() -> void:
 	import_btn.custom_minimum_size = Vector2(96, 42)
 	import_btn.pressed.connect(func(): import_requested.emit())
 	header.add_child(import_btn)
+	ResponsiveManager.balance_header(header, title)
 
 	var header_sep := HSeparator.new()
 	root_vbox.add_child(header_sep)

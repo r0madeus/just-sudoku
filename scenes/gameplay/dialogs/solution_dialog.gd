@@ -31,8 +31,8 @@ var btn_step_mode: Button
 var btn_full_mode: Button
 
 var grid_aspect: AspectRatioContainer
-var grid_frame: Control
-var grid_bg: ColorRect
+var grid_frame: Panel
+var grid_lines: Control
 var cells: Array[Dictionary] = []
 
 # Step-by-Step UI
@@ -107,28 +107,20 @@ func _build_ui() -> void:
 	grid_aspect.ratio = 1.0
 	body_vbox.add_child(grid_aspect)
 
-	grid_frame = Control.new()
+	# Drawn like the game board: cells placed on exact ninths, lines on a layer above aligned to
+	# device pixels, and the rounded frame clipping the cell colours at the corners
+	grid_frame = Panel.new()
+	grid_frame.clip_children = CanvasItem.CLIP_CHILDREN_AND_DRAW
+	grid_frame.resized.connect(_layout_grid_cells)
 	grid_aspect.add_child(grid_frame)
-
-	grid_bg = ColorRect.new()
-	grid_bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	grid_frame.add_child(grid_bg)
-
-	var grid_container := GridContainer.new()
-	grid_container.columns = 9
-	grid_container.set_anchors_preset(Control.PRESET_FULL_RECT)
-	grid_container.add_theme_constant_override("h_separation", 1)
-	grid_container.add_theme_constant_override("v_separation", 1)
-	grid_frame.add_child(grid_container)
 
 	cells.clear()
 	var cell_sb := ThemeManager.create_flat_stylebox(Color.TRANSPARENT, 0, 0, Color.TRANSPARENT, 0, 0)
 	for i in range(SudokuBoard.CELL_COUNT):
 		var cell_panel := PanelContainer.new()
-		cell_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		cell_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		cell_panel.add_theme_stylebox_override("panel", cell_sb)
-		grid_container.add_child(cell_panel)
+		cell_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		grid_frame.add_child(cell_panel)
 
 		var bg_rect := ColorRect.new()
 		bg_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -146,6 +138,15 @@ func _build_ui() -> void:
 			"bg": bg_rect,
 			"label": lbl
 		})
+
+	grid_lines = Control.new()
+	grid_lines.set_anchors_preset(Control.PRESET_FULL_RECT)
+	grid_lines.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	grid_lines.draw.connect(func():
+		GridLines.draw_board(grid_lines, Rect2(Vector2.ZERO, grid_lines.size),
+			ThemeManager.get_color("grid_minor"), ThemeManager.get_color("grid_major"))
+	)
+	grid_frame.add_child(grid_lines)
 
 	# 3. Step Navigation Bar
 	step_nav_bar = HBoxContainer.new()
@@ -338,6 +339,16 @@ func set_step(idx: int) -> void:
 
 	_render_grid(active_board, target_cell, peer_cells)
 
+func _layout_grid_cells() -> void:
+	var side: float = minf(grid_frame.size.x, grid_frame.size.y)
+	var cell: float = side / 9.0
+	for i in range(cells.size()):
+		var panel: Control = cells[i]["panel"]
+		panel.position = Vector2((i % 9) * cell, (i / 9) * cell)
+		panel.size = Vector2(cell, cell)
+	if grid_lines != null:
+		grid_lines.queue_redraw()
+
 func _render_grid(board: SudokuBoard, target_idx: int = -1, peer_indices: Array[int] = []) -> void:
 	if board == null:
 		return
@@ -417,8 +428,11 @@ func _update_locale_texts() -> void:
 		_render_full_solution()
 
 func _apply_theme_styles() -> void:
-	if grid_bg != null:
-		grid_bg.color = ThemeManager.get_color("grid_major")
+	if grid_frame != null:
+		grid_frame.add_theme_stylebox_override("panel",
+			ThemeManager.create_flat_stylebox(ThemeManager.get_color("cell_bg"), ThemeManager.RADIUS_MD))
+	if grid_lines != null:
+		grid_lines.queue_redraw()
 	if step_coord_badge != null:
 		step_coord_badge.add_theme_color_override("font_color", ThemeManager.get_color("accent_blue"))
 	if full_unique_label != null:

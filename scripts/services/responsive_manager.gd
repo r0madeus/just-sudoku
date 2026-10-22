@@ -200,6 +200,61 @@ static func get_scaled_control_height(base_height: float, viewport_size: Vector2
 ## Standard content margin calculator for secondary screens
 ## (Settings, History, Statistics, LoadGame).
 ## Handles horizontal centering on wide viewports (tablet/desktop) and safe insets on mobile.
+## Keeps the title of a [left buttons][title][right buttons] header on the screen's centre line.
+## The sides are rarely equally wide (a back button against a timer or an "Import" button, and
+## the widths change with the language), so a spacer pads the narrower side to match - but only
+## as far as the header has room left after the title's text, so a narrow screen never overflows.
+static func balance_header(header: HBoxContainer, title: Control) -> void:
+	var labels: Array[Label] = []
+	if title is Label:
+		labels.append(title)
+	for c in title.get_children():
+		if c is Label:
+			labels.append(c)
+	# The title's text is measured below, so its own minimum width must not widen the row
+	for l in labels:
+		l.clip_text = true
+		l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	var left_pad := Control.new()
+	left_pad.name = "BalanceLeft"
+	left_pad.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var right_pad := Control.new()
+	right_pad.name = "BalanceRight"
+	right_pad.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	header.add_child(left_pad)
+	header.move_child(left_pad, title.get_index())
+	header.add_child(right_pad)
+	header.move_child(right_pad, title.get_index() + 1)
+	var rebalance := func() -> void:
+		var left := 0.0
+		var right := 0.0
+		var count := 0
+		for c in header.get_children():
+			if not (c is Control) or not c.visible:
+				continue
+			count += 1
+			if c == left_pad or c == right_pad or c == title:
+				continue
+			if c.get_index() < title.get_index():
+				left += c.get_combined_minimum_size().x
+			else:
+				right += c.get_combined_minimum_size().x
+		var text_w := 0.0
+		for l in labels:
+			var font := l.get_theme_font("font")
+			var margins: float = l.get_theme_stylebox("normal").get_minimum_size().x
+			text_w = maxf(text_w, font.get_string_size(l.text, HORIZONTAL_ALIGNMENT_LEFT, -1,
+				l.get_theme_font_size("font_size")).x + margins)
+		var room: float = header.size.x - left - right - text_w \
+			- header.get_theme_constant("separation") * maxf(0.0, count - 1)
+		var pad: float = clampf(absf(right - left), 0.0, maxf(0.0, room))
+		# Setting the same value again does not re-sort, so this settles after one pass
+		left_pad.custom_minimum_size.x = pad if right > left else 0.0
+		right_pad.custom_minimum_size.x = pad if left > right else 0.0
+	header.sort_children.connect(rebalance)
+	header.resized.connect(rebalance)
+	rebalance.call()
+
 static func apply_content_margins(
 	screen: Control,
 	margin_container: MarginContainer,
