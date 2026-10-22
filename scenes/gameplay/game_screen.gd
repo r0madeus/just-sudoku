@@ -930,6 +930,8 @@ func _on_game_completed(summary: Dictionary) -> void:
 		# Marks it finished in the index, so it leaves the saved games list
 		SaveManager.save_game_slot(game_state)
 
+	# Achievements as they were before this game is recorded (GDD §36)
+	var achievements_before := AchievementManager.status()
 	var seed_val: int = int(summary.get("seed", 0))
 	var is_daily: bool = seed_val == DailyManager.get_today_seed()
 	summary["is_daily"] = is_daily
@@ -945,7 +947,8 @@ func _on_game_completed(summary: Dictionary) -> void:
 	HistoryManager.add_record(summary)
 
 	var streak: int = DailyManager.get_current_streak() if is_daily else 0
-	complete_summary.show_result(summary, ResultSummary.build_highlights(summary, bench, prev_best, streak))
+	var new_achievements := AchievementManager.newly_unlocked(achievements_before, AchievementManager.status())
+	complete_summary.show_result(summary, ResultSummary.build_highlights(summary, bench, prev_best, streak), new_achievements)
 	complete_dialog.dialog_text = ""
 	_new_puzzle_req = 0
 	complete_dialog.primary_btn.disabled = false
