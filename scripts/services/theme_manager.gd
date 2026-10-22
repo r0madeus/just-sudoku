@@ -570,7 +570,7 @@ static func create_liquid_glass_stylebox(
 ## Generates a high-contrast, theme-aware, anti-aliased CheckBox icon texture
 static func _create_checkbox_texture(is_checked: bool, is_disabled: bool, is_hover: bool = false) -> ImageTexture:
 	var sz := 22
-	var img := Image.create(sz, sz, false, Image.FORMAT_RGBA8)
+	var img := Image.create_empty(sz, sz, false, Image.FORMAT_RGBA8)
 	var radius := 4.0
 	var border_w := 1.5
 
