@@ -2,7 +2,7 @@ extends SceneTree
 
 ## Touch targets: phones and tablets lay the UI out in dp (1 logical px = 1 dp), and on every
 ## screen and dialog each tappable control is at least 44 x 44 dp and stays on screen, on a
-## regular 411 x 731 dp phone and on a small 360 x 640 dp one.
+## regular 411 x 731 dp phone, a small 360 x 640 dp one and an 800 dp wide tablet.
 
 const SudokuGenerator = preload("res://scripts/core/sudoku_generator.gd")
 const DifficultyAnalyzer = preload("res://scripts/core/difficulty_analyzer.gd")
@@ -163,8 +163,8 @@ func _run() -> void:
 	await _frames(6)
 
 	await test_dp_scaling()
-	for width in [411.0, 360.0]:
-		print("\n--- Every screen on a %d dp wide phone ---" % int(width))
+	for width in [411.0, 360.0, 800.0]:
+		print("\n--- Every screen on a %d dp wide %s ---" % [int(width), "tablet" if width >= 600.0 else "phone"])
 		ResponsiveManager.apply_device_scaling(root, root.size.x / width)
 		await _frames(4)
 		await _tour()

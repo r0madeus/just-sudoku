@@ -23,6 +23,8 @@ var fill_notes_btn: Button
 
 var is_notes_mode: bool = false
 var is_compact: bool = false
+## Tablet scale (1 on phones, see ResponsiveManager.tablet_factor)
+var size_scale: float = 1.0
 var _available_width: float = 0.0
 
 func _init() -> void:
@@ -138,10 +140,31 @@ func _apply_compact(compact: bool) -> void:
 		if btn == null:
 			continue
 		btn.text = "" if compact else _label_for(btn)
-		btn.custom_minimum_size.x = 44.0 if compact else 64.0
+		btn.custom_minimum_size.x = (ResponsiveManager.TOUCH_TARGET_MIN if compact else 64.0) * size_scale
 		btn.tooltip_text = _label_for(btn)
 		btn.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER if compact else HORIZONTAL_ALIGNMENT_LEFT
-	custom_minimum_size.x = 0.0 if compact else 310.0
+	custom_minimum_size.x = 0.0 if compact else 310.0 * size_scale
+
+## Grows the buttons, their text and icons, and the capsule around them on a tablet
+func set_size_scale(scale: float) -> void:
+	if is_equal_approx(size_scale, scale):
+		return
+	size_scale = scale
+	var h: float = roundf(ResponsiveManager.TOUCH_TARGET_MIN * scale)
+	var dock_h: float = h + float(pad_v * 2)
+	corner_radius = dock_h * 0.5
+	custom_minimum_size.y = dock_h
+	action_bar.custom_minimum_size.y = h
+	for btn in [undo_btn, redo_btn, notes_btn, hint_btn, fill_notes_btn]:
+		btn.custom_minimum_size.y = h
+		btn.add_theme_font_size_override("font_size", roundi(14.0 * scale))
+		btn.add_theme_constant_override("icon_max_width", roundi(18.0 * scale))
+	notes_btn.custom_minimum_size.x = 68.0 * scale
+	fill_notes_btn.custom_minimum_size.x = h
+	if _available_width > 0.0:
+		fit_to_width(_available_width)
+	else:
+		_apply_compact(is_compact)
 
 func _label_for(btn: Button) -> String:
 	if btn == undo_btn:

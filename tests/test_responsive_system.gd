@@ -28,6 +28,7 @@ func _init() -> void:
 	_test_secondary_screens_content_margins()
 	_test_app_modal_responsive_clamping()
 	_test_touch_targets()
+	_test_tablet_room()
 
 	print("\n========================================================")
 	print("🏁 SUMMARY: %d Passed, %d Failed" % [_passed, _failed])
@@ -136,6 +137,8 @@ func _test_game_screen_multi_resolution_layout() -> void:
 		{"res": Vector2(390, 844), "name": "Standard Phone (390x844)"},
 		{"res": Vector2(430, 932), "name": "Large Phone (430x932)"},
 		{"res": Vector2(768, 1024), "name": "Tablet Portrait (768x1024)"},
+		{"res": Vector2(800, 1280), "name": "Tablet Portrait (800x1280)"},
+		{"res": Vector2(1024, 1366), "name": "Large Tablet Portrait (1024x1366)"},
 		{"res": Vector2(1280, 720), "name": "Desktop Landscape (1280x720)"},
 		{"res": Vector2(844, 390), "name": "Phone Landscape (844x390)"}
 	]
@@ -154,7 +157,8 @@ func _test_game_screen_multi_resolution_layout() -> void:
 		_assert(is_equal_approx(grid_min.x, grid_min.y), "%s: Sudoku board minimum size is strictly 1:1 square (%dx%d)" % [rname, int(grid_min.x), int(grid_min.y)])
 		_assert(grid_min.x > 180.0, "%s: Sudoku board has usable minimum dimensions (> 180px, actual: %dpx)" % [rname, int(grid_min.x)])
 		if not ResponsiveManager.is_game_landscape(r):
-			_assert(grid_min.x <= ResponsiveManager.MAX_BOARD_WIDTH, "%s: Sudoku board does not exceed max width cap (<= 520px)" % rname)
+			var board_cap: float = ResponsiveManager.MAX_BOARD_WIDTH * ResponsiveManager.tablet_factor(r)
+			_assert(grid_min.x <= board_cap + 0.5, "%s: Sudoku board does not exceed max width cap (<= %dpx)" % [rname, int(board_cap)])
 
 		# Check no vertical overflow budget
 		var margin_top: int = screen.margin_container.get_theme_constant("margin_top", "MarginContainer")
@@ -192,6 +196,8 @@ func _test_main_menu_multi_resolution_layout() -> void:
 		{"res": Vector2(360, 640), "name": "Compact Phone (360x640)"},
 		{"res": Vector2(390, 844), "name": "Standard Phone (390x844)"},
 		{"res": Vector2(768, 1024), "name": "Tablet Portrait (768x1024)"},
+		{"res": Vector2(800, 1280), "name": "Tablet Portrait (800x1280)"},
+		{"res": Vector2(1024, 1366), "name": "Large Tablet Portrait (1024x1366)"},
 		{"res": Vector2(1280, 720), "name": "Desktop Landscape (1280x720)"}
 	]
 
@@ -207,7 +213,8 @@ func _test_main_menu_multi_resolution_layout() -> void:
 		# The scroll container's shadow padding is part of the visible side margin
 		var side_margin: int = menu.margin_container.get_theme_constant("margin_left", "MarginContainer") + MainMenu.SHADOW_PAD
 		var effective_content_w: float = r.x - float(side_margin * 2)
-		_assert(effective_content_w <= ResponsiveManager.MAX_MENU_WIDTH + 8.0, "%s: Content width is restrained (<= %dpx, actual: %dpx)" % [rname, int(ResponsiveManager.MAX_MENU_WIDTH), int(effective_content_w)])
+		var menu_cap: float = ResponsiveManager.MAX_MENU_WIDTH * ResponsiveManager.tablet_factor(r)
+		_assert(effective_content_w <= menu_cap + 8.0, "%s: Content width is restrained (<= %dpx, actual: %dpx)" % [rname, int(menu_cap), int(effective_content_w)])
 		_assert(side_margin >= 16, "%s: Side margins maintain comfortable breathing room (>= 16px, actual: %dpx)" % [rname, side_margin])
 
 		menu.queue_free()
@@ -290,3 +297,52 @@ func _test_touch_targets() -> void:
 
 	menu.queue_free()
 	game.queue_free()
+
+# -----------------------------------------------------------------------------
+# 9. Tablets use their room; phones are unchanged
+# -----------------------------------------------------------------------------
+func _game_at(r: Vector2) -> GameScreen:
+	var screen := GameScreen.new()
+	screen.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	screen.size = r
+	screen._apply_responsive_layout()
+	return screen
+
+func _test_tablet_room() -> void:
+	print("\n--- 9. Tablets use their room ---")
+	_assert(is_equal_approx(ResponsiveManager.tablet_factor(Vector2(390, 844)), 1.0) and is_equal_approx(ResponsiveManager.tablet_factor(Vector2(360, 640)), 1.0), "Phones: factor 1")
+	_assert(is_equal_approx(ResponsiveManager.tablet_factor(Vector2(1280, 800)), 1.0), "Landscape (desktop layout): factor 1")
+	_assert(absf(ResponsiveManager.tablet_factor(Vector2(800, 1280)) - 1.333) < 0.01, "10\" tablet (800 dp): factor 1.33")
+	_assert(ResponsiveManager.get_device_category(Vector2(1024, 1366)) == ResponsiveManager.DeviceCategory.TABLET and is_equal_approx(ResponsiveManager.tablet_factor(Vector2(1024, 1366)), 1.4), "12.9\" tablet in portrait is a tablet, factor capped at 1.4")
+
+	# Phone layout is exactly what it was
+	var phone := _game_at(Vector2(390, 844))
+	_assert(is_equal_approx(phone.grid_container.custom_minimum_size.x, 358.0) and is_equal_approx(phone.numpad.num_buttons[0].custom_minimum_size.x, 74.0) \
+		and is_equal_approx(phone.action_dock.custom_minimum_size.y, ResponsiveManager.HEIGHT_ACTION_DOCK), "Phone: board 358, keys 74, dock 52 as before")
+	phone.queue_free()
+
+	var tab := _game_at(Vector2(800, 1280))
+	var board: float = tab.grid_container.custom_minimum_size.x
+	var key: float = tab.numpad.num_buttons[0].custom_minimum_size.x
+	var btn_h: float = tab.action_dock.undo_btn.custom_minimum_size.y
+	_assert(board >= 640.0, "Tablet: board uses the width (%d px of 800)" % int(board))
+	_assert(key >= 95.0 and btn_h >= 58.0, "Tablet: number keys (%d) and dock buttons (%d) grow with the board" % [int(key), int(btn_h)])
+	tab.queue_free()
+
+	var modal := AppModal.new()
+	modal.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	modal.size = Vector2(800, 1280)
+	modal._apply_responsive_layout()
+	_assert(modal.modal_panel.custom_minimum_size.x >= 480.0, "Tablet: dialogs are wider (%d px)" % int(modal.modal_panel.custom_minimum_size.x))
+	modal.queue_free()
+
+	var scr: Control = SettingsScreen.new()
+	scr.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	scr.size = Vector2(800, 1280)
+	if not scr.is_node_ready():
+		scr._ready()
+	scr._apply_responsive_layout()
+	var m: MarginContainer = scr.get("margin")
+	var col: float = 800.0 - 2.0 * m.get_theme_constant("margin_left", "MarginContainer")
+	_assert(col >= 600.0, "Tablet: screen columns are wider (%d px)" % int(col))
+	scr.queue_free()
