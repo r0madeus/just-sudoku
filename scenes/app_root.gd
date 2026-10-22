@@ -261,7 +261,9 @@ func _on_daily_sudoku_requested() -> void:
 	if DailyManager.has_today_game():
 		var saved_daily := DailyManager.load_today_game()
 		if saved_daily != null and saved_daily.seed_value == today_seed:
-			SaveManager.save_active_game(saved_daily)
+			# A finished Daily opens to show the result, but is not the game to resume
+			if not saved_daily.is_completed:
+				SaveManager.save_active_game(saved_daily)
 			_start_game_session(saved_daily)
 			return
 

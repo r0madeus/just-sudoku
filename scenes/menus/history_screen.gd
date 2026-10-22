@@ -281,6 +281,7 @@ func refresh_history() -> void:
 	var current_token := _batch_token
 
 	for c in list_vbox.get_children():
+		list_vbox.remove_child(c)
 		c.queue_free()
 
 	var diff_idx := clampi(diff_opt.selected, 0, DIFF_KEYS.size() - 1)
@@ -330,4 +331,12 @@ func _render_record_batch(start_idx: int, token: int) -> void:
 		list_vbox.add_child(item)
 
 	if end_idx < total:
-		call_deferred("_render_record_batch", end_idx, token)
+		_render_next_frame(end_idx, token)
+
+## call_deferred would run the next batch later in this same frame; wait for a real frame so
+## the screen can draw between batches
+func _render_next_frame(start_idx: int, token: int) -> void:
+	if not is_inside_tree():
+		return
+	await get_tree().process_frame
+	_render_record_batch(start_idx, token)
