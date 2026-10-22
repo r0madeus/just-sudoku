@@ -33,6 +33,8 @@ func _init() -> void:
 func _ready() -> void:
 	ResponsiveManager.apply_device_scaling(get_window())
 	ResponsiveManager.apply_device_orientation()
+	ThemeManager.device_px_scale = ResponsiveManager.device_px_scale(get_window())
+	get_window().size_changed.connect(_on_window_resized)
 	set_anchors_preset(PRESET_FULL_RECT)
 	theme = ThemeManager.build_godot_theme()
 	if root_bg != null:
@@ -59,6 +61,10 @@ func _ready() -> void:
 
 # The managers keep listeners in static arrays, which outlive the scene and are only cleared
 # after the script runtime is gone; a lambda still registered then crashes the exit
+## Keeps edge anti-aliasing at one device pixel when a desktop window is resized
+func _on_window_resized() -> void:
+	ThemeManager.device_px_scale = ResponsiveManager.device_px_scale(get_window())
+
 func _exit_tree() -> void:
 	ThemeManager.remove_listener(_on_theme_changed)
 	FontManager.remove_listener(_rebuild_theme)

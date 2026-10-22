@@ -67,6 +67,7 @@ func _draw() -> void:
 
 	var radius: int = mini(10, int(side * 0.12))
 	var bg := StyleBoxFlat.new()
+	bg.anti_aliasing_size = ThemeManager.edge_aa()
 	bg.bg_color = Color(ThemeManager.get_color("cell_bg"), 0.55 if _decorative else 0.85)
 	bg.set_corner_radius_all(radius)
 	bg.corner_detail = 12

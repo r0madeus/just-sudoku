@@ -449,6 +449,15 @@ const HEIGHT_SEGMENT: int = 44
 const SHADOW_SIZE_NONE: int = 0
 const SHADOW_SIZE_MODAL: int = 14
 
+## Device pixels per layout unit: about 2.6 on a typical phone, about 1 on a desktop window.
+## Set at start (AppRoot) before the theme is built.
+static var device_px_scale: float = 1.0
+
+## Width of a box's anti-aliased edge, in layout units: one device pixel. Godot's default of one
+## unit spread rounded edges over 2-3 pixels on phones and made them look soft.
+static func edge_aa() -> float:
+	return clampf(1.0 / maxf(device_px_scale, 0.01), 0.3, 1.0)
+
 ## Creates a polished flat StyleBoxFlat with clean hairline borders and subtle depth
 static func create_flat_stylebox(
 	bg_color: Color,
@@ -462,6 +471,7 @@ static func create_flat_stylebox(
 	shadow_offset: Vector2 = Vector2.ZERO
 ) -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
+	sb.anti_aliasing_size = edge_aa()
 	sb.bg_color = bg_color
 	sb.set_corner_radius_all(corner_radius)
 	sb.corner_detail = 16
@@ -500,6 +510,7 @@ static func create_liquid_glass_stylebox(
 	alpha_translucency: float = 0.90
 ) -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
+	sb.anti_aliasing_size = edge_aa()
 	# Translucent liquid glass surface
 	sb.bg_color = Color(bg_color.r, bg_color.g, bg_color.b, bg_color.a * alpha_translucency)
 	sb.set_corner_radius_all(corner_radius)

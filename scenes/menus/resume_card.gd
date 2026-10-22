@@ -155,9 +155,11 @@ func _apply_card_theme() -> void:
 	progress_label.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
 
 	var track := StyleBoxFlat.new()
+	track.anti_aliasing_size = ThemeManager.edge_aa()
 	track.bg_color = Color(ThemeManager.get_color("border_subtle"), 0.6)
 	track.set_corner_radius_all(3)
 	var fill := StyleBoxFlat.new()
+	fill.anti_aliasing_size = ThemeManager.edge_aa()
 	fill.bg_color = ThemeManager.get_color("accent_blue", ThemeManager.get_color("accent"))
 	fill.set_corner_radius_all(3)
 	progress_bar.add_theme_stylebox_override("background", track)

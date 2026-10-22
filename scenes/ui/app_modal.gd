@@ -260,8 +260,16 @@ func _apply_responsive_layout() -> void:
 	if modal_panel == null:
 		return
 	ResponsiveManager.apply_modal_layout(self, modal_panel, modal_vbox, max_modal_width)
+	if backdrop != null and backdrop.material is ShaderMaterial and size.x > 0.0:
+		(backdrop.material as ShaderMaterial).set_shader_parameter("rect_width", size.x)
 
 func _build_base_ui() -> void:
+	# Screen-reading shaders share one copy of the screen, taken where the first of them draws
+	# (usually a glass card on the screen below). Without fresh copies the frosted scrim would
+	# blur a screen missing whatever was drawn after that card, and the dialog's glass would
+	# show the screen without the scrim, or through the pause cover onto the puzzle.
+	add_child(_screen_copy())
+
 	# 1. Semi-transparent backdrop (Quiet Precision calm scrim)
 	backdrop = ColorRect.new()
 	backdrop.set_anchors_preset(PRESET_FULL_RECT)
@@ -277,6 +285,8 @@ func _build_base_ui() -> void:
 	ambient.visible = ambient_background
 	ambient.mouse_filter = MOUSE_FILTER_STOP
 	add_child(ambient)
+
+	add_child(_screen_copy())
 
 	# 2. Centering Container
 	center_container = CenterContainer.new()
@@ -363,6 +373,12 @@ func _build_base_ui() -> void:
 	_update_backdrop_material()
 	_apply_base_theme_colors()
 
+static func _screen_copy() -> BackBufferCopy:
+	var copy := BackBufferCopy.new()
+	# The whole screen: only full copies come with the blurred mip levels the glass samples
+	copy.copy_mode = BackBufferCopy.COPY_MODE_VIEWPORT
+	return copy
+
 func _update_backdrop_material() -> void:
 	if backdrop == null:
 		return
@@ -372,11 +388,14 @@ func _update_backdrop_material() -> void:
 shader_type canvas_item;
 
 uniform sampler2D screen_texture : hint_screen_texture, filter_linear_mipmap;
-uniform float blur_lod : hint_range(0.0, 8.0) = 3.0;
+uniform float blur_radius = 8.0;
+uniform float rect_width = 390.0;
 uniform vec4 dim_color : source_color = vec4(0.0, 0.0, 0.0, 0.45);
 
 void fragment() {
-	vec3 blurred = textureLod(screen_texture, SCREEN_UV, blur_lod).rgb;
+	// Blur measured in dp, so it is as soft on a 2.6x phone as on a 1x desktop
+	float px_scale = 1.0 / max(length(vec2(dFdx(UV.x), dFdy(UV.x))) * rect_width, 1e-4);
+	vec3 blurred = textureLod(screen_texture, SCREEN_UV, log2(max(blur_radius * px_scale, 1.0))).rgb;
 	COLOR = vec4(mix(blurred, dim_color.rgb, dim_color.a), 1.0);
 }
 """
