@@ -280,7 +280,8 @@ static var DICTIONARY_EN: Dictionary = {
 	"RESULT_DAILY": "Daily Sudoku done • %s",
 	"DURATION_MIN_SEC": "%d min %d s",
 	"DURATION_MIN": "%d min",
-	"DURATION_SEC": "%d s"
+	"DURATION_SEC": "%d s",
+	"BTN_MORE_ACTIONS": "More"
 }
 
 static var DICTIONARY_TR: Dictionary = {
@@ -545,7 +546,8 @@ static var DICTIONARY_TR: Dictionary = {
 	"RESULT_DAILY": "Günün Sudokusu tamam • %s",
 	"DURATION_MIN_SEC": "%d dk %d sn",
 	"DURATION_MIN": "%d dk",
-	"DURATION_SEC": "%d sn"
+	"DURATION_SEC": "%d sn",
+	"BTN_MORE_ACTIONS": "Diğer"
 }
 
 static func _ensure_initialized() -> void:

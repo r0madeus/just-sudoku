@@ -72,6 +72,8 @@ static func add_record(summary: Dictionary) -> void:
 		"is_daily": summary.get("is_daily", false),
 		# Finished by applying the solution: counted as completed, never as a record
 		"assisted": summary.get("assisted", false),
+		# The starting digits, for the list thumbnail (older records have none)
+		"puzzle": summary.get("puzzle", ""),
 		"timestamp": int(Time.get_unix_time_from_system())
 	}
 	records.append(record)

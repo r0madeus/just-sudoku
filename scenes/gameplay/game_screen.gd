@@ -908,7 +908,9 @@ func _on_solution_applied(solved: SudokuBoard) -> void:
 		"score": 50,
 		"date": Time.get_datetime_dict_from_system(),
 		"assisted": true,
-		"is_replay": game_state.is_replay
+		"is_replay": game_state.is_replay,
+		"game_id": game_state.game_id,
+		"puzzle": game_state.initial_puzzle.to_string_flat()
 	}
 	_on_game_completed(summary)
 

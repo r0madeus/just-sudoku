@@ -263,9 +263,17 @@ func refresh_stats() -> void:
 	diff_title.theme_type_variation = "Caption"
 	diff_title.add_theme_font_size_override("font_size", 11)
 	diff_title.add_theme_color_override("font_color", text_sec)
-	diff_section_vbox.add_child(diff_title)
 
 	var diff_dict: Dictionary = details.get("difficulties", {})
+
+	# One card for the four levels, rows divided by hairlines (same as the game lists)
+	var diff_card := GlassPanel.card(20.0, 16, 12)
+	diff_section_vbox.add_child(diff_card)
+	var diff_rows := VBoxContainer.new()
+	diff_rows.add_theme_constant_override("separation", 12)
+	diff_card.add_child(diff_rows)
+	# Title inside the card, like Overview and the streak card above it
+	diff_rows.add_child(diff_title)
 
 	for d_name in [DifficultyAnalyzer.LEVEL_EASY, DifficultyAnalyzer.LEVEL_MEDIUM, DifficultyAnalyzer.LEVEL_HARD, DifficultyAnalyzer.LEVEL_EXPERT]:
 		if not diff_dict.has(d_name):
@@ -273,9 +281,11 @@ func refresh_stats() -> void:
 		var entry: Dictionary = diff_dict[d_name]
 		var count: int = int(entry.get("count", 0))
 
+		if diff_rows.get_child_count() > 1:
+			diff_rows.add_child(HSeparator.new())
 		var item_vbox := VBoxContainer.new()
 		item_vbox.add_theme_constant_override("separation", 8)
-		diff_section_vbox.add_child(item_vbox)
+		diff_rows.add_child(item_vbox)
 
 		# Header: Difficulty name & completed count
 		var header_hbox := HBoxContainer.new()
@@ -318,9 +328,6 @@ func refresh_stats() -> void:
 			empty_diff.add_theme_font_size_override("font_size", 12)
 			empty_diff.add_theme_color_override("font_color", text_sec)
 			item_vbox.add_child(empty_diff)
-
-		var diff_sep := HSeparator.new()
-		diff_section_vbox.add_child(diff_sep)
 
 func _add_stat_callout(parent: Control, val_text: String, label_text: String, icon_name: String = "", is_mono: bool = false) -> void:
 	var col := VBoxContainer.new()

@@ -399,7 +399,8 @@ func check_completion() -> bool:
 		"mistakes": mistakes_count,
 		"hints": hints_used,
 		"undo_count": undo_count,
-		"is_replay": is_replay
+		"is_replay": is_replay,
+		"puzzle": initial_puzzle.to_string_flat()
 	}
 	game_completed.emit(summary)
 	return true

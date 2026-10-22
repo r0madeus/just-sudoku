@@ -202,7 +202,10 @@ static func _update_index(game_state: GameState) -> void:
 		"elapsed_time": game_state.elapsed_time,
 		"mistakes": game_state.mistakes_count,
 		"is_completed": game_state.is_completed,
-		"last_played": int(Time.get_unix_time_from_system())
+		"last_played": int(Time.get_unix_time_from_system()),
+		# For the list thumbnail, without opening every slot file
+		"initial": game_state.initial_puzzle.to_string_flat(),
+		"current": game_state.current_board.to_string_flat()
 	}
 
 	var file := FileAccess.open(INDEX_FILE, FileAccess.WRITE)

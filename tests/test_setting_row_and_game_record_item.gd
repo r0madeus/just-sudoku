@@ -144,6 +144,11 @@ func test_game_record_item_saved_game_mode() -> void:
 	assert_true(item.progress_label != null, "Progress label displayed")
 	assert_true(item.time_label != null, "Time label displayed")
 	assert_true(item.resume_btn != null, "Resume button exists")
+	assert_true(item.more_btn != null, "More (⋯) button exists")
+	assert_true(item.thumbnail != null, "Board thumbnail exists")
+
+	# Share and Delete live in the sheet behind "⋯"
+	item.more_btn.pressed.emit()
 	assert_true(item.share_btn != null, "Share button exists")
 	assert_true(item.delete_btn != null, "Delete button exists")
 

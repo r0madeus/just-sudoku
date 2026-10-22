@@ -1871,7 +1871,16 @@ Metinler sözlükte hiçbir zaman TAMAMEN BÜYÜK HARFLE yazılmaz. Küçük eti
 
 Çözüm teknikleri Türkçede Türkçe adlarıyla yazılır: Son Hücre, Açık Tekli, Gizli Tekli, Kilitli Adaylar, Açık İkili, Gizli İkili, Açık Üçlü, Gizli Üçlü, Doğrudan Çözüm, İleri Çıkarım. Türkçe karşılığı yerleşmemiş özel adlar olduğu gibi kalır: X-Wing, XY-Wing, XYZ-Wing, Swordfish.
 
-## 54.4 İstisnalar
+## 54.4 Listeler ve kartlar
+
+Oyun listeleri (Kayıtlı Oyunlar, Geçmiş) ve İstatistik bölümleri aynı yapı taşlarıyla kurulur:
+
+- **Bir liste tek bir kart grubudur.** Ayarlar'daki gibi satırlar tek bir cam kartın içinde, ince çizgilerle ayrılır; her satıra ayrı kart verilmez.
+- **Satır yapısı sabittir** (`GameRecordItem`): solda tahtanın küçük resmi, ortada başlık satırı (seviye, skor) ve tek satırlık ayrıntı, sağda **tek ana eylem**: dolu, vurgu renginde, yuvarlak bir düğme (Oyna, Yeniden Çöz).
+- **İkincil eylemler satırda durmaz.** Paylaş ve Sil gibi eylemler "⋯" düğmesinin açtığı küçük pencerededir; Sil her zaman ayrıca onay ister.
+- **Kart başlıkları kartın içindedir** ve küçük, büyük harfli etiket olarak yazılır.
+
+## 54.5 İstisnalar
 
 - **Dil seçimi** iki dilde yazılır ("Dil / Language"), böylece arayüz dilini anlamayan biri de dili değiştirebilir.
 - **Paylaşım metni** de sözlüğe uyar ("Zorluk: Orta / Bulmaca No: … / Bulmaca kodu: …"). İçe aktarma her iki dildeki etiketleri ve eski sürümlerin "Seed:" / "Kod:" etiketlerini tanır; bir etiket değişirse eskisi `PuzzleShareService` içindeki kabul listesinde kalmalıdır.
