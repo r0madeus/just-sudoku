@@ -32,6 +32,7 @@ func _run() -> void:
 	_test_versions(preset, version, code)
 	_test_store(code)
 	_test_privacy(preset)
+	_test_launcher_icon(preset)
 	await _test_settings_label(version)
 	print("\n🏁 RESULTS: %d Passed, %d Failed" % [_passed, _failed])
 	quit(1 if _failed > 0 else 0)
@@ -101,6 +102,39 @@ func _test_privacy(preset: Dictionary) -> void:
 	for folder in ["fastlane/*", "tests/*", "tools/*"]:
 		_check("The APK leaves out " + folder, excluded.contains(folder))
 	_check("The privacy note is there", FileAccess.file_exists("res://PRIVACY.md"))
+
+func _png(path: String) -> Image:
+	return Image.load_from_file(ProjectSettings.globalize_path(path))
+
+## Android shows the middle 72 dp of the 108 dp adaptive icon through the launcher's mask, and only
+## the 66 dp circle in the middle is sure to show: a circular mask cut the corners off the old
+## grid. The themed (monochrome) icon is drawn in outlines; nine filled cells read as one square.
+func _test_launcher_icon(preset: Dictionary) -> void:
+	var fg := _png(preset.get("launcher_icons/adaptive_foreground_432x432", ""))
+	var mono := _png(preset.get("launcher_icons/adaptive_monochrome_432x432", ""))
+	var bg := _png(preset.get("launcher_icons/adaptive_background_432x432", ""))
+	var legacy := _png(preset.get("launcher_icons/main_192x192", ""))
+	_check("The adaptive layers are 432 px and the legacy icon 192 px",
+		fg != null and mono != null and bg != null and legacy != null and fg.get_size() == Vector2i(432, 432)
+		and mono.get_size() == Vector2i(432, 432) and bg.get_size() == Vector2i(432, 432) and legacy.get_size() == Vector2i(192, 192))
+	if fg == null or mono == null:
+		return
+	var safe_r := 33.0 * 4.0
+	var outside := 0
+	for layer in [fg, mono]:
+		for y in range(0, 432, 2):
+			for x in range(0, 432, 2):
+				if layer.get_pixel(x, y).a > 0.05 and Vector2(x, y).distance_to(Vector2(216, 216)) > safe_r:
+					outside += 1
+	_check("Everything on the icon is inside the 66 dp safe circle (%d pixels outside)" % outside, outside == 0)
+	var used := mono.get_used_rect()
+	var solid := 0
+	for y in range(used.position.y, used.end.y):
+		for x in range(used.position.x, used.end.x):
+			if mono.get_pixel(x, y).a > 0.5:
+				solid += 1
+	var share := float(solid) / maxf(1.0, used.get_area())
+	_check("The themed icon is mostly outline, not one block (%d%% filled)" % int(share * 100.0), share < 0.45)
 
 func _test_settings_label(version: String) -> void:
 	var screen := SettingsScreen.new()

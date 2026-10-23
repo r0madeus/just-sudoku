@@ -59,6 +59,16 @@ Bu değerler yalnızca etiketli sürüm derlemesinde kullanılır; PR'lar ve dal
 
 5. Actions sekmesinde iş akışının bitmesini bekle (şablon önbellekteyse yaklaşık 10 dakika), sonra Releases sayfasındaki APK'yı telefona kurup dene.
 
+## Uygulama simgesi
+
+Simge tek bir çizimden üretilir: `tools/make_launcher_icons.gd`. Rengini ya da şeklini değiştirmek için o dosyayı düzenleyip çalıştır; uyarlanabilir katmanları (`assets/launcher/`), eski 192 px simgeyi, `icon.svg`'yi ve iki mağaza simgesini (512 px) birlikte yazar:
+
+```
+godot --headless --path . -s tools/make_launcher_icons.gd
+```
+
+`tests/test_release.gd`, simgenin Android'in 66 dp güvenli dairesinin içinde kaldığını ve tema simgesinin dolu bir blok olmadığını kontrol eder.
+
 ## İmza parmak izi
 
 Kullanıcıların indirdikleri APK'nın gerçekten bu projeden geldiğini doğrulayabilmesi için ilk sürümden sonra anahtarın SHA-256 parmak izini README'ye ekleyebilirsin:
