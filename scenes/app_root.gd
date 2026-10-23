@@ -26,6 +26,9 @@ var root_bg: ColorRect
 var current_screen: Control = null
 var _transition_tween: Tween = null
 var _previous_screen_before_settings: Control = null
+## Seconds after coming back from the background to lay the screens out again
+const RELAYOUT_DELAYS: Array[float] = [0.25, 1.0]
+
 ## Puzzle being made for an archive day, so a second tap does not start another
 var _archive_request: int = 0
 
@@ -89,6 +92,20 @@ func _notification(what: int) -> void:
 	# Android back button (quit_on_go_back is off): modal -> screen -> menu -> quit
 	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
 		handle_back()
+	elif what == NOTIFICATION_APPLICATION_RESUMED or what == NOTIFICATION_APPLICATION_FOCUS_IN:
+		_relayout_after_resume()
+
+## Back from the background, the size and safe area Android reports can be wrong for a moment
+## and are corrected without a resize: lay the screens out again now and once things settled
+func _relayout_after_resume() -> void:
+	if not is_inside_tree():
+		return
+	ResponsiveManager.relayout(get_window())
+	for delay in RELAYOUT_DELAYS:
+		get_tree().create_timer(delay).timeout.connect(func():
+			if is_inside_tree():
+				ResponsiveManager.relayout(get_window())
+		)
 
 ## One step "back": closes the topmost modal, else leaves the current screen, else quits from the menu
 func handle_back() -> void:

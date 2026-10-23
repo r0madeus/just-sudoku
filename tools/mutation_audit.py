@@ -56,6 +56,9 @@ MUTATIONS = [
  ("M44", "scripts/services/sound_manager.gd", "\t\t_prerender_task = WorkerThreadPool.add_task(_prerender, false, \"Render sounds\")\n", "\t\tpass\n", "Sounds are rendered when first played, stalling the game"),
  ("M45", "scenes/menus/settings_screen.gd", "version_label.text = \"Just Sudoku \" + app_version()", "version_label.text = \"Just Sudoku\"", "Settings does not show the version"),
  ("M46", "export_presets.cfg", "permissions/internet=false", "permissions/internet=true", "The app asks for the internet"),
+ ("M47", "scenes/app_root.gd", "\t\t_relayout_after_resume()\n", "\t\tpass\n", "Coming back from the background keeps a broken layout"),
+ ("M48", "scripts/services/responsive_manager.gd", "\tif not Rect2i(Vector2i.ZERO, window_size).encloses(safe_rect):\n\t\treturn insets\n", "", "A safe area outside the window is trusted"),
+ ("M49", "scripts/services/responsive_manager.gd", "\tif maxi(left_px, right_px) > window_size.x * MAX_SIDE_INSET_SHARE \\\n", "\tif false \\\n", "Any size of safe-area margin is trusted"),
 ]
 
 def main():
