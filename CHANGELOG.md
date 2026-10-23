@@ -2,6 +2,29 @@
 
 All notable changes to Just Sudoku. Türkçesi aşağıda / Turkish below each version.
 
+## [1.0.1] - 2026-10-23
+
+Fixes from the first days on phones.
+
+- Lists scroll like a phone's: the content follows the finger and glides after a flick. A scroll that starts on a checkbox, a dropdown or the game card no longer ticks or opens it.
+- Dropdowns open the app's own sheet, with finger-sized rows, instead of a desktop-style menu.
+- Language and theme have a System choice, the default, which follows the phone and picks up changes when you come back to the app.
+- Faster start: the menu no longer waits for every other screen to load.
+- Coming back to the app no longer leaves the menu or the game running off the right edge.
+- The pause button no longer shows "play" in a running game after leaving through the pause menu.
+- The solution dialog keeps its size between steps and between its two views.
+- Settings shows "Language" or "Dil", not both.
+- Number pad digits go in as the finger lands.
+- A new icon that fits every launcher shape, with a clean themed icon on Android 13+.
+
+**Türkçe**
+- Listeler telefondaki gibi kayıyor; onay kutusu, açılır liste ya da kartın üstünden başlayan kaydırma artık onları işaretlemiyor veya açmıyor.
+- Açılır listeler uygulamanın kendi penceresinde açılıyor.
+- Dil ve temada varsayılan "Sistem" seçeneği: telefonu takip ediyor, uygulamaya dönünce değişikliği alıyor.
+- Daha hızlı açılış; uygulamaya dönünce menünün ve oyunun sağa taşması düzeltildi.
+- Duraklat simgesi, çözüm penceresinin boyutu ve "Dil" başlığı düzeltildi; sayı tuşları dokunur dokunmaz çalışıyor.
+- Her başlatıcı şekline uyan yeni simge.
+
 ## [1.0.0] - 2026-10-23
 
 The first release.
