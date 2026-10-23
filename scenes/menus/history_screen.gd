@@ -338,6 +338,8 @@ func refresh_history() -> void:
 		empty_lbl.text = LocalizationManager.translate("HISTORY_EMPTY")
 		empty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		empty_lbl.theme_type_variation = "Subtitle"
+		# A sentence: it wraps on a narrow phone instead of widening the screen
+		empty_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		empty_container.add_child(empty_lbl)
 
 		list_vbox.add_child(empty_container)
