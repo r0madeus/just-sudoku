@@ -54,6 +54,8 @@ MUTATIONS = [
  ("M42", "scripts/services/sound_manager.gd", "var freq: float = DIGIT_NOTES[d - 1] if d >= 1 else DIGIT_NOTES[5]", "var freq: float = DIGIT_NOTES[5]", "Every digit sounds the same"),
  ("M43", "scripts/services/sound_manager.gd", "\t\tif from_end < fade:\n", "\t\tif false:\n", "Sounds end with a click"),
  ("M44", "scripts/services/sound_manager.gd", "\t\t_prerender_task = WorkerThreadPool.add_task(_prerender, false, \"Render sounds\")\n", "\t\tpass\n", "Sounds are rendered when first played, stalling the game"),
+ ("M45", "scenes/menus/settings_screen.gd", "version_label.text = \"Just Sudoku \" + app_version()", "version_label.text = \"Just Sudoku\"", "Settings does not show the version"),
+ ("M46", "export_presets.cfg", "permissions/internet=false", "permissions/internet=true", "The app asks for the internet"),
 ]
 
 def main():

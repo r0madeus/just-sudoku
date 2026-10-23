@@ -59,6 +59,8 @@ Bir sorun görürsen telefonun modelini, Android sürümünü ve ne yaptığınd
 
 ## Play Store için yayın sürümü
 
+GitHub Releases'e giden imzalı APK otomatik derleniyor: [docs/release.md](release.md). Aşağısı yalnızca Play Store (AAB) içindir. Aynı yayın anahtarı kullanılabilir.
+
 Bu adımlar Android SDK'nın (Android Studio ile gelir) kurulu olduğu bir bilgisayarda yapılır.
 
 1. **Yükleme anahtarı oluştur** (bir kez). Bu dosya ve parolası kaybolursa uygulama güncellenemez; güvenli bir yerde yedekle, asla depoya ekleme (`.gitignore` bunu engelliyor):
@@ -72,14 +74,14 @@ Bu adımlar Android SDK'nın (Android Studio ile gelir) kurulu olduğu bir bilgi
 
 3. **AAB biçimi**: Play Store APK yerine AAB ister. *Proje → Android Derleme Şablonunu Yükle*, sonra dışa aktarma ayarlarında *Gradle Build → Use Gradle Build* açık ve *Export Format* "Export AAB".
 
-4. **Her yayında** *Version → Code* değerini bir artır (Play aynı kodu ikinci kez kabul etmez); *Version → Name* görünen sürümdür (ör. 0.2.0).
+4. **Her yayında** *Version → Code* değerini bir artır (Play aynı kodu ikinci kez kabul etmez); *Version → Name* görünen sürümdür (ör. 1.1.0) ve `project.godot` içindeki `config/version` ile aynı olmalı.
 
 5. **Play Console**: Veri güvenliği formunda uygulama hiçbir veri toplamıyor ve paylaşmıyor (hesap yok, internet izni yok, analiz yok). İçerik derecelendirme anketini doldur.
 
 ## Bu sürümdeki Android ayarları
 
 - Paket adı `io.github.r0madeus.justsudoku`; en düşük Android 7.0 (API 24), hedef API 36; yalnızca 64-bit ARM (2019 sonrası telefonların neredeyse tamamı).
-- Tek izin titreşim. İnternet izni yok; yedekleme kapalı: oyun verisi cihazdan çıkmaz (GDD §45). Cihaz değiştirirken oyunlar İçe/Dışa Aktar ile taşınır.
+- Tek izin titreşim. İnternet izni yok; yedekleme kapalı: oyun verisi cihazdan çıkmaz (GDD §45). Cihaz değiştirirken veriler Ayarlar → Veriler → Yedekle ile taşınır.
 - Telefonlarda dikey; tabletlerde (kısa kenar 600 dp ve üstü) ekran dönebilir.
 - Uyumluluk (OpenGL ES 3) çizicisi: 2D bir oyun için en geniş cihaz desteği; testler de bu çiziciyle yapılıyor.
 

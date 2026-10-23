@@ -1,0 +1,35 @@
+<p>Sakin, odaklı bir Sudoku. Reklam yok, hesap yok, internet yok, hiçbir veri toplanmıyor. Ücretsiz ve açık kaynak.</p>
+
+<p><b>Güvenebileceğin bulmacalar</b></p>
+<ul>
+<li>Kolay'dan Uzman'a dört seviye. Seviyeyi bulmacanın gerektirdiği teknikler belirliyor: Açık Tekli'den X-Wing, Swordfish, XYZ-Wing, Basit Boyama ve XY-Zinciri'ne kadar.</li>
+<li>Her bulmacanın tek bir çözümü var ve tahmin etmeden, yalnızca mantıkla çözülebiliyor.</li>
+<li>Yeni bulmaca anında açılıyor.</li>
+<li>Günün Sudokusu: her gün herkes için aynı bulmaca, seriyle birlikte. Takvimden son bir yılın kaçırdığın günlerini oynayabilirsin.</li>
+</ul>
+
+<p><b>Kendi yolunla çöz</b></p>
+<ul>
+<li>Notlar; Notları doldur ve notların otomatik silinmesi.</li>
+<li>Önce hücreyi ya da önce rakamı seç; birkaç hücrenin üzerinden sürükleyip hepsine not al; hücreleri renklerle işaretle.</li>
+<li>Geri al ve yinele, girmeyen rakamları soluklaştıran tuş takımı, çakışmaların vurgulanması.</li>
+<li>Üç adımlı ipucu: nereye bakacağın, hangi teknik, sonra hamlenin kendisi; her biri açıklamalı.</li>
+<li>Teknikler rehberi her tekniği gerçek bir tahtada gösteriyor; her biri için bir alıştırma bulmacası var.</li>
+</ul>
+
+<p><b>İlerleme</b></p>
+<ul>
+<li>Her çözüme puan; rekorun ve ortalamanla karşılaştırma.</li>
+<li>Geçmiş, seviye bazında istatistikler ve 13 sade başarım.</li>
+<li>Her şeyi bir dosyaya yedekle, yeni telefonunda geri yükle.</li>
+</ul>
+
+<p><b>Herkes için</b></p>
+<ul>
+<li>Beş tema ve kendi renklerin, üç yazı tipi, ayarlanabilir yazı boyutu.</li>
+<li>Yanlış rakamlar renkle birlikte şekille de işaretleniyor; bütün temalar WCAG AA kontrastını karşılıyor.</li>
+<li>Yumuşak sesler ve titreşim, ikisi de isteğe bağlı.</li>
+<li>Türkçe ve İngilizce. Telefon ve tablet düzenleri.</li>
+</ul>
+
+<p>İstediği tek izin titreşim. Oyunların cihazından hiç çıkmaz.</p>

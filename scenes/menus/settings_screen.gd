@@ -69,6 +69,7 @@ var card_appearance: PanelContainer
 var card_gameplay: PanelContainer
 var card_feedback: PanelContainer
 var backup_section: BackupSection
+var version_label: Label
 
 # Setting Rows
 var lang_row: SettingRow
@@ -150,6 +151,11 @@ func _apply_responsive_layout() -> void:
 	ResponsiveManager.apply_content_margins(self, margin, ResponsiveManager.MAX_CONTENT_WIDTH, true)
 	if sections != null:
 		sections.columns = ResponsiveManager.content_columns(ResponsiveManager.get_viewport_size(self))
+
+## The version players see and report: project.godot application/config/version, kept equal to
+## the Android export's version/name (tests/test_release.gd checks it)
+static func app_version() -> String:
+	return str(ProjectSettings.get_setting("application/config/version", ""))
 
 static func save_config() -> void:
 	var data := {
@@ -525,6 +531,16 @@ func _build_ui() -> void:
 	backup_section.data_restored.connect(func(): data_restored.emit())
 	list_vbox.add_child(backup_section)
 
+	# Which version this is, for bug reports
+	version_label = Label.new()
+	version_label.theme_type_variation = "Caption"
+	version_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	ThemeManager.set_font_size(version_label, 11)
+	version_label.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
+	version_label.text = "Just Sudoku " + app_version()
+	AdaptiveColumns.set_column(version_label, 1)
+	list_vbox.add_child(version_label)
+
 func _create_divider() -> HSeparator:
 	var div := HSeparator.new()
 	div.add_theme_constant_override("separation", 2)
@@ -534,6 +550,8 @@ func _on_theme_changed() -> void:
 	if bg != null:
 		bg.color = ThemeManager.get_color("bg")
 	_update_theme_option_selection()
+	if version_label != null:
+		version_label.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
 
 func _on_language_selected(idx: int) -> void:
 	var loc := LocalizationManager.LOCALE_TR if idx == 0 else LocalizationManager.LOCALE_EN

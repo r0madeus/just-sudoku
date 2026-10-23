@@ -1,9 +1,10 @@
 extends SceneTree
 
 ## Screenshots for the README, from demo data, so they can be redone after any UI change:
-##   XDG_DATA_HOME=$(mktemp -d) LOC=en OUT=docs/screenshots \
+##   XDG_DATA_HOME=$(mktemp -d) LOC=en OUT=/tmp/shots \
 ##     xvfb-run -s "-screen 0 2700x2700x24" godot --path . --resolution 1080x2340 -s tools/capture_readme_screenshots.gd
-##   (and with --resolution 2560x1600 DEVICE=tablet for the tablet shots)
+##   (and with --resolution 2560x1600 DEVICE=tablet for the tablet shots), then
+##   python3 tools/screenshots_to_fastlane.py /tmp/shots   (the store and README screenshots)
 ## Run it with an empty XDG_DATA_HOME: it writes demo games, history and Daily dates to user://.
 
 const SudokuGenerator = preload("res://scripts/core/sudoku_generator.gd")

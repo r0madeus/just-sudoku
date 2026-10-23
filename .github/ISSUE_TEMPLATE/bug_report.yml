@@ -1,0 +1,40 @@
+name: Bug report / Hata bildirimi
+description: Something does not work as it should / Bir şey olması gerektiği gibi çalışmıyor
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened? / Ne oldu?
+      description: What you did, what you expected, and what happened instead. / Ne yaptın, ne bekliyordun, ne oldu?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce / Nasıl tekrarlanır?
+      placeholder: |
+        1. New game → Expert
+        2. ...
+  - type: input
+    id: version
+    attributes:
+      label: App version / Uygulama sürümü
+      description: At the bottom of Settings / Ayarlar'ın en altında
+      placeholder: Just Sudoku 1.0.0
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Device and Android version / Cihaz ve Android sürümü
+      placeholder: Pixel 7, Android 15
+  - type: textarea
+    id: puzzle
+    attributes:
+      label: Puzzle (optional) / Bulmaca (isteğe bağlı)
+      description: Pause → Share puzzle copies its number or code; paste it here. / Duraklat → Bulmacayı paylaş ile kopyalayıp buraya yapıştır.
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots (optional) / Ekran görüntüleri (isteğe bağlı)
