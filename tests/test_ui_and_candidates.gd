@@ -141,17 +141,25 @@ func _init() -> void:
 		return is_visible
 	)
 
-	run_test.call("Action Bar shows exactly 4 responsive expanding buttons outside notes mode", func() -> bool:
+	run_test.call("Action Bar shows 4 expanding buttons and one icon toggle in and outside notes mode", func() -> bool:
 		var screen := GameScreen.new()
 		root.add_child(screen)
 
-		# Fill Notes is an extra icon button that only appears in notes mode
+		# Fill Notes is an extra icon button that only appears in notes mode; Colours is the icon
+		# button that sits in its place outside it
 		var buttons: Array[Node] = screen.action_bar.get_children().filter(func(b): return b.visible)
-		if buttons.size() != 4:
+		if buttons.size() != 5 or not buttons.has(screen.action_dock.colors_btn):
+			screen.queue_free()
+			return false
+		screen.action_dock.set_notes_active(true)
+		var in_notes: Array[Node] = screen.action_bar.get_children().filter(func(b): return b.visible)
+		if in_notes.size() != 5 or in_notes.has(screen.action_dock.colors_btn) or not in_notes.has(screen.action_dock.fill_notes_btn):
 			screen.queue_free()
 			return false
 
 		for b in buttons:
+			if b == screen.action_dock.colors_btn:
+				continue
 			if b is Button:
 				if b.size_flags_horizontal != Control.SIZE_EXPAND_FILL:
 					screen.queue_free()

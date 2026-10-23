@@ -8,8 +8,11 @@ signal erase_pressed()
 signal notes_toggled(is_notes: bool)
 
 const SettingsScreen = preload("res://scenes/menus/settings_screen.gd")
+const SudokuCell = preload("res://scenes/gameplay/sudoku_cell.gd")
 
 var is_notes_mode: bool = false
+## The keys are the nine cell colours instead of digits
+var is_color_mode: bool = false
 var smart_enabled: bool = true
 
 var num_buttons: Array[Button] = []
@@ -70,6 +73,9 @@ func _update_selected_visuals() -> void:
 			var btn: Button = num_buttons[d - 1]
 			var is_sel: bool = (d == selected_digit)
 			ThemeManager.apply_numpad_button_style(btn, -1, is_sel)
+			btn.text = "" if is_color_mode else str(d)
+			if is_color_mode:
+				_apply_swatch_style(btn, d, is_sel)
 			btn.add_theme_font_size_override("font_size", font_sz)
 			var font_inter := ThemeManager.get_font_inter()
 			if font_inter != null:
@@ -117,6 +123,27 @@ func _build_ui() -> void:
 		grid_container.add_child(btn)
 		num_buttons.append(btn)
 
+## A colour key: filled with its colour, ringed when it is the chosen one
+func _apply_swatch_style(btn: Button, d: int, is_sel: bool) -> void:
+	var fill: Color = SudokuCell.MARK_COLORS[d - 1]
+	var radius: int = ThemeManager.get_numpad_button_radius(btn)
+	var ring: Color = ThemeManager.get_color("border_focus") if is_sel else Color(fill, 0.0)
+	var sb_n := ThemeManager.create_flat_stylebox(fill, radius, 3 if is_sel else 0, ring, 0, 0)
+	var sb_h := ThemeManager.create_flat_stylebox(fill.lightened(0.12), radius, 3 if is_sel else 0, ring, 0, 0)
+	var sb_p := ThemeManager.create_flat_stylebox(fill.darkened(0.12), radius, 3, ThemeManager.get_color("border_focus"), 0, 0)
+	btn.add_theme_stylebox_override("normal", sb_n)
+	btn.add_theme_stylebox_override("hover", sb_h)
+	btn.add_theme_stylebox_override("pressed", sb_p)
+	btn.tooltip_text = ""
+
+func set_color_mode(active: bool) -> void:
+	if is_color_mode == active:
+		return
+	is_color_mode = active
+	for btn in num_buttons:
+		btn.disabled = false
+	_update_selected_visuals()
+
 func set_notes_mode(active: bool) -> void:
 	is_notes_mode = active
 	notes_toggled.emit(is_notes_mode)
@@ -139,6 +166,11 @@ func update_smart_states(board: SudokuBoard, selected_idx: int) -> void:
 			digit_counts[val] += 1
 
 	var is_smart: bool = smart_enabled and SettingsScreen.smart_numpad_enabled
+	if is_color_mode:
+		# Any cell can take any colour
+		for btn in num_buttons:
+			btn.disabled = false
+		return
 
 	for d in range(1, 10):
 		var btn: Button = num_buttons[d - 1]

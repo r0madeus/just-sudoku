@@ -23,6 +23,8 @@ var game_state: GameState
 var game_timer: GameTimer
 ## smart_candidates_enabled as last applied to the board, to react only when it changes
 var _smart_candidates_applied: bool = false
+## Digit-first input: the key picked on the numpad, applied to each cell tapped (0 = none)
+var locked_digit: int = 0
 
 # UI Elements
 var bg: ColorRect
@@ -304,6 +306,9 @@ func _build_ui() -> void:
 	sudoku_grid.size_flags_horizontal = SIZE_EXPAND_FILL
 	sudoku_grid.size_flags_vertical = SIZE_EXPAND_FILL
 	sudoku_grid.cell_selected.connect(_on_grid_cell_selected)
+	sudoku_grid.cell_tapped.connect(_on_grid_cell_tapped)
+	sudoku_grid.multi_selection_changed.connect(func(_cells): _update_numpad_states())
+	sudoku_grid.multi_select_enabled = not SettingsScreen.digit_first
 	grid_container.add_child(sudoku_grid)
 
 	# --- 4. Mid Spacer (Intimate proximity between Grid and Toolbar) ---
@@ -333,6 +338,7 @@ func _build_ui() -> void:
 	action_dock.notes_toggled.connect(_on_action_dock_notes_toggled)
 	action_dock.hint_pressed.connect(_on_hint_pressed)
 	action_dock.fill_notes_pressed.connect(_on_fill_notes_pressed)
+	action_dock.colors_toggled.connect(_on_colors_toggled)
 	dock_center.add_child(action_dock)
 
 	# Compatibility proxies & aliases
@@ -506,6 +512,7 @@ func setup_game(state: GameState) -> void:
 	if not game_state.units_completed.is_connected(_on_units_completed):
 		game_state.units_completed.connect(_on_units_completed)
 	sudoku_grid.set_hint_focus(-1)
+	_set_locked_digit(0)
 	_smart_candidates_applied = SettingsScreen.smart_candidates_enabled
 	if SettingsScreen.show_wrong_immediately:
 		game_state.check_board()
@@ -541,8 +548,11 @@ func _on_settings_changed() -> void:
 		# Turning on "show wrong digits" reveals (and counts) the ones already on the board
 		if SettingsScreen.show_wrong_immediately and not game_state.is_completed:
 			game_state.check_board()
+		sudoku_grid.multi_select_enabled = not SettingsScreen.digit_first
+		if not SettingsScreen.digit_first:
+			_set_locked_digit(0)
 		sudoku_grid.refresh_all_cells()
-		numpad.update_smart_states(game_state.current_board, sudoku_grid.selected_idx)
+		_update_numpad_states()
 
 func _on_timer_ticked(total_sec: int) -> void:
 	if game_state != null and not game_state.is_paused and not game_state.is_completed:
@@ -617,20 +627,59 @@ func _on_pause_settings_pressed() -> void:
 
 func _on_grid_cell_selected(idx: int, val: int) -> void:
 	if game_state != null and not game_state.is_paused:
-		numpad.set_selected_digit(val)
-		numpad.update_smart_states(game_state.current_board, idx)
+		# In digit-first input the numpad shows the picked digit, not the cell's
+		if not SettingsScreen.digit_first and not numpad.is_color_mode:
+			numpad.set_selected_digit(val)
+		_update_numpad_states()
 	_update_action_buttons()
 
-func _on_numpad_number_pressed(num: int) -> void:
-	if game_state == null or sudoku_grid.selected_idx == -1:
+## Digit-first input: a tap puts the picked digit (or note, or colour) in the cell. Tapping a
+## digit that cannot change (a given) picks that digit instead.
+func _on_grid_cell_tapped(idx: int) -> void:
+	if game_state == null or game_state.is_paused or not SettingsScreen.digit_first:
 		return
+	var val: int = game_state.current_board.get_cell(idx)
+	if not numpad.is_color_mode and val != 0 and not game_state.can_edit_cell(idx):
+		_set_locked_digit(val)
+		_update_numpad_states()
+		return
+	if locked_digit != 0:
+		var one: Array[int] = [idx]
+		_apply_key(locked_digit, one)
 
-	var idx: int = sudoku_grid.selected_idx
-	if numpad.is_notes_mode:
-		game_state.toggle_candidate(idx, num)
-		SoundManager.play_number_placed()
-		Haptics.tap()
+## Keys pressed on screen. In digit-first input they pick the digit (again: put it down)
+## instead of filling the selected cell.
+func _on_numpad_number_pressed(num: int) -> void:
+	if game_state == null:
+		return
+	if SettingsScreen.digit_first:
+		_set_locked_digit(0 if locked_digit == num else num)
+		_update_numpad_states()
+		return
+	_apply_key(num, sudoku_grid.get_target_cells())
+
+## A digit (or colour) for these cells: a colour in colour mode, a note in notes mode or when
+## several cells are selected, otherwise the digit itself
+func _apply_key(num: int, targets: Array[int]) -> void:
+	if game_state == null or targets.is_empty():
+		return
+	if numpad.is_color_mode:
+		if game_state.set_cell_color(targets, num):
+			SoundManager.play_number_placed()
+			Haptics.tap()
+			sudoku_grid.refresh_highlights()
+			_save_progress()
+		return
+	if targets.size() > 1:
+		if game_state.toggle_candidate_many(targets, num):
+			SoundManager.play_number_placed()
+			Haptics.tap()
+	elif numpad.is_notes_mode:
+		if game_state.toggle_candidate(targets[0], num):
+			SoundManager.play_number_placed()
+			Haptics.tap()
 	else:
+		var idx: int = targets[0]
 		var ok := game_state.set_number(idx, num, true)
 		if ok:
 			var conflicts := SudokuValidator.get_conflicts(game_state.current_board)
@@ -643,18 +692,61 @@ func _on_numpad_number_pressed(num: int) -> void:
 
 	_after_player_move()
 
-func _on_erase_pressed() -> void:
-	if game_state == null or sudoku_grid.selected_idx == -1:
+func _set_locked_digit(num: int) -> void:
+	locked_digit = num
+	if numpad != null and SettingsScreen.digit_first:
+		numpad.set_selected_digit(num)
+	if sudoku_grid != null:
+		sudoku_grid.set_highlight_digit(0 if numpad == null or numpad.is_color_mode else num)
+
+## Smart keys follow the selected cell; with several cells, or in digit-first input, the
+## selection says nothing about one cell, so only finished digits are dimmed
+func _update_numpad_states() -> void:
+	if game_state == null or numpad == null:
 		return
-	game_state.clear_cell(sudoku_grid.selected_idx)
+	var cell: int = sudoku_grid.selected_idx
+	if SettingsScreen.digit_first or sudoku_grid.is_multi_selection():
+		cell = -1
+	numpad.update_smart_states(game_state.current_board, cell)
+
+func _on_erase_pressed() -> void:
+	if game_state == null:
+		return
+	var targets := sudoku_grid.get_target_cells()
+	if targets.is_empty():
+		return
+	if targets.size() > 1:
+		game_state.clear_cells(targets)
+	else:
+		game_state.clear_cell(targets[0])
 	SoundManager.play_erase()
 	Haptics.tap()
 	_after_player_move()
 
 func _on_action_dock_notes_toggled(active: bool) -> void:
 	numpad.set_notes_mode(active)
+	if active and numpad.is_color_mode:
+		_set_color_mode(false)
 	if game_state != null:
-		numpad.update_smart_states(game_state.current_board, sudoku_grid.selected_idx)
+		_update_numpad_states()
+
+func _on_colors_toggled(active: bool) -> void:
+	_set_color_mode(active)
+
+## Colour mode turns the keys into colours; it and notes mode exclude each other
+func _set_color_mode(active: bool) -> void:
+	if active and numpad.is_notes_mode:
+		action_dock.set_notes_active(false)
+		numpad.set_notes_mode(false)
+	action_dock.set_color_active(active)
+	numpad.set_color_mode(active)
+	# A picked digit is not a picked colour
+	_set_locked_digit(0)
+	if not active and not SettingsScreen.digit_first and game_state != null and sudoku_grid.selected_idx != -1:
+		numpad.set_selected_digit(game_state.current_board.get_cell(sudoku_grid.selected_idx))
+	elif active:
+		numpad.set_selected_digit(0)
+	_update_numpad_states()
 
 func _on_notes_toggle_pressed() -> void:
 	if action_dock != null:
@@ -663,7 +755,7 @@ func _on_notes_toggle_pressed() -> void:
 	else:
 		numpad.toggle_notes_mode()
 		notes_btn.text = LocalizationManager.translate("BTN_NOTES_ON") if numpad.is_notes_mode else LocalizationManager.translate("BTN_NOTES")
-		numpad.update_smart_states(game_state.current_board, sudoku_grid.selected_idx)
+		_update_numpad_states()
 
 func _on_fill_notes_pressed() -> void:
 	if game_state != null and game_state.fill_notes():
@@ -751,8 +843,11 @@ func _show_hint_level(step: SudokuSolver.SolveStep, level: int) -> void:
 
 func _after_player_move() -> void:
 	sudoku_grid.set_hint_focus(-1)
+	# The picked digit is used up once all nine are on the board
+	if locked_digit != 0 and not numpad.is_color_mode and game_state.current_board.get_digit_count(locked_digit) >= 9:
+		_set_locked_digit(0)
 	_update_action_buttons()
-	numpad.update_smart_states(game_state.current_board, sudoku_grid.selected_idx)
+	_update_numpad_states()
 	# Auto-save immediately (GDD §30: crash recovery & persistence)
 	_save_progress()
 
@@ -1022,12 +1117,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		# Numbers 1..9
 		if keycode >= KEY_1 and keycode <= KEY_9:
 			var digit: int = keycode - KEY_0
-			_on_numpad_number_pressed(digit)
+			_apply_key(digit, sudoku_grid.get_target_cells())
 			get_viewport().set_input_as_handled()
 		# Numpad 1..9
 		elif keycode >= KEY_KP_1 and keycode <= KEY_KP_9:
 			var digit: int = keycode - KEY_KP_0
-			_on_numpad_number_pressed(digit)
+			_apply_key(digit, sudoku_grid.get_target_cells())
 			get_viewport().set_input_as_handled()
 		# Delete / Backspace
 		elif keycode == KEY_BACKSPACE or keycode == KEY_DELETE:
@@ -1052,6 +1147,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 		elif keycode == KEY_F:
 			_on_fill_notes_pressed()
+			get_viewport().set_input_as_handled()
+		elif keycode == KEY_C:
+			_set_color_mode(not numpad.is_color_mode)
 			get_viewport().set_input_as_handled()
 		# Undo / Redo
 		elif keycode == KEY_Z and event.ctrl_pressed:

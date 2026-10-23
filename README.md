@@ -26,6 +26,7 @@
 **Solving**
 - Notes, with *Fill notes*, automatic note removal and optional smart candidates.
 - Undo and redo, a number pad that dims the digits that cannot go in the selected cell, and clash highlighting.
+- Your way of entering digits: pick the cell first or the digit first, drag over several cells to note a digit in all of them at once, and mark cells with nine colours.
 - Hints in three steps: where to look, which technique, then the move itself. A step-by-step solution viewer when you are stuck.
 - Check the board, or have wrong digits shown as you place them.
 
@@ -71,7 +72,7 @@ The Android build uses a Godot export template built with only what the game nee
 GODOT=/path/to/godot tools/run_tests.sh
 ```
 
-Runs all 44 test suites, four at a time, each with its own empty save folder (under a minute). They also run on every pull request. [docs/testing.md](docs/testing.md) explains them, and how `tools/mutation_audit.py` checks that the tests really catch mistakes: it breaks 28 behaviours one at a time and all 28 are caught.
+Runs all 45 test suites, four at a time, each with its own empty save folder (under a minute). They also run on every pull request. [docs/testing.md](docs/testing.md) explains them, and how `tools/mutation_audit.py` checks that the tests really catch mistakes: it breaks 32 behaviours one at a time and all 32 are caught.
 
 ## Project layout
 
