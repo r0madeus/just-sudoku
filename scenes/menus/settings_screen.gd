@@ -158,6 +158,8 @@ static func save_config() -> void:
 		"sounds": sounds_enabled,
 		"haptics": haptics_enabled
 	}
+	# On a fresh install nothing else may have made the folder yet (no game saved so far)
+	DirAccess.make_dir_recursive_absolute(CONFIG_PATH.get_base_dir())
 	var file := FileAccess.open(CONFIG_PATH, FileAccess.WRITE)
 	if file != null:
 		file.store_string(JSON.stringify(data, "\t"))

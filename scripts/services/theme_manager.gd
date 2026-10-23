@@ -1255,6 +1255,8 @@ static func apply_modal_card_style(panel: PanelContainer, _corner_radius: int = 
 	panel.theme_type_variation = "ModalPanel"
 
 static func save_settings() -> void:
+	# On a fresh install nothing else may have made the folder yet (no game saved so far)
+	DirAccess.make_dir_recursive_absolute(SETTINGS_PATH.get_base_dir())
 	var file := FileAccess.open(SETTINGS_PATH, FileAccess.WRITE)
 	if file != null:
 		var data: Dictionary = {
