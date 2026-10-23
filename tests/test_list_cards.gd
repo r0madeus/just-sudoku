@@ -36,7 +36,7 @@ func _run() -> void:
 	print("========================================")
 	print("🧪 RUNNING LIST CARD TESTS")
 	print("========================================")
-	SettingsScreen.animations_enabled = false
+	AppSettings.animations_enabled = false
 
 	test_thumbnail_data_is_stored()
 	test_mini_board_from_strings()

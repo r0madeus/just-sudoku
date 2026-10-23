@@ -88,15 +88,15 @@ func _run() -> void:
 	prefix = ("tablet_" if tablet else "") + loc + "_"
 	DirAccess.make_dir_recursive_absolute(out_dir)
 	_seed_history()
-	SettingsScreen.auto_open_last_game = false
-	SettingsScreen.animations_enabled = false
+	AppSettings.auto_open_last_game = false
+	AppSettings.animations_enabled = false
 	ResponsiveManager.apply_device_scaling(root, 2.0 if tablet else 2.625)
 
 	app = load("res://scenes/app_root.tscn").instantiate()
 	root.add_child(app)
 	await _frames(5)
-	SettingsScreen.animations_enabled = false
-	SettingsScreen.auto_open_last_game = false
+	AppSettings.animations_enabled = false
+	AppSettings.auto_open_last_game = false
 	LocalizationManager.set_locale(loc)
 	ThemeManager.set_theme(ThemeManager.THEME_DARK)
 	await _frames(3)

@@ -19,39 +19,10 @@ signal custom_theme_requested()
 ## A backup replaced the saved data
 signal data_restored()
 
-const CONFIG_PATH: String = "user://saves/config.json"
-
-static var auto_open_last_game: bool = true
-static var smart_numpad_enabled: bool = true
-## Pick a digit first, then tap the cells it goes in
-static var digit_first: bool = false
-static var auto_remove_notes: bool = true
-static var smart_candidates_enabled: bool = false
-static var show_conflicts: bool = true
-static var show_wrong_immediately: bool = false
-
 ## Width of the dropdowns on the right of the setting rows
 const PICKER_WIDTH: float = 168.0
 ## The Text size choices, in the order the dropdown lists them
 const TEXT_SIZE_ORDER: Array[String] = ["normal", "large", "xlarge"]
-static var animations_enabled: bool = true
-static var sounds_enabled: bool = true
-static var haptics_enabled: bool = true
-
-static var _config_listeners: Array[Callable] = []
-
-static func add_listener(cb: Callable) -> void:
-	if not _config_listeners.has(cb):
-		_config_listeners.append(cb)
-
-static func remove_listener(cb: Callable) -> void:
-	_config_listeners.erase(cb)
-
-static func _notify_listeners() -> void:
-	for cb in _config_listeners:
-		if cb.is_valid():
-			cb.call()
-
 var bg: ColorRect
 var margin: MarginContainer
 var back_btn: Button
@@ -124,7 +95,7 @@ var sound_check: CheckBox
 
 func _init() -> void:
 	set_anchors_preset(PRESET_FULL_RECT)
-	load_config()
+	AppSettings.load_config()
 	_build_ui()
 	_apply_responsive_layout()
 	_update_locale_texts()
@@ -155,62 +126,6 @@ func _apply_responsive_layout() -> void:
 		sections.columns = ResponsiveManager.content_columns(ResponsiveManager.get_viewport_size(self))
 	if display_label != null and is_inside_tree():
 		display_label.text = ResponsiveManager.describe_display(get_window())
-
-## The version players see and report: project.godot application/config/version, kept equal to
-## the Android export's version/name (tests/test_release.gd checks it)
-static func app_version() -> String:
-	return str(ProjectSettings.get_setting("application/config/version", ""))
-
-static func save_config() -> void:
-	var data := {
-		"locale": LocalizationManager.get_locale(),
-		"font": FontManager.current_font_name,
-		"text_size": ThemeManager.text_size,
-		"auto_open": auto_open_last_game,
-		"smart_numpad": smart_numpad_enabled,
-		"digit_first": digit_first,
-		"auto_notes": auto_remove_notes,
-		"smart_candidates": smart_candidates_enabled,
-		"show_conflicts": show_conflicts,
-		"show_wrong": show_wrong_immediately,
-		"animations": animations_enabled,
-		"sounds": sounds_enabled,
-		"haptics": haptics_enabled
-	}
-	# On a fresh install nothing else may have made the folder yet (no game saved so far)
-	DirAccess.make_dir_recursive_absolute(CONFIG_PATH.get_base_dir())
-	var file := FileAccess.open(CONFIG_PATH, FileAccess.WRITE)
-	if file != null:
-		file.store_string(JSON.stringify(data, "\t"))
-		file.close()
-	_notify_listeners()
-
-static func load_config() -> void:
-	if not FileAccess.file_exists(CONFIG_PATH):
-		LocalizationManager.set_locale(LocalizationManager.detect_system_locale())
-		return
-	var file := FileAccess.open(CONFIG_PATH, FileAccess.READ)
-	if file == null:
-		return
-	var json = JSON.new()
-	if json.parse(file.get_as_text()) == OK and json.data is Dictionary:
-		var saved_loc: String = json.data.get("locale", "")
-		if saved_loc.is_empty() or not LocalizationManager.SUPPORTED_LOCALES.has(saved_loc):
-			saved_loc = LocalizationManager.detect_system_locale()
-		LocalizationManager.set_locale(saved_loc)
-		var saved_font: String = json.data.get("font", FontManager.FONT_MODERN_SANS)
-		FontManager.set_font(saved_font)
-		ThemeManager.set_text_size(json.data.get("text_size", ThemeManager.TEXT_SIZE_NORMAL))
-		auto_open_last_game = json.data.get("auto_open", true)
-		smart_numpad_enabled = json.data.get("smart_numpad", true)
-		digit_first = json.data.get("digit_first", false)
-		auto_remove_notes = json.data.get("auto_notes", true)
-		smart_candidates_enabled = json.data.get("smart_candidates", false)
-		show_conflicts = json.data.get("show_conflicts", true)
-		show_wrong_immediately = json.data.get("show_wrong", false)
-		animations_enabled = json.data.get("animations", true)
-		sounds_enabled = json.data.get("sounds", true)
-		haptics_enabled = json.data.get("haptics", true)
 
 func _build_ui() -> void:
 	# Soft accent glows behind the content, so glass cards have something to refract
@@ -409,8 +324,8 @@ func _build_ui() -> void:
 
 	# Auto open last game
 	auto_open_check = CheckBox.new()
-	auto_open_check.button_pressed = auto_open_last_game
-	auto_open_check.toggled.connect(func(v): auto_open_last_game = v; save_config())
+	auto_open_check.button_pressed = AppSettings.auto_open_last_game
+	auto_open_check.toggled.connect(func(v): AppSettings.auto_open_last_game = v; AppSettings.save_config())
 
 	auto_open_row = SettingRow.new("", "", auto_open_check)
 	auto_open_lbl = auto_open_row.title_label
@@ -420,8 +335,8 @@ func _build_ui() -> void:
 
 	# Smart numpad
 	smart_numpad_check = CheckBox.new()
-	smart_numpad_check.button_pressed = smart_numpad_enabled
-	smart_numpad_check.toggled.connect(func(v): smart_numpad_enabled = v; save_config())
+	smart_numpad_check.button_pressed = AppSettings.smart_numpad_enabled
+	smart_numpad_check.toggled.connect(func(v): AppSettings.smart_numpad_enabled = v; AppSettings.save_config())
 
 	smart_numpad_row = SettingRow.new("", "", smart_numpad_check)
 	smart_numpad_lbl = smart_numpad_row.title_label
@@ -431,8 +346,8 @@ func _build_ui() -> void:
 
 	# Digit first
 	digit_first_check = CheckBox.new()
-	digit_first_check.button_pressed = digit_first
-	digit_first_check.toggled.connect(func(v): digit_first = v; save_config())
+	digit_first_check.button_pressed = AppSettings.digit_first
+	digit_first_check.toggled.connect(func(v): AppSettings.digit_first = v; AppSettings.save_config())
 
 	digit_first_row = SettingRow.new("", "", digit_first_check)
 	game_vbox.add_child(digit_first_row)
@@ -441,8 +356,8 @@ func _build_ui() -> void:
 
 	# Auto notes
 	auto_notes_check = CheckBox.new()
-	auto_notes_check.button_pressed = auto_remove_notes
-	auto_notes_check.toggled.connect(func(v): auto_remove_notes = v; save_config())
+	auto_notes_check.button_pressed = AppSettings.auto_remove_notes
+	auto_notes_check.toggled.connect(func(v): AppSettings.auto_remove_notes = v; AppSettings.save_config())
 
 	auto_notes_row = SettingRow.new("", "", auto_notes_check)
 	auto_notes_lbl = auto_notes_row.title_label
@@ -452,8 +367,8 @@ func _build_ui() -> void:
 
 	# Smart candidates
 	smart_candidates_check = CheckBox.new()
-	smart_candidates_check.button_pressed = smart_candidates_enabled
-	smart_candidates_check.toggled.connect(func(v): smart_candidates_enabled = v; save_config())
+	smart_candidates_check.button_pressed = AppSettings.smart_candidates_enabled
+	smart_candidates_check.toggled.connect(func(v): AppSettings.smart_candidates_enabled = v; AppSettings.save_config())
 
 	smart_cand_row = SettingRow.new("", "", smart_candidates_check)
 	smart_candidates_lbl = smart_cand_row.title_label
@@ -485,8 +400,8 @@ func _build_ui() -> void:
 
 	# Show conflicts
 	conflict_check = CheckBox.new()
-	conflict_check.button_pressed = show_conflicts
-	conflict_check.toggled.connect(func(v): show_conflicts = v; save_config())
+	conflict_check.button_pressed = AppSettings.show_conflicts
+	conflict_check.toggled.connect(func(v): AppSettings.show_conflicts = v; AppSettings.save_config())
 
 	conflict_row = SettingRow.new("", "", conflict_check)
 	conflict_lbl = conflict_row.title_label
@@ -496,8 +411,8 @@ func _build_ui() -> void:
 
 	# Show wrong digits right away (off by default: GDD §18 reveals them with Check)
 	var wrong_check := CheckBox.new()
-	wrong_check.button_pressed = show_wrong_immediately
-	wrong_check.toggled.connect(func(v): show_wrong_immediately = v; save_config())
+	wrong_check.button_pressed = AppSettings.show_wrong_immediately
+	wrong_check.toggled.connect(func(v): AppSettings.show_wrong_immediately = v; AppSettings.save_config())
 	wrong_row = SettingRow.new("", "", wrong_check)
 	feed_vbox.add_child(wrong_row)
 
@@ -505,8 +420,8 @@ func _build_ui() -> void:
 
 	# UI Animations
 	anim_check = CheckBox.new()
-	anim_check.button_pressed = animations_enabled
-	anim_check.toggled.connect(func(v): animations_enabled = v; save_config())
+	anim_check.button_pressed = AppSettings.animations_enabled
+	anim_check.toggled.connect(func(v): AppSettings.animations_enabled = v; AppSettings.save_config())
 
 	anim_row = SettingRow.new("", "", anim_check)
 	anim_lbl = anim_row.title_label
@@ -516,8 +431,8 @@ func _build_ui() -> void:
 
 	# UI Sounds
 	sound_check = CheckBox.new()
-	sound_check.button_pressed = sounds_enabled
-	sound_check.toggled.connect(func(v): sounds_enabled = v; save_config())
+	sound_check.button_pressed = AppSettings.sounds_enabled
+	sound_check.toggled.connect(func(v): AppSettings.sounds_enabled = v; AppSettings.save_config())
 
 	sound_row = SettingRow.new("", "", sound_check)
 	sound_lbl = sound_row.title_label
@@ -527,8 +442,8 @@ func _build_ui() -> void:
 	if Haptics.is_available():
 		feed_vbox.add_child(_create_divider())
 		var haptics_check := CheckBox.new()
-		haptics_check.button_pressed = haptics_enabled
-		haptics_check.toggled.connect(func(v): haptics_enabled = v; save_config())
+		haptics_check.button_pressed = AppSettings.haptics_enabled
+		haptics_check.toggled.connect(func(v): AppSettings.haptics_enabled = v; AppSettings.save_config())
 		haptics_row = SettingRow.new("", "", haptics_check)
 		feed_vbox.add_child(haptics_row)
 
@@ -546,7 +461,7 @@ func _build_ui() -> void:
 	version_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	ThemeManager.set_font_size(version_label, 11)
 	version_label.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
-	version_label.text = "Just Sudoku " + app_version()
+	version_label.text = "Just Sudoku " + AppSettings.app_version()
 	AdaptiveColumns.set_column(version_label, 1)
 	list_vbox.add_child(version_label)
 
@@ -577,7 +492,7 @@ func _on_theme_changed() -> void:
 func _on_language_selected(idx: int) -> void:
 	var loc := LocalizationManager.LOCALE_TR if idx == 0 else LocalizationManager.LOCALE_EN
 	LocalizationManager.set_locale(loc)
-	save_config()
+	AppSettings.save_config()
 
 func _on_theme_selected(idx: int) -> void:
 	match idx:
@@ -595,7 +510,7 @@ func _on_font_selected(idx: int) -> void:
 		0: FontManager.set_font(FontManager.FONT_MODERN_SANS)
 		1: FontManager.set_font(FontManager.FONT_ROUNDED_SANS)
 		2: FontManager.set_font(FontManager.FONT_CLASSIC_SERIF)
-	save_config()
+	AppSettings.save_config()
 
 func _update_font_option_selection() -> void:
 	if font_option == null:
@@ -618,7 +533,7 @@ func _on_text_size_changed() -> void:
 func _on_text_size_selected(idx: int) -> void:
 	# Resizes what is on screen now, on every screen, not only on the next start
 	ThemeManager.set_text_size(TEXT_SIZE_ORDER[idx], get_tree().root if is_inside_tree() else null)
-	save_config()
+	AppSettings.save_config()
 
 func _update_text_size_selection() -> void:
 	if text_size_option != null:

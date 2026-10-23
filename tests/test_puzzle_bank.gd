@@ -36,7 +36,7 @@ func _run() -> void:
 	print("========================================")
 	print("🧪 RUNNING PUZZLE BANK TESTS")
 	print("========================================")
-	SettingsScreen.animations_enabled = false
+	AppSettings.animations_enabled = false
 	test_bank_files()
 	test_bank_puzzles_are_at_their_level()
 	test_generated_puzzles()

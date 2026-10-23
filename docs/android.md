@@ -17,6 +17,7 @@ Bir sorun görürsen telefonun modelini, Android sürümünü ve ne yaptığınd
 
 **Açılış ve boyut**
 - [ ] Açılışta beyaz/siyah bir parlama olmadan koyu ekrandan menüye geçiliyor.
+- [ ] Menü 1.0.0'a göre daha çabuk geliyor; menü açılır açılmaz Ayarlar'a, Yeni Oyun'a ya da İstatistikler'e dokununca beklemeden açılıyor.
 - [ ] Butonlar parmakla rahat basılıyor; yanlış tuşa basma olmuyor.
 - [ ] Yazılar rahat okunuyor (çok küçük ya da çok büyük değil).
 - [ ] Tahta ekrana sığıyor; sayı tuşları ve alt çubuk kesilmiyor.

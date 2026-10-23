@@ -105,11 +105,11 @@ func _run_captures() -> void:
 
 		# 3. Smart Numpad toggle test
 		print("  3. Smart Numpad settings toggle...")
-		SettingsScreen.smart_numpad_enabled = false
+		AppSettings.smart_numpad_enabled = false
 		app.game_screen._on_settings_changed()
 		for d in range(1, 10):
 			assert(app.game_screen.numpad.num_buttons[d - 1].disabled == false, "All numpad buttons enabled when smart numpad is off")
-		SettingsScreen.smart_numpad_enabled = true
+		AppSettings.smart_numpad_enabled = true
 		app.game_screen._on_settings_changed()
 
 		# 4. History Screen
@@ -248,7 +248,7 @@ func _run_captures() -> void:
 	await _save_screenshot("qa_phase4_hint_applied.png")
 
 	var target_digit: int = 2
-	var sol_board := app.game_screen.game_state.solution
+	var sol_board: SudokuBoard = app.game_screen.game_state.solution
 	var empty_digit_cells: Array[int] = []
 	for idx in range(SudokuBoard.CELL_COUNT):
 		if sol_board.get_cell(idx) == target_digit and app.game_screen.game_state.current_board.is_empty(idx):
@@ -274,12 +274,12 @@ func _run_captures() -> void:
 	await _save_screenshot("qa_phase4_digit_pulse.png")
 
 	# Test Animation Toggle (accessibility setting)
-	SettingsScreen.animations_enabled = false
+	AppSettings.animations_enabled = false
 	app.game_screen.hint_dialog.open_modal()
 	assert(app.game_screen.hint_dialog.modulate.a == 1.0, "Zero-delay modal open when animations disabled")
 	app.game_screen.hint_dialog.close_modal()
 	assert(app.game_screen.hint_dialog.visible == false, "Zero-delay modal close when animations disabled")
-	SettingsScreen.animations_enabled = true
+	AppSettings.animations_enabled = true
 
 	print("\n--- ALL PHASE 4 HINT & ANIMATION VERIFICATIONS PASSED ---")
 	quit(0)

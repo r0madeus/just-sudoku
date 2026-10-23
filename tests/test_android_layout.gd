@@ -34,7 +34,7 @@ func _init() -> void:
 
 func _run() -> void:
 	print("--- ANDROID LAYOUT & BACK BUTTON ---")
-	SettingsScreen.animations_enabled = false
+	AppSettings.animations_enabled = false
 	var win := get_root()
 	win.content_scale_mode = Window.CONTENT_SCALE_MODE_DISABLED
 	win.size = Vector2i(360, 640)

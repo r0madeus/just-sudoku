@@ -131,9 +131,9 @@ static func restore(backup: Dictionary) -> bool:
 
 	HistoryManager.clear_cache()
 	ThemeManager.load_settings()
-	SettingsScreen.load_config()
+	AppSettings.load_config()
 	# load_config does not tell anyone; saving the settings it just read does, with nothing changed
-	SettingsScreen.save_config()
+	AppSettings.save_config()
 	return true
 
 static func _remove_json(dir_path: String) -> void:

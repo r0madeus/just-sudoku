@@ -31,7 +31,7 @@ func _frames(n: int) -> void:
 func _run() -> void:
 	await process_frame
 	print("\n=== STEADY UI ===")
-	SettingsScreen.animations_enabled = false
+	AppSettings.animations_enabled = false
 	await _test_pause_icon()
 	await _test_language_title()
 	await _test_solution_dialog_size()

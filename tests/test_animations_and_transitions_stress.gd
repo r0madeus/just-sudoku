@@ -23,7 +23,7 @@ func _init() -> void:
 	print("   GDD §40, §49 • Katı Zaman Sınırları (Max 1000 ms / test)")
 	print("================================================================")
 
-	orig_animations_enabled = SettingsScreen.animations_enabled
+	orig_animations_enabled = AppSettings.animations_enabled
 	ui_root = Control.new()
 	ui_root.custom_minimum_size = Vector2(800, 600)
 	root.add_child(ui_root)
@@ -31,7 +31,7 @@ func _init() -> void:
 	run_all_tests()
 
 	ui_root.queue_free()
-	SettingsScreen.animations_enabled = orig_animations_enabled
+	AppSettings.animations_enabled = orig_animations_enabled
 
 	var suite_elapsed := Time.get_ticks_msec() - suite_start_msec
 	print("\n================================================================")
@@ -71,19 +71,19 @@ func test_dimension_1_pop_animation() -> void:
 	cell._ready()
 
 	# 1. Animations = true iken scale 1.15 ile başlar
-	SettingsScreen.animations_enabled = true
+	AppSettings.animations_enabled = true
 	cell.scale = Vector2.ONE
 	cell.animate_pop()
 	assert_true(is_equal_approx(cell.scale.x, 1.15) and is_equal_approx(cell.scale.y, 1.15), "Pop: animations_enabled = true iken hücre 1.15x ölçeklendi")
 
 	# 2. Animations = false iken scale Vector2.ONE kalır
-	SettingsScreen.animations_enabled = false
+	AppSettings.animations_enabled = false
 	cell.scale = Vector2.ONE
 	cell.animate_pop()
 	assert_true(cell.scale == Vector2.ONE, "Pop: animations_enabled = false iken ölçekleme atlandı (Vector2.ONE)")
 
 	# 3. set_cell_data üzerinden boş hücreye sayı girişi pop'u tetikler
-	SettingsScreen.animations_enabled = true
+	AppSettings.animations_enabled = true
 	cell.value = 0
 	cell.set_cell_data(7, false, 0, false, false, false, false, false)
 	assert_true(is_equal_approx(cell.scale.x, 1.15), "Pop: set_cell_data ile boş hücreye sayı girildiğinde pop tetiklendi")
@@ -100,19 +100,19 @@ func test_dimension_2_select_animation() -> void:
 	cell._ready()
 
 	# 1. Animations = true iken animate_select() çağrısı
-	SettingsScreen.animations_enabled = true
+	AppSettings.animations_enabled = true
 	cell.scale = Vector2.ONE
 	cell.animate_select()
 	assert_true(is_equal_approx(cell.scale.x, 1.05), "Select: animate_select mikro-pulse ölçeklemesi uygulandı (1.05x)")
 
 	# 2. Animations = false iken seçim mikro-pulse atlanır
-	SettingsScreen.animations_enabled = false
+	AppSettings.animations_enabled = false
 	cell.scale = Vector2.ONE
 	cell.animate_select()
 	assert_true(cell.scale == Vector2.ONE, "Select: animations_enabled = false iken ölçekleme atlandı")
 
 	# 3. set_cell_data ile hücre ilk kez seçildiğinde tetiklenme
-	SettingsScreen.animations_enabled = true
+	AppSettings.animations_enabled = true
 	cell.value = 4
 	cell.is_selected = false
 	cell.set_cell_data(4, false, 0, true, false, false, false, false)
@@ -131,13 +131,13 @@ func test_dimension_3_shake_animation() -> void:
 	cell._ready()
 
 	# 1. Animations = true iken shake durumu işaretlenir
-	SettingsScreen.animations_enabled = true
+	AppSettings.animations_enabled = true
 	cell.animate_shake()
 	assert_true(cell._is_shaking == true, "Shake: animations_enabled = true iken _is_shaking bayrağı true oldu")
 	assert_true(is_equal_approx(cell._original_pos_x, 100.0), "Shake: Orijinal x pozisyonu (100.0) hafızaya alındı")
 
 	# 2. Animations = false iken shake atlanır
-	SettingsScreen.animations_enabled = false
+	AppSettings.animations_enabled = false
 	var cell_off := SudokuCell.new()
 	cell_off.position = Vector2(200, 200)
 	cell_off.size = Vector2(50, 50)
@@ -148,7 +148,7 @@ func test_dimension_3_shake_animation() -> void:
 	assert_true(is_equal_approx(cell_off.position.x, 200.0), "Shake: Pozisyon kesinlikle değişmedi (200.0)")
 
 	# 3. set_cell_data ile canlı çakışma oluştuğunda shake tetiklenmesi
-	SettingsScreen.animations_enabled = true
+	AppSettings.animations_enabled = true
 	cell.is_conflict = false
 	cell.set_cell_data(4, false, 0, false, false, false, true, false)
 	assert_true(cell._is_shaking == true, "Shake: set_cell_data ile çakışma oluştuğunda shake otomatik tetiklendi")
@@ -169,7 +169,7 @@ func test_dimension_4_victory_wave() -> void:
 
 	# 1. Tekil hücre animate_wave testi
 	var c0: SudokuCell = grid.cells[0]
-	SettingsScreen.animations_enabled = true
+	AppSettings.animations_enabled = true
 	c0.animate_wave(0.0)
 	assert_true(is_equal_approx(c0.scale.x, 1.10), "Wave: Hücre dalga ölçeklemesi uygulandı (1.10x)")
 
@@ -178,7 +178,7 @@ func test_dimension_4_victory_wave() -> void:
 	assert_true(is_equal_approx(grid.cells[80].scale.x, 1.10), "Wave: Son hücreye (R8C8) kadar dalga yayıldı")
 
 	# 3. Grid play_victory_wave (animations = false) -> Anında callback çağrısı
-	SettingsScreen.animations_enabled = false
+	AppSettings.animations_enabled = false
 	var result := { "immediate_called": false }
 	grid.play_victory_wave(func(): result.immediate_called = true)
 	assert_true(result.immediate_called == true, "Wave: animations_enabled = false iken zafer dalgası anında 0 ms ile tamamlandı")
@@ -190,14 +190,14 @@ func test_dimension_4_victory_wave() -> void:
 # -----------------------------------------------------------------------------
 func test_dimension_5_screen_transition_fade() -> void:
 	# 1. animations_enabled = true iken fade başlatılması
-	SettingsScreen.animations_enabled = true
+	AppSettings.animations_enabled = true
 	test_app._show_screen(test_app.settings_screen)
 	assert_true(test_app.settings_screen.visible == true, "Fade: Hedef ekran görünür yapıldı")
 	assert_true(test_app.main_menu.visible == false, "Fade: Diğer ekranlar gizlendi")
 	assert_true(test_app.settings_screen.modulate.a <= 1.0, "Fade: Hedef ekranda mikro-fade alfa değeri kontrol altında")
 
 	# 2. animations_enabled = false iken doğrudan görünürlük
-	SettingsScreen.animations_enabled = false
+	AppSettings.animations_enabled = false
 	test_app._show_screen(test_app.main_menu)
 	assert_true(test_app.main_menu.visible == true, "Geçiş: animations_enabled = false iken ana menü anında görünür")
 	assert_true(is_equal_approx(test_app.main_menu.modulate.a, 1.0), "Geçiş: Alfa gecikmesiz tam 1.0 olarak ayarlandı")
@@ -213,7 +213,7 @@ func test_dimension_6_zero_lag_and_toggle() -> void:
 	cell._ready()
 
 	# 1. 100 ardışık pop ve select çağrısının hız testi (Zero-Lag < 20 ms)
-	SettingsScreen.animations_enabled = true
+	AppSettings.animations_enabled = true
 	var t0 := Time.get_ticks_msec()
 	for i in range(100):
 		cell.animate_pop()
@@ -229,7 +229,7 @@ func test_dimension_6_zero_lag_and_toggle() -> void:
 	assert_true(elapsed_shake < 30, "Sıfır-Gecikme: 100 shake tetiklemesi %d ms içinde tamamlandı (< 30 ms)" % elapsed_shake)
 
 	# 3. Animasyon kapatıldığında sıfır maliyet garantisi
-	SettingsScreen.animations_enabled = false
+	AppSettings.animations_enabled = false
 	var t_off_0 := Time.get_ticks_msec()
 	for i in range(100):
 		cell.animate_pop()

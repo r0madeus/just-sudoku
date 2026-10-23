@@ -57,8 +57,8 @@ func _seed_data() -> void:
 	state.set_cell_color([0], 4)
 	SaveManager.save_active_game(state)
 	DailyManager.mark_date_completed(2026, 3, 14)
-	SettingsScreen.digit_first = true
-	SettingsScreen.save_config()
+	AppSettings.digit_first = true
+	AppSettings.save_config()
 	ThemeManager.set_theme("Sepia")
 	ThemeManager.save_settings()
 
@@ -123,8 +123,8 @@ func _test_restore() -> void:
 	var extra := FileAccess.open(BackupManager.SAVES_DIR + "games/extra.json", FileAccess.WRITE)
 	extra.store_string("{}")
 	extra.close()
-	SettingsScreen.digit_first = false
-	SettingsScreen.save_config()
+	AppSettings.digit_first = false
+	AppSettings.save_config()
 	ThemeManager.set_theme("Dark")
 	ThemeManager.save_settings()
 	HistoryManager.load_all_records()
@@ -134,7 +134,7 @@ func _test_restore() -> void:
 	_check("The game in progress is the backup's", FileAccess.get_file_as_string(SaveManager.ACTIVE_GAME_FILE) == saved_active)
 	_check("The game's colours came back with it", SaveManager.load_active_game().get_cell_color(0) == 4)
 	_check("Files the backup does not have are gone", not FileAccess.file_exists(BackupManager.SAVES_DIR + "games/extra.json"))
-	_check("Settings are reloaded", SettingsScreen.digit_first)
+	_check("Settings are reloaded", AppSettings.digit_first)
 	_check("The theme is reloaded", ThemeManager.current_theme_name == "Sepia")
 	_check("The Daily day is back", DailyManager.is_date_completed("2026-03-14"))
 	_check("Every file matches the backup", BackupManager.collect_files() == backup.files)

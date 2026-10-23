@@ -33,7 +33,7 @@ func _run() -> void:
 	await process_frame
 	print("\n=== DAILY SUDOKU ARCHIVE ===")
 	today = DailyManager.get_today_date_string()
-	SettingsScreen.animations_enabled = false
+	AppSettings.animations_enabled = false
 	_test_dates()
 	_test_seeds()
 	_test_streaks()

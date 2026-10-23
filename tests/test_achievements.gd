@@ -34,7 +34,7 @@ func _run() -> void:
 	print("========================================")
 	print("🧪 RUNNING ACHIEVEMENT TESTS")
 	print("========================================")
-	SettingsScreen.animations_enabled = false
+	AppSettings.animations_enabled = false
 	var prev_locale := LocalizationManager.get_locale()
 	LocalizationManager.set_locale(LocalizationManager.LOCALE_EN)
 	# The player's own history and Daily dates are put back afterwards

@@ -37,7 +37,7 @@ func _run() -> void:
 	print("========================================")
 	print("🧪 RUNNING TABLET COLUMN TESTS")
 	print("========================================")
-	SettingsScreen.animations_enabled = false
+	AppSettings.animations_enabled = false
 	test_when_two_columns()
 	await test_adaptive_columns()
 	await test_statistics()

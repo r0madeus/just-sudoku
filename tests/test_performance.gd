@@ -39,14 +39,17 @@ func _run() -> void:
 	print("========================================")
 	print("🧪 RUNNING PERFORMANCE TESTS")
 	print("========================================")
-	SettingsScreen.auto_open_last_game = false
-	SettingsScreen.animations_enabled = false
+	AppSettings.auto_open_last_game = false
+	AppSettings.animations_enabled = false
 	for i in range(40):
 		HistoryManager.add_record({"game_id": "perf_%d" % i, "seed": 300 + i, "difficulty": DifficultyAnalyzer.LEVEL_EASY, "score": 70, "time": 100.0})
 
 	app = load("res://scenes/app_root.tscn").instantiate()
 	root.add_child(app)
 	await _frames(10)
+	# The screens behind the menu are made a moment after start-up; the idle checks start after
+	while app._made.size() < app.LAZY_NODES.size():
+		await process_frame
 
 	print("\n--- Test 1: Hidden lists are not built at start ---")
 	assert_true(app.history_screen.list_vbox.get_child_count() == 0 and app.load_game_screen.list_vbox.get_child_count() == 0,

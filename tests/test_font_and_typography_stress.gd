@@ -102,20 +102,20 @@ func test_dimension_1_font_families_and_systemfont_validity() -> void:
 func test_dimension_2_config_persistence_roundtrip() -> void:
 	# 1. Set Classic Serif and save
 	FontManager.set_font(FontManager.FONT_CLASSIC_SERIF)
-	SettingsScreen.save_config()
+	AppSettings.save_config()
 
 	# 2. Reset in-memory to Modern Sans, then load_config
 	FontManager.set_font(FontManager.FONT_MODERN_SANS)
-	SettingsScreen.load_config()
+	AppSettings.load_config()
 	assert_true(FontManager.current_font_name == FontManager.FONT_CLASSIC_SERIF, "Kalıcılık: Classic Serif config.json'dan hatasız yüklendi")
 
 	# 3. Set Rounded Sans and save
 	FontManager.set_font(FontManager.FONT_ROUNDED_SANS)
-	SettingsScreen.save_config()
+	AppSettings.save_config()
 
 	# 4. Reload
 	FontManager.set_font(FontManager.FONT_MODERN_SANS)
-	SettingsScreen.load_config()
+	AppSettings.load_config()
 	assert_true(FontManager.current_font_name == FontManager.FONT_ROUNDED_SANS, "Kalıcılık: Rounded Sans config.json'dan hatasız yüklendi")
 
 # -----------------------------------------------------------------------------
@@ -213,8 +213,8 @@ func test_dimension_6_cell_typography_and_zero_lag() -> void:
 # -----------------------------------------------------------------------------
 func _backup_state() -> void:
 	orig_font = FontManager.current_font_name
-	if FileAccess.file_exists(SettingsScreen.CONFIG_PATH):
-		var f := FileAccess.open(SettingsScreen.CONFIG_PATH, FileAccess.READ)
+	if FileAccess.file_exists(AppSettings.CONFIG_PATH):
+		var f := FileAccess.open(AppSettings.CONFIG_PATH, FileAccess.READ)
 		if f != null:
 			orig_config = f.get_as_text()
 			f.close()
@@ -222,7 +222,7 @@ func _backup_state() -> void:
 func _restore_state() -> void:
 	FontManager.set_font(orig_font)
 	if not orig_config.is_empty():
-		var f := FileAccess.open(SettingsScreen.CONFIG_PATH, FileAccess.WRITE)
+		var f := FileAccess.open(AppSettings.CONFIG_PATH, FileAccess.WRITE)
 		if f != null:
 			f.store_string(orig_config)
 			f.close()

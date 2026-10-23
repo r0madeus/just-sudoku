@@ -104,7 +104,7 @@ func _init() -> void:
 
 	# SettingsScreen
 	FontManager.set_font(FontManager.FONT_MODERN_SANS)
-	SettingsScreen.save_config()
+	AppSettings.save_config()
 	var settings := SettingsScreen.new()
 	settings.theme = theme
 	root.add_child(settings)

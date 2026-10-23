@@ -34,7 +34,7 @@ func _run() -> void:
 	print("========================================")
 	app = load("res://scenes/app_root.tscn").instantiate()
 	root.add_child(app)
-	SettingsScreen.animations_enabled = false
+	AppSettings.animations_enabled = false
 	await _frames(5)
 
 	await test_titles_are_centred()

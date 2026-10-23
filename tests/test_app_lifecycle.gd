@@ -137,11 +137,11 @@ func test_back_stops_clock_and_new_game_closes_pause() -> void:
 	screen._on_back_pressed()
 
 	# Without animations the overlay closes synchronously, so it can be checked here
-	var animations: bool = SettingsScreen.animations_enabled
-	SettingsScreen.animations_enabled = false
+	var animations: bool = AppSettings.animations_enabled
+	AppSettings.animations_enabled = false
 	var next := _new_state(22360679)
 	screen.setup_game(next)
 	assert_true(not next.is_paused and screen.game_timer.is_running, "New game runs")
 	assert_true(not screen.pause_overlay.visible, "Pause overlay closed for the new game")
-	SettingsScreen.animations_enabled = animations
+	AppSettings.animations_enabled = animations
 	screen.queue_free()

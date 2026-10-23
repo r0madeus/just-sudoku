@@ -172,24 +172,24 @@ func test_dimension_2_custom_theme_editor_and_harmonics() -> void:
 # -----------------------------------------------------------------------------
 func test_dimension_3_settings_persistence_and_conflict_hiding() -> void:
 	# 1. Round-trip config persistence
-	SettingsScreen.smart_numpad_enabled = false
-	SettingsScreen.auto_remove_notes = false
-	SettingsScreen.show_conflicts = false
-	SettingsScreen.animations_enabled = false
-	SettingsScreen.sounds_enabled = false
-	SettingsScreen.save_config()
+	AppSettings.smart_numpad_enabled = false
+	AppSettings.auto_remove_notes = false
+	AppSettings.show_conflicts = false
+	AppSettings.animations_enabled = false
+	AppSettings.sounds_enabled = false
+	AppSettings.save_config()
 
 	# Reload
-	SettingsScreen.smart_numpad_enabled = true
-	SettingsScreen.auto_remove_notes = true
-	SettingsScreen.show_conflicts = true
-	SettingsScreen.load_config()
+	AppSettings.smart_numpad_enabled = true
+	AppSettings.auto_remove_notes = true
+	AppSettings.show_conflicts = true
+	AppSettings.load_config()
 
-	assert_true(SettingsScreen.smart_numpad_enabled == false, "Kalıcı Ayar: smart_numpad_enabled yüklendi (false)")
-	assert_true(SettingsScreen.auto_remove_notes == false, "Kalıcı Ayar: auto_remove_notes yüklendi (false)")
-	assert_true(SettingsScreen.show_conflicts == false, "Kalıcı Ayar: show_conflicts yüklendi (false)")
-	assert_true(SettingsScreen.animations_enabled == false, "Kalıcı Ayar: animations_enabled yüklendi (false)")
-	assert_true(SettingsScreen.sounds_enabled == false, "Kalıcı Ayar: sounds_enabled yüklendi (false)")
+	assert_true(AppSettings.smart_numpad_enabled == false, "Kalıcı Ayar: smart_numpad_enabled yüklendi (false)")
+	assert_true(AppSettings.auto_remove_notes == false, "Kalıcı Ayar: auto_remove_notes yüklendi (false)")
+	assert_true(AppSettings.show_conflicts == false, "Kalıcı Ayar: show_conflicts yüklendi (false)")
+	assert_true(AppSettings.animations_enabled == false, "Kalıcı Ayar: animations_enabled yüklendi (false)")
+	assert_true(AppSettings.sounds_enabled == false, "Kalıcı Ayar: sounds_enabled yüklendi (false)")
 
 	# 2. Eksik Kapatma Doğrulaması: show_conflicts Entegrasyonu (GDD §18, §43)
 	var state := GameState.new()
@@ -205,13 +205,13 @@ func test_dimension_3_settings_persistence_and_conflict_hiding() -> void:
 	grid.bind_game_state(state)
 
 	# When show_conflicts = false, cells must NOT show conflict
-	SettingsScreen.show_conflicts = false
+	AppSettings.show_conflicts = false
 	grid.refresh_highlights()
 	assert_true(grid.cells[0].is_conflict == false, "Eksik Kapatıldı: show_conflicts = false iken çakışma canlıda gizlendi (is_conflict = false)")
 	assert_true(grid.cells[1].is_conflict == false, "Eksik Kapatıldı: Komşu çakışan hücre de gizlendi (is_conflict = false)")
 
 	# When show_conflicts = true, cells MUST show conflict
-	SettingsScreen.show_conflicts = true
+	AppSettings.show_conflicts = true
 	grid.refresh_highlights()
 	assert_true(grid.cells[0].is_conflict == true, "show_conflicts = true iken çakışma kırmızı vurgulandı (is_conflict = true)")
 	assert_true(grid.cells[1].is_conflict == true, "show_conflicts = true iken komşu hücre kırmızı vurgulandı (is_conflict = true)")
@@ -225,7 +225,7 @@ func test_dimension_4_sound_synthesizer_and_mute() -> void:
 	SoundManager.init_audio(ui_root)
 
 	# Test 1: Sound enabled calls without crash
-	SettingsScreen.sounds_enabled = true
+	AppSettings.sounds_enabled = true
 	SoundManager.play_number_placed()
 	SoundManager.play_erase()
 	SoundManager.play_conflict()
@@ -233,7 +233,7 @@ func test_dimension_4_sound_synthesizer_and_mute() -> void:
 	assert_true(true, "SoundManager sesleri sounds_enabled = true iken hatasız/çökmesiz yürütüldü")
 
 	# Test 2: Mute mode (sounds_enabled = false) executes safely
-	SettingsScreen.sounds_enabled = false
+	AppSettings.sounds_enabled = false
 	SoundManager.play_number_placed()
 	SoundManager.play_erase()
 	SoundManager.play_conflict()
@@ -241,7 +241,7 @@ func test_dimension_4_sound_synthesizer_and_mute() -> void:
 	assert_true(true, "SoundManager sessiz modda (sounds_enabled = false) 0 işlem ve 0 hata ile çalıştı")
 
 	# Restore
-	SettingsScreen.sounds_enabled = true
+	AppSettings.sounds_enabled = true
 
 # -----------------------------------------------------------------------------
 # BOYUT 5: Çoklu Dil (Localization TR/EN) Bütünlüğü & Hot-Swap (GDD §44)
@@ -317,11 +317,11 @@ func test_dimension_7_animations_and_zero_lag() -> void:
 	cell._ready()
 
 	# 1. Animations toggle check
-	SettingsScreen.animations_enabled = false
+	AppSettings.animations_enabled = false
 	cell.set_cell_data(5, false, 0, false, false, false, false, false)
 	assert_true(true, "animations_enabled = false iken hücre animasyonu hatasız atlandı")
 
-	SettingsScreen.animations_enabled = true
+	AppSettings.animations_enabled = true
 	cell.set_cell_data(0, false, 0, false, false, false, false, false)
 	cell.set_cell_data(6, false, 0, false, false, false, false, false)
 	assert_true(true, "animations_enabled = true iken pop animasyonu başlatıldı")
@@ -350,8 +350,8 @@ func test_dimension_7_animations_and_zero_lag() -> void:
 func _backup_configs() -> void:
 	orig_locale = LocalizationManager.get_locale()
 	orig_theme = ThemeManager.current_theme_name
-	if FileAccess.file_exists(SettingsScreen.CONFIG_PATH):
-		var f := FileAccess.open(SettingsScreen.CONFIG_PATH, FileAccess.READ)
+	if FileAccess.file_exists(AppSettings.CONFIG_PATH):
+		var f := FileAccess.open(AppSettings.CONFIG_PATH, FileAccess.READ)
 		if f != null:
 			orig_config = f.get_as_text()
 			f.close()
@@ -364,7 +364,7 @@ func _backup_configs() -> void:
 func _restore_configs() -> void:
 	LocalizationManager.set_locale(orig_locale)
 	ThemeManager.set_theme(orig_theme)
-	_write_file_safe(SettingsScreen.CONFIG_PATH, orig_config)
+	_write_file_safe(AppSettings.CONFIG_PATH, orig_config)
 	_write_file_safe(ThemeManager.SETTINGS_PATH, orig_settings)
 
 func _write_file_safe(path: String, content: String) -> void:

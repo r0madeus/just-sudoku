@@ -82,7 +82,7 @@ func _test_playback() -> void:
 	var host := Node.new()
 	root.add_child(host)
 	SoundManager.init_audio(host)
-	SettingsScreen.sounds_enabled = true
+	AppSettings.sounds_enabled = true
 	_check("A pool of voices is ready", host.get_child_count() == SoundManager.VOICES)
 	SoundManager.shutdown()
 	var t0 := Time.get_ticks_usec()
@@ -100,11 +100,11 @@ func _test_playback() -> void:
 	_check("A burst of taps never grows the pool", host.get_child_count() == SoundManager.VOICES)
 	for p in host.get_children():
 		p.stop()
-	SettingsScreen.sounds_enabled = false
+	AppSettings.sounds_enabled = false
 	SoundManager.play_complete()
 	await process_frame
 	_check("Sounds off: nothing plays", host.get_children().all(func(p): return not p.playing))
-	SettingsScreen.sounds_enabled = true
+	AppSettings.sounds_enabled = true
 	SoundManager.init_audio(host)
 	_check("Setting up again keeps the same pool", host.get_child_count() == SoundManager.VOICES)
 	host.queue_free()

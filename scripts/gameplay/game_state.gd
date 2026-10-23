@@ -1,7 +1,7 @@
 class_name GameState
 extends RefCounted
 
-const SettingsScreen = preload("res://scenes/menus/settings_screen.gd")
+const AppSettings = preload("res://scripts/services/app_settings.gd")
 
 ## Manages active game session, cell modifications, and unlimited Undo/Redo
 
@@ -77,7 +77,7 @@ func init_from_puzzle(gen: SudokuGenerator.GeneratedPuzzle) -> void:
 	solution = gen.solution.clone()
 
 	# GDD §17: Do not clutter board with candidates by default!
-	if not SettingsScreen.smart_candidates_enabled:
+	if not AppSettings.smart_candidates_enabled:
 		current_board.clear_all_candidates()
 
 	elapsed_time = 0.0
@@ -100,7 +100,7 @@ func reset_for_replay() -> void:
 	current_board = initial_puzzle.clone()
 
 	# GDD §17: Do not clutter board with candidates by default!
-	if not SettingsScreen.smart_candidates_enabled:
+	if not AppSettings.smart_candidates_enabled:
 		current_board.clear_all_candidates()
 
 	elapsed_time = 0.0
@@ -156,7 +156,7 @@ func set_number(idx: int, num: int, auto_remove_notes: bool = true) -> bool:
 	if new_val != 0 and not SudokuValidator.is_valid_placement(current_board, idx, new_val):
 		mistakes_count += 1
 		is_placement_valid = false
-	elif new_val != 0 and SettingsScreen.show_wrong_immediately and new_val != solution.get_cell(idx):
+	elif new_val != 0 and AppSettings.show_wrong_immediately and new_val != solution.get_cell(idx):
 		# Same as a Check of this one cell: marked and counted once, and not celebrated below
 		mistakes_count += 1
 		checked_wrong_indices.append(idx)

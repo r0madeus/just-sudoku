@@ -187,11 +187,11 @@ func test_haptics_setting() -> void:
 	Haptics.game_completed()
 	assert_true(true, "Haptics calls are safe where vibration is unavailable")
 
-	var original: bool = SettingsScreen.haptics_enabled
-	SettingsScreen.haptics_enabled = false
-	SettingsScreen.save_config()
-	SettingsScreen.haptics_enabled = true
-	SettingsScreen.load_config()
-	assert_true(SettingsScreen.haptics_enabled == false, "Vibration setting persists")
-	SettingsScreen.haptics_enabled = original
-	SettingsScreen.save_config()
+	var original: bool = AppSettings.haptics_enabled
+	AppSettings.haptics_enabled = false
+	AppSettings.save_config()
+	AppSettings.haptics_enabled = true
+	AppSettings.load_config()
+	assert_true(AppSettings.haptics_enabled == false, "Vibration setting persists")
+	AppSettings.haptics_enabled = original
+	AppSettings.save_config()

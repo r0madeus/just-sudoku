@@ -4,7 +4,7 @@ extends Control
 const SoundManager = preload("res://scripts/services/sound_manager.gd")
 const GameRecorder = preload("res://scripts/gameplay/game_recorder.gd")
 const ThemeManager = preload("res://scripts/services/theme_manager.gd")
-const SettingsScreen = preload("res://scenes/menus/settings_screen.gd")
+const AppSettings = preload("res://scripts/services/app_settings.gd")
 const PuzzleShareService = preload("res://scripts/services/puzzle_share_service.gd")
 const LocalizationManager = preload("res://scripts/services/localization_manager.gd")
 const SolutionDialog = preload("res://scenes/gameplay/dialogs/solution_dialog.gd")
@@ -98,12 +98,12 @@ func _init() -> void:
 	add_child(game_timer)
 	_build_ui()
 	_update_locale_texts()
-	SettingsScreen.add_listener(_on_settings_changed)
+	AppSettings.add_listener(_on_settings_changed)
 	LocalizationManager.add_listener(_update_locale_texts)
 	ThemeManager.add_listener(_on_theme_changed)
 
 func _exit_tree() -> void:
-	SettingsScreen.remove_listener(_on_settings_changed)
+	AppSettings.remove_listener(_on_settings_changed)
 	LocalizationManager.remove_listener(_update_locale_texts)
 	ThemeManager.remove_listener(_on_theme_changed)
 
@@ -318,7 +318,7 @@ func _build_play_area() -> void:
 	sudoku_grid.cell_selected.connect(_on_grid_cell_selected)
 	sudoku_grid.cell_tapped.connect(_on_grid_cell_tapped)
 	sudoku_grid.multi_selection_changed.connect(func(_cells): _update_numpad_states())
-	sudoku_grid.multi_select_enabled = not SettingsScreen.digit_first
+	sudoku_grid.multi_select_enabled = not AppSettings.digit_first
 	grid_container.add_child(sudoku_grid)
 
 	# --- 4. Mid Spacer (Intimate proximity between Grid and Toolbar) ---
@@ -450,8 +450,8 @@ func setup_game(state: GameState) -> void:
 		game_state.units_completed.connect(_on_units_completed)
 	sudoku_grid.set_hint_focus(-1)
 	_set_locked_digit(0)
-	_smart_candidates_applied = SettingsScreen.smart_candidates_enabled
-	if SettingsScreen.show_wrong_immediately:
+	_smart_candidates_applied = AppSettings.smart_candidates_enabled
+	if AppSettings.show_wrong_immediately:
 		game_state.check_board()
 
 	info_label.text = _title_text()
@@ -475,17 +475,17 @@ func setup_game(state: GameState) -> void:
 func _on_settings_changed() -> void:
 	if game_state != null and game_state.current_board != null:
 		# Any setting saves and notifies; only a change of this one may rewrite the notes
-		if SettingsScreen.smart_candidates_enabled != _smart_candidates_applied:
-			_smart_candidates_applied = SettingsScreen.smart_candidates_enabled
-			if SettingsScreen.smart_candidates_enabled:
+		if AppSettings.smart_candidates_enabled != _smart_candidates_applied:
+			_smart_candidates_applied = AppSettings.smart_candidates_enabled
+			if AppSettings.smart_candidates_enabled:
 				game_state.current_board.reset_candidates_from_grid()
 			else:
 				game_state.current_board.clear_all_candidates()
 		# Turning on "show wrong digits" reveals (and counts) the ones already on the board
-		if SettingsScreen.show_wrong_immediately and not game_state.is_completed:
+		if AppSettings.show_wrong_immediately and not game_state.is_completed:
 			game_state.check_board()
-		sudoku_grid.multi_select_enabled = not SettingsScreen.digit_first
-		if not SettingsScreen.digit_first:
+		sudoku_grid.multi_select_enabled = not AppSettings.digit_first
+		if not AppSettings.digit_first:
 			_set_locked_digit(0)
 		sudoku_grid.refresh_all_cells()
 		_update_numpad_states()
@@ -549,7 +549,7 @@ func _on_pause_settings_pressed() -> void:
 func _on_grid_cell_selected(idx: int, val: int) -> void:
 	if game_state != null and not game_state.is_paused:
 		# In digit-first input the numpad shows the picked digit, not the cell's
-		if not SettingsScreen.digit_first and not numpad.is_color_mode:
+		if not AppSettings.digit_first and not numpad.is_color_mode:
 			numpad.set_selected_digit(val)
 		_update_numpad_states()
 	_update_action_buttons()
@@ -557,7 +557,7 @@ func _on_grid_cell_selected(idx: int, val: int) -> void:
 ## Digit-first input: a tap puts the picked digit (or note, or colour) in the cell. Tapping a
 ## digit that cannot change (a given) picks that digit instead.
 func _on_grid_cell_tapped(idx: int) -> void:
-	if game_state == null or game_state.is_paused or not SettingsScreen.digit_first:
+	if game_state == null or game_state.is_paused or not AppSettings.digit_first:
 		return
 	var val: int = game_state.current_board.get_cell(idx)
 	if not numpad.is_color_mode and val != 0 and not game_state.can_edit_cell(idx):
@@ -573,7 +573,7 @@ func _on_grid_cell_tapped(idx: int) -> void:
 func _on_numpad_number_pressed(num: int) -> void:
 	if game_state == null:
 		return
-	if SettingsScreen.digit_first:
+	if AppSettings.digit_first:
 		_set_locked_digit(0 if locked_digit == num else num)
 		_update_numpad_states()
 		return
@@ -619,7 +619,7 @@ func _apply_key(num: int, targets: Array[int]) -> void:
 
 func _set_locked_digit(num: int) -> void:
 	locked_digit = num
-	if numpad != null and SettingsScreen.digit_first:
+	if numpad != null and AppSettings.digit_first:
 		numpad.set_selected_digit(num)
 	if sudoku_grid != null:
 		sudoku_grid.set_highlight_digit(0 if numpad == null or numpad.is_color_mode else num)
@@ -630,7 +630,7 @@ func _update_numpad_states() -> void:
 	if game_state == null or numpad == null:
 		return
 	var cell: int = sudoku_grid.selected_idx
-	if SettingsScreen.digit_first or sudoku_grid.is_multi_selection():
+	if AppSettings.digit_first or sudoku_grid.is_multi_selection():
 		cell = -1
 	numpad.update_smart_states(game_state.current_board, cell)
 
@@ -667,7 +667,7 @@ func _set_color_mode(active: bool) -> void:
 	numpad.set_color_mode(active)
 	# A picked digit is not a picked colour
 	_set_locked_digit(0)
-	if not active and not SettingsScreen.digit_first and game_state != null and sudoku_grid.selected_idx != -1:
+	if not active and not AppSettings.digit_first and game_state != null and sudoku_grid.selected_idx != -1:
 		numpad.set_selected_digit(game_state.current_board.get_cell(sudoku_grid.selected_idx))
 	elif active:
 		numpad.set_selected_digit(0)
@@ -947,7 +947,7 @@ func _on_game_completed(summary: Dictionary) -> void:
 	complete_dialog.primary_btn.disabled = false
 	complete_dialog.ok_button_text = LocalizationManager.translate("BTN_NEW_SAME_LEVEL") % \
 		LocalizationManager.get_difficulty_name(difficulty)
-	if SettingsScreen.animations_enabled and is_inside_tree() and sudoku_grid != null:
+	if AppSettings.animations_enabled and is_inside_tree() and sudoku_grid != null:
 		sudoku_grid.play_victory_wave(func():
 			if is_inside_tree():
 				complete_dialog.popup_centered()
