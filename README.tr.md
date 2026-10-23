@@ -9,10 +9,10 @@
 [English](README.md)
 
 <p>
-  <img src="docs/screenshots/tr_menu.png" width="200" alt="Ana menü">
-  <img src="docs/screenshots/tr_game.png" width="200" alt="Notlar ve işaretlenmiş yanlış rakamla süren bir oyun">
-  <img src="docs/screenshots/tr_result.png" width="200" alt="Bulmaca çözüldü, yeni başarımlar">
-  <img src="docs/screenshots/tr_statistics.png" width="200" alt="İstatistikler">
+  <img src="fastlane/metadata/android/tr-TR/images/phoneScreenshots/1_menu.jpg" width="200" alt="Ana menü">
+  <img src="fastlane/metadata/android/tr-TR/images/phoneScreenshots/2_game.jpg" width="200" alt="Notlar ve işaretlenmiş yanlış rakamla süren bir oyun">
+  <img src="fastlane/metadata/android/tr-TR/images/phoneScreenshots/4_result.jpg" width="200" alt="Bulmaca çözüldü, yeni başarımlar">
+  <img src="fastlane/metadata/android/tr-TR/images/phoneScreenshots/5_statistics.jpg" width="200" alt="İstatistikler">
 </p>
 
 ## Özellikler
@@ -44,31 +44,31 @@
   - Yazı boyutu ayarı.
   - Renk körü oyuncular için yanlış rakamlar renkle birlikte şekille de işaretleniyor.
   - Bütün yerleşik temalarda yazılar WCAG AA kontrast seviyesini karşılıyor.
+  - Ekran okuyucular için henüz değil: oyunun yapıldığı Godot motoru, Android'de ekranlarını TalkBack'e henüz açmıyor.
 - Türkçe ve İngilizce.
 - Telefon ve tablet düzenleri; yatay tablette yan yana düzenler.
 
 <p>
-  <img src="docs/screenshots/tr_game_light.png" width="200" alt="Açık tema">
-  <img src="docs/screenshots/tr_settings.png" width="200" alt="Ayarlar">
+  <img src="fastlane/metadata/android/tr-TR/images/phoneScreenshots/3_game_light.jpg" width="200" alt="Açık tema">
+  <img src="fastlane/metadata/android/tr-TR/images/phoneScreenshots/6_settings.jpg" width="200" alt="Ayarlar">
 </p>
-<img src="docs/screenshots/tr_tablet_statistics.jpg" width="620" alt="Yatay tablette istatistikler">
+<img src="fastlane/metadata/android/tr-TR/images/tenInchScreenshots/1_statistics.jpg" width="620" alt="Yatay tablette istatistikler">
 
 ## Gizlilik
 
 Just Sudoku titreşim dışında hiçbir izin istemiyor.
 - İnternet izni hiç yok; bu yüzden hiçbir yere bir şey gönderemez. Reklam, analiz aracı ya da hesap yok.
 - Oyunların, geçmişin ve ayarların cihazında kalıyor; Android yedeklemesi de kapalı.
+- Gizlilik notunun tamamı: [PRIVACY.md](PRIVACY.md).
 - Başka bir cihaza geçerken Ayarlar → Veriler'den her şeyi yedekleyip orada geri yüklemen yeterli. Tek bir oyunu da dışa aktarıp içe aktarabilirsin.
 
 ## İndirme
 
-Sürüm 0.1.0; henüz bir uygulama mağazasında değil.
+Sürüm 1.0.0; Android 7.0 ve üstü (64-bit ARM).
 
-- **Test APK'sı (Android 7.0 ve üstü, 64-bit ARM):**
-  - [Android APK (slim engine)](https://github.com/r0madeus/just-sudoku/actions/workflows/android.yml) sayfasında son başarılı çalıştırmayı aç.
-  - *Artifacts* bölümünden `JustSudoku-slim-apk` dosyasını indir. Bunun için GitHub'a giriş yapmış olman gerekiyor.
-  - Test anahtarıyla imzalı: kurup denemek içindir, Play Store'a yüklenemez.
-- Telefona kurulumu ve denenecekler listesi: [docs/android.md](docs/android.md).
+- **APK:** [Releases](https://github.com/r0madeus/just-sudoku/releases) sayfasından, SHA-256 özetiyle birlikte. Her sürümde neyin değiştiği: [CHANGELOG.md](CHANGELOG.md).
+- **F-Droid:** yolda ([docs/fdroid.md](docs/fdroid.md)).
+- Her değişikliğin deneme sürümü [Android APK (slim engine)](https://github.com/r0madeus/just-sudoku/actions/workflows/android.yml) çalıştırmalarının *Artifacts* bölümünde (test anahtarıyla imzalı, denemek için). Telefona kurulum ve denenecekler listesi: [docs/android.md](docs/android.md). Sürüm nasıl yayınlanır: [docs/release.md](docs/release.md).
 
 ## Kaynak koddan derleme
 
@@ -84,9 +84,9 @@ Android sürümü, yalnızca oyunun ihtiyaç duyduklarıyla derlenmiş bir Godot
 GODOT=/godot/yolu tools/run_tests.sh
 ```
 
-49 test dosyasının hepsini dörder dörder, her birini kendi boş kayıt klasöründe çalıştırıyor (bir dakikadan kısa). Testler her PR'da da çalışıyor.
+50 test dosyasının hepsini dörder dörder, her birini kendi boş kayıt klasöründe çalıştırıyor (bir dakikadan kısa). Testler her PR'da da çalışıyor.
 
-Ayrıntılar [docs/testing.md](docs/testing.md) dosyasında. Orada `tools/mutation_audit.py` aracı da anlatılıyor: oyunun 44 davranışını tek tek bilerek bozup testlerin bunu yakalayıp yakalamadığını kontrol ediyor. Şu an 44'ün 44'ü yakalanıyor.
+Ayrıntılar [docs/testing.md](docs/testing.md) dosyasında. Orada `tools/mutation_audit.py` aracı da anlatılıyor: oyunun 46 davranışını tek tek bilerek bozup testlerin bunu yakalayıp yakalamadığını kontrol ediyor. Şu an 46'nın 46'sı yakalanıyor.
 
 ## Proje yapısı
 
@@ -100,10 +100,11 @@ Ayrıntılar [docs/testing.md](docs/testing.md) dosyasında. Orada `tools/mutati
 | `assets/` | Yazı tipleri, simgeler, uygulama simgesi |
 | `tests/` | Test dosyaları |
 | `engine/` | Android için küçültülmüş Godot derleme profili |
-| `tools/` | Test çalıştırıcı, mutasyon denetimi, README ekran görüntüleri |
-| `docs/` | Android, testler ve bu ekran görüntüleri |
+| `tools/` | Test çalıştırıcı, mutasyon denetimi, bulmaca bankası ve teknik örnekleri, ekran görüntüleri |
+| `docs/` | Android, testler, sürüm yayınlama, F-Droid |
+| `fastlane/` | Mağaza metinleri, simge ve ekran görüntüleri (bu README de onları kullanıyor) |
 
-Oyun tasarım belgesi `Just Sudoku GDD.md` dosyasında. `addons/godot_mcp/` geliştirme sırasında kullanılan bir editör eklentisi, oyunun parçası değil.
+`Just Sudoku GDD.md` ilk tasarım belgesi; eski, oyunun bugünkü hâlini anlatmıyor. `addons/godot_mcp/` geliştirme sırasında kullanılan bir editör eklentisi, oyunun parçası değil.
 
 ## Katkı
 

@@ -1,0 +1,35 @@
+<p>A calm, focused Sudoku. No ads, no account, no internet, nothing collected. Free and open source.</p>
+
+<p><b>Puzzles you can trust</b></p>
+<ul>
+<li>Four levels, Easy to Expert, rated by the techniques a puzzle needs: from Naked Single to X-Wing, Swordfish, XYZ-Wing, Simple Coloring and XY-Chain.</li>
+<li>Every puzzle has exactly one solution and can be solved by logic alone, never by guessing.</li>
+<li>New puzzles open instantly.</li>
+<li>Daily Sudoku: the same puzzle for everyone each day, with a streak, and a calendar of the last year to play the days you missed.</li>
+</ul>
+
+<p><b>Solve your way</b></p>
+<ul>
+<li>Notes, with Fill notes and automatic note removal.</li>
+<li>Pick the cell first or the digit first; drag over several cells to note a digit in all of them; mark cells with colours.</li>
+<li>Undo and redo, a number pad that dims impossible digits, clash highlighting.</li>
+<li>Hints in three steps: where to look, which technique, then the move, each explained.</li>
+<li>A Techniques guide shows every technique on a real board, with a practice puzzle for each.</li>
+</ul>
+
+<p><b>Progress</b></p>
+<ul>
+<li>A score for each solve, compared with your best and your average.</li>
+<li>History, statistics per level and 13 quiet achievements.</li>
+<li>Back up everything to a file and restore it on a new phone.</li>
+</ul>
+
+<p><b>For everyone</b></p>
+<ul>
+<li>Five themes plus your own colours, three typefaces, adjustable text size.</li>
+<li>Wrong digits are marked by shape as well as colour; every theme meets WCAG AA contrast.</li>
+<li>Soft sounds and vibration, both optional.</li>
+<li>English and Turkish. Phone and tablet layouts.</li>
+</ul>
+
+<p>The only permission is vibration. Your games never leave your device.</p>

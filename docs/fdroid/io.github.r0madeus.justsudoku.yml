@@ -1,0 +1,56 @@
+# DRAFT build recipe for fdroiddata (metadata/io.github.r0madeus.justsudoku.yml).
+# Not yet tried on the F-Droid build server; see docs/fdroid.md.
+# The Godot export template (with the project's slim profile, engine/custom.py) and a headless
+# editor to export with are both built from Godot's source; no prebuilt binaries are used.
+Categories:
+  - Games
+License: GPL-3.0-only
+AuthorName: r0madeus
+SourceCode: https://github.com/r0madeus/just-sudoku
+IssueTracker: https://github.com/r0madeus/just-sudoku/issues
+Changelog: https://github.com/r0madeus/just-sudoku/blob/HEAD/CHANGELOG.md
+
+AutoName: Just Sudoku
+
+RepoType: git
+Repo: https://github.com/r0madeus/just-sudoku.git
+
+Builds:
+  - versionName: 1.0.0
+    versionCode: 1
+    commit: v1.0.0
+    sudo:
+      - apt-get update
+      - apt-get install -y scons pkg-config openjdk-17-jdk-headless
+    output: out/JustSudoku.apk
+    srclibs:
+      - godot@4.7-stable
+    prebuild:
+      # F-Droid signs the APK itself: export it unsigned, with the template built below
+      - sed -i -e 's/^package\/signed=true/package\/signed=false/' -e "s|^custom_template/release=.*|custom_template/release=\"$$godot$$/bin/android_release.apk\"|"
+        export_presets.cfg
+    scanignore:
+      - addons/godot_mcp
+    build:
+      # 1. The Android export template with only what the game uses
+      - pushd $$godot$$
+      - scons -j$(nproc) platform=android target=template_release arch=arm64 swappy=no profile="$$OLDPWD/engine/custom.py"
+      - pushd platform/android/java
+      - ./gradlew generateGodotTemplates
+      - popd
+      # 2. A headless editor to export with (no display server needed)
+      - scons -j$(nproc) platform=linuxbsd target=editor x11=no wayland=no alsa=no pulseaudio=no
+        dbus=no speechd=no fontconfig=no udev=no
+      - popd
+      # 3. Import and export the game
+      - mkdir -p ~/.config/godot out
+      - printf '[gd_resource type="EditorSettings" format=3]\n\n[resource]\nexport/android/java_sdk_path = "%s"\nexport/android/android_sdk_path
+        = "%s"\n' "$JAVA_HOME" "$$SDK$$" > ~/.config/godot/editor_settings-4.7.tres
+      - $$godot$$/bin/godot.linuxbsd.editor.x86_64 --headless --import || true
+      - $$godot$$/bin/godot.linuxbsd.editor.x86_64 --headless --export-release Android out/JustSudoku.apk
+    ndk: 29.0.14206865
+
+AutoUpdateMode: Version
+UpdateCheckMode: Tags ^v[0-9.]+$
+CurrentVersion: 1.0.0
+CurrentVersionCode: 1

@@ -1,0 +1,16 @@
+name: Idea / Öneri
+description: Something that would make the game better / Oyunu daha iyi yapacak bir şey
+labels: [enhancement]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: Your idea / Önerin
+      description: What would you like, and what would it help with? / Ne istersin, neye yardımcı olur?
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: |
+        Just Sudoku stays calm, offline, ad-free and tracking-free; ideas that need the internet, accounts or ads will not be added.
+        Just Sudoku sakin, çevrimdışı, reklamsız ve takipsiz kalacak; internet, hesap ya da reklam gerektiren öneriler eklenmeyecek.
