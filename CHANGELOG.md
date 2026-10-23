@@ -2,7 +2,7 @@
 
 All notable changes to Just Sudoku. Türkçesi aşağıda / Turkish below each version.
 
-## [1.0.0] - Unreleased
+## [1.0.0] - 2026-10-23
 
 The first release.
 
