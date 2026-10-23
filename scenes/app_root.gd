@@ -319,6 +319,19 @@ func _on_daily_sudoku_requested() -> void:
 	)
 
 func _on_history_replay_requested(seed_val: int, diff: String) -> void:
+	# The record keeps the puzzle itself: replay exactly that, even if this seed and level would
+	# generate another one today (the generator or its puzzle bank may have changed since)
+	var stored := _stored_puzzle(seed_val, diff)
+	if not stored.is_empty():
+		var gen := SudokuGenerator.from_grid(stored, seed_val)
+		if gen != null:
+			gen.difficulty = diff
+			var replay_state := GameState.new()
+			replay_state.init_from_puzzle(gen)
+			replay_state.reset_for_replay()
+			SaveManager.save_active_game(replay_state)
+			_start_game_session(replay_state)
+			return
 	AsyncPuzzleGenerator.request_puzzle_async(
 		seed_val,
 		diff,
@@ -330,6 +343,15 @@ func _on_history_replay_requested(seed_val: int, diff: String) -> void:
 				SaveManager.save_active_game(state)
 				_start_game_session(state)
 	)
+
+## The starting grid a history record kept for this seed and level ("" for older records)
+func _stored_puzzle(seed_val: int, diff: String) -> String:
+	for r in HistoryManager.load_all_records():
+		if int(r.get("seed", 0)) == seed_val and String(r.get("difficulty", "")).to_lower() == diff.to_lower():
+			var grid := String(r.get("puzzle", ""))
+			if grid.length() == SudokuBoard.CELL_COUNT:
+				return grid
+	return ""
 
 func _on_load_game_slot_selected(game_id: String) -> void:
 	var state := SaveManager.load_game_slot(game_id)

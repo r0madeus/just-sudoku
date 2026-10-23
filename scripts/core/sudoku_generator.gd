@@ -72,6 +72,24 @@ const LEVEL_ORDER: Array[String] = [
 	DifficultyAnalyzer.LEVEL_EXPERT
 ]
 
+## Medium, Hard and Expert come from a bank of puzzles generated and rated ahead of time
+## (tools/build_puzzle_bank.gd), each shown in a disguise drawn from the seed (_disguise). Live
+## generation of these levels takes seconds on a desktop and longer on a phone, and at Expert it
+## must reject most candidates; a bank puzzle is ready at once and already known to be at its
+## level and solvable without guessing. Easy is quick to generate and stays live.
+const BANK_LEVELS: Array[String] = [
+	DifficultyAnalyzer.LEVEL_MEDIUM,
+	DifficultyAnalyzer.LEVEL_HARD,
+	DifficultyAnalyzer.LEVEL_EXPERT
+]
+const BANK_DIR: String = "res://assets/puzzles/"
+## Keeps bank picks independent of the live generator's use of the same seed
+const BANK_SALT: int = 0x5EED_BA4C
+## Disguises tried before falling back to live generation (the rating very rarely changes)
+const BANK_TRIES: int = 4
+static var _banks: Dictionary = {}
+static var _bank_lock := Mutex.new()
+
 ## One independent generation attempt; attempts only depend on (seed, attempt index), which is
 ## what lets them run in parallel and still reproduce the sequential result exactly.
 class AttemptResult extends RefCounted:
@@ -86,12 +104,29 @@ class StopFlag extends RefCounted:
 static func default_worker_count() -> int:
 	return clampi(OS.get_processor_count() - 1, 1, MAX_WORKERS)
 
-## Generates a puzzle deterministically for the given seed and difficulty.
+## Generates a puzzle deterministically for the given seed and difficulty: from the bank for
+## the levels it holds, live otherwise (see generate_live).
 ## Attempt k draws its own RNG stream from (seed, k). A puzzle is only accepted when the
 ## analyzer rates it at the requested level; if no attempt matches, the attempt closest to the
 ## target is returned with its true score. With workers > 1 the attempts run in batches on
 ## the worker thread pool; the result is identical to workers = 1, only faster.
 static func generate(
+	seed_val: int,
+	target_difficulty: String = DifficultyAnalyzer.LEVEL_MEDIUM,
+	is_cancelled_callback: Callable = Callable(),
+	workers: int = 1
+) -> GeneratedPuzzle:
+	if BANK_LEVELS.has(target_difficulty):
+		if is_cancelled_callback.is_valid() and is_cancelled_callback.call():
+			return null
+		var banked := _from_bank(seed_val, target_difficulty)
+		if banked != null:
+			return banked
+	return generate_live(seed_val, target_difficulty, is_cancelled_callback, workers)
+
+## The generator itself: carving and steering until the analyzer rates the puzzle at the level.
+## Builds the puzzle bank, and serves Easy and any level whose bank is missing.
+static func generate_live(
 	seed_val: int,
 	target_difficulty: String = DifficultyAnalyzer.LEVEL_MEDIUM,
 	is_cancelled_callback: Callable = Callable(),
@@ -194,7 +229,100 @@ static func _run_attempt(
 	gen.estimated_seconds = analysis.estimated_seconds
 	gen.top_techniques = analysis.top_techniques
 	out.puzzle = gen
-	out.distance = absi(LEVEL_ORDER.find(analysis.level) - LEVEL_ORDER.find(target_difficulty))
+	out.distance = absi(_level_index(analysis) - LEVEL_ORDER.find(target_difficulty))
+
+## A playable puzzle from an 81-character grid ("." or "0" for empty): rated, solved and
+## carrying `seed_val`. Null when the grid has no solution. Uniqueness is the caller's to check.
+static func from_grid(flat: String, seed_val: int) -> GeneratedPuzzle:
+	var board := SudokuBoard.new()
+	board.from_string_flat(flat, true)
+	var solution := SudokuSolver.solve_fast(board)
+	if solution == null:
+		return null
+	var analysis := DifficultyAnalyzer.analyze(board)
+	var gen := GeneratedPuzzle.new()
+	gen.puzzle = board
+	gen.solution = solution
+	gen.seed_value = seed_val
+	gen.difficulty = analysis.level
+	gen.difficulty_score = analysis.difficulty_score
+	gen.estimated_seconds = analysis.estimated_seconds
+	gen.top_techniques = analysis.top_techniques
+	return gen
+
+## The bank's puzzles for a level, read once (generation runs on worker threads, hence the lock)
+static func bank(level: String) -> PackedStringArray:
+	_bank_lock.lock()
+	if not _banks.has(level):
+		var list := PackedStringArray()
+		var text := FileAccess.get_file_as_string(BANK_DIR + level.to_lower() + ".txt")
+		for line in text.split("\n", false):
+			line = line.strip_edges()
+			if line.length() == SudokuBoard.CELL_COUNT:
+				list.append(line)
+		_banks[level] = list
+	var out: PackedStringArray = _banks[level]
+	_bank_lock.unlock()
+	return out
+
+## A bank puzzle for the seed, disguised, checked and solved; null when the bank is empty or no
+## disguise kept the level
+static func _from_bank(seed_val: int, level: String) -> GeneratedPuzzle:
+	var puzzles := bank(level)
+	if puzzles.is_empty():
+		return null
+	var rng := DeterministicRNG.new(_attempt_seed(seed_val ^ BANK_SALT, 0))
+	for _try in range(BANK_TRIES):
+		var flat := _disguise(puzzles[rng.next_range(0, puzzles.size() - 1)], rng)
+		var puzzle := SudokuBoard.new()
+		puzzle.from_string_flat(flat, true)
+		var analysis := _analyze(puzzle)
+		if not analysis.solved_logically or analysis.level != level:
+			continue
+		var solution := SudokuSolver.solve_fast(puzzle)
+		if solution == null:
+			continue
+		var gen := GeneratedPuzzle.new()
+		gen.puzzle = puzzle
+		gen.solution = solution
+		gen.seed_value = seed_val
+		gen.difficulty = level
+		gen.difficulty_score = analysis.difficulty_score
+		gen.estimated_seconds = analysis.estimated_seconds
+		gen.top_techniques = analysis.top_techniques
+		return gen
+	return null
+
+## The same puzzle in another guise: digits relabelled, the bands, stacks and the rows and
+## columns inside them shuffled, and maybe mirrored on the diagonal. Every deduction carries over
+## unchanged, so the solution stays unique and the difficulty the same, while the grid looks new.
+static func _disguise(flat: String, rng: DeterministicRNG) -> String:
+	var digits: Array = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+	rng.shuffle_array(digits)
+	var rows := _line_order(rng)
+	var cols := _line_order(rng)
+	var mirror: bool = rng.next_range(0, 1) == 1
+	var out := PackedStringArray()
+	out.resize(SudokuBoard.CELL_COUNT)
+	for r in range(9):
+		for c in range(9):
+			var src: int = cols[c] * 9 + rows[r] if mirror else rows[r] * 9 + cols[c]
+			var ch: String = flat[src]
+			out[r * 9 + c] = str(digits[ch.to_int() - 1]) if ch >= "1" and ch <= "9" else "."
+	return "".join(out)
+
+## A shuffled order of the 9 rows (or columns): the three bands in some order, and the three
+## lines inside each band in some order, which is what keeps every box a box
+static func _line_order(rng: DeterministicRNG) -> Array[int]:
+	var bands: Array = [0, 1, 2]
+	rng.shuffle_array(bands)
+	var order: Array[int] = []
+	for b in bands:
+		var inner: Array = [0, 1, 2]
+		rng.shuffle_array(inner)
+		for i in inner:
+			order.append(int(b) * 3 + int(i))
+	return order
 
 static func _attempt_seed(seed_val: int, attempt: int) -> int:
 	# Golden-ratio stride spreads consecutive attempts across the RNG state space
@@ -222,7 +350,7 @@ static func _steer_to_level(
 	for _step in range(STEER_ITERATIONS):
 		if is_cancelled_callback.is_valid() and is_cancelled_callback.call():
 			return null
-		var delta: int = LEVEL_ORDER.find(analysis.level) - target_idx
+		var delta: int = _level_index(analysis) - target_idx
 		if delta == 0:
 			break
 
@@ -255,7 +383,7 @@ static func _steer_to_level(
 				puzzle.set_cell(idx, saved, false)
 				if tried >= STEER_CANDIDATES:
 					break
-				if best_analysis != null and LEVEL_ORDER.find(best_analysis.level) == target_idx:
+				if best_analysis != null and _level_index(best_analysis) == target_idx:
 					break
 			if best_idx == -1:
 				break
@@ -279,7 +407,7 @@ static func _steer_to_level(
 					give_idx = idx
 					give_analysis = cand
 				checked += 1
-				if checked >= STEER_CANDIDATES or LEVEL_ORDER.find(give_analysis.level) == target_idx:
+				if checked >= STEER_CANDIDATES or _level_index(give_analysis) == target_idx:
 					break
 			puzzle.set_cell(give_idx, solution.get_cell(give_idx), false)
 			puzzle.set_meta(META_MINIMAL, false)
@@ -299,8 +427,8 @@ static func _is_harder_candidate(
 ) -> bool:
 	if best == null:
 		return true
-	var cl: int = LEVEL_ORDER.find(cand.level)
-	var bl: int = LEVEL_ORDER.find(best.level)
+	var cl: int = _level_index(cand)
+	var bl: int = _level_index(best)
 	if cl == target_idx or bl == target_idx:
 		return cl == target_idx and bl != target_idx
 	if (cl < target_idx) != (bl < target_idx):
@@ -318,8 +446,8 @@ static func _is_closer_from_above(
 ) -> bool:
 	if best == null:
 		return true
-	var cl: int = LEVEL_ORDER.find(cand.level)
-	var bl: int = LEVEL_ORDER.find(best.level)
+	var cl: int = _level_index(cand)
+	var bl: int = _level_index(best)
 	if cl == target_idx or bl == target_idx:
 		return cl == target_idx and bl != target_idx
 	if (cl > target_idx) != (bl > target_idx):
@@ -327,6 +455,12 @@ static func _is_closer_from_above(
 	if cl > target_idx:
 		return cl < bl
 	return cl > bl
+
+## Where a puzzle sits on LEVEL_ORDER. One the solver cannot finish with the techniques it knows
+## counts as above Expert: it may need guessing, its real difficulty is unknown and a hint could
+## only reveal a digit there, so every level, Expert included, is steered away from it.
+static func _level_index(a: DifficultyAnalyzer.AnalysisResult) -> int:
+	return LEVEL_ORDER.find(a.level) if a.solved_logically else LEVEL_ORDER.size()
 
 static func _total_weight(a: DifficultyAnalyzer.AnalysisResult) -> int:
 	var w: int = 0

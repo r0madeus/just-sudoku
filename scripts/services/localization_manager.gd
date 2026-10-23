@@ -83,7 +83,11 @@ static var DICTIONARY_EN: Dictionary = {
 	"EXPL_X_WING_COLS": "The %d candidates in columns %d and %d form an X-Wing, so %d is removed from the rest of rows %d and %d.",
 	"EXPL_XY_WING": "%s (pivot) with %s and %s (wings) form an XY-Wing, so %d is removed from cells that see both wings.",
 	"EXPL_XYZ_WING": "With %s as the pivot, an XYZ-Wing removes %d from the cells that see all three.",
+	"EXPL_SIMPLE_COLORING_WRAP": "Following the cells where %d has only two places, two cells of the same colour meet in one unit, so that colour is wrong and %d is removed from all its cells.",
+	"EXPL_SIMPLE_COLORING_TRAP": "Following the cells where %d has only two places, one colour of the chain must be %d, so a cell that sees both colours cannot be it.",
+	"EXPL_XY_CHAIN": "A chain of two-candidate cells from %s to %s means one of them is %d, so %d is removed from the cells that see both.",
 	"EXPL_SWORDFISH": "The %d candidates in rows %d, %d and %d form a Swordfish, so the other candidates in those columns are removed.",
+	"EXPL_SWORDFISH_COLS": "The %d candidates in columns %d, %d and %d form a Swordfish, so the other candidates in those rows are removed.",
 	"HINT_FOCUS_TEXT": "Look closely at this area: %s. The next logical step is there.\n\nNeed more? The next level names the technique.",
 	"HINT_SHOW_TECHNIQUE": "Show Technique",
 	"WIN_DIALOG_TITLE": "Puzzle Solved!",
@@ -166,6 +170,8 @@ static var DICTIONARY_EN: Dictionary = {
 	"TECH_SWORDFISH": "Swordfish",
 	"TECH_XY_WING": "XY-Wing",
 	"TECH_XYZ_WING": "XYZ-Wing",
+	"TECH_SIMPLE_COLORING": "Simple Coloring",
+	"TECH_XY_CHAIN": "XY-Chain",
 	"TECH_BACKTRACKING": "Direct Solution",
 	"Full House": "Full House",
 	"Naked Single": "Naked Single",
@@ -398,7 +404,11 @@ static var DICTIONARY_TR: Dictionary = {
 	"EXPL_X_WING_COLS": "%d adayları %d. ve %d. sütunda X-Wing oluşturuyor; bu yüzden %d adayı %d. ve %d. satırların geri kalanından silinir.",
 	"EXPL_XY_WING": "%s (pivot) ile %s ve %s (kanatlar) XY-Wing oluşturuyor; iki kanadı da gören hücrelerden %d silinir.",
 	"EXPL_XYZ_WING": "%s hücresi pivot olan bir XYZ-Wing, üçünü de gören hücrelerden %d sayısını siler.",
+	"EXPL_SIMPLE_COLORING_WRAP": "%d adayının yalnızca iki yerde olabildiği hücreler izlendiğinde aynı renkten iki hücre aynı birimde buluşuyor; o renk yanlış, %d adayı o rengin bütün hücrelerinden silinir.",
+	"EXPL_SIMPLE_COLORING_TRAP": "%d adayının yalnızca iki yerde olabildiği hücreler izlendiğinde zincirin bir rengi %d olmalı; iki rengi de gören bir hücre bu sayı olamaz.",
+	"EXPL_XY_CHAIN": "%s hücresinden %s hücresine giden iki adaylı hücre zinciri, ikisinden birinin %d olduğunu gösterir; bu yüzden %d ikisini de gören hücrelerden silinir.",
 	"EXPL_SWORDFISH": "%d adayları %d., %d. ve %d. satırda Swordfish oluşturuyor; bu sütunlardaki diğer adaylar silinir.",
+	"EXPL_SWORDFISH_COLS": "%d adayları %d., %d. ve %d. sütunda Swordfish oluşturuyor; bu satırlardaki diğer adaylar silinir.",
 	"HINT_FOCUS_TEXT": "Şu bölgeye dikkatlice bak: %s. Sıradaki mantıksal adım orada.\n\nDaha fazlası gerekirse sonraki kademe tekniği söyler.",
 	"HINT_SHOW_TECHNIQUE": "Tekniği Göster",
 	"WIN_DIALOG_TITLE": "Bulmaca Çözüldü!",
@@ -478,6 +488,8 @@ static var DICTIONARY_TR: Dictionary = {
 	"TECH_SWORDFISH": "Swordfish",
 	"TECH_XY_WING": "XY-Wing",
 	"TECH_XYZ_WING": "XYZ-Wing",
+	"TECH_SIMPLE_COLORING": "Basit Boyama",
+	"TECH_XY_CHAIN": "XY-Zinciri",
 	"TECH_BACKTRACKING": "Doğrudan Çözüm",
 	"Full House": "Son Hücre",
 	"Naked Single": "Açık Tekli",
@@ -742,6 +754,10 @@ static func get_technique_title(tech: String) -> String:
 			return translate("TECH_XY_WING")
 		"XYZ-Wing":
 			return translate("TECH_XYZ_WING")
+		"Simple Coloring":
+			return translate("TECH_SIMPLE_COLORING")
+		"XY-Chain":
+			return translate("TECH_XY_CHAIN")
 		"Logical Guess / Backtracking", "Solution Hint", "Advanced Logical Deduction":
 			return translate("TECH_BACKTRACKING")
 		_:
