@@ -17,7 +17,7 @@ GODOT=/godot/yolu python3 tools/mutation_audit.py M05 M14  # seçilenler
 
 Her "mutasyon", oyunun koduna bilerek küçük bir hata koyar (ör. "hatalar puanı düşürmesin"), tüm testleri çalıştırır ve kodu geri yükler. En az bir test kırılırsa hata **yakalanmıştır**; hiçbiri kırılmazsa o davranışı koruyan test yoktur. Kod değişip bir mutasyonun metni artık bulunamazsa araç bunu `STALE` olarak bildirir; listeyi güncel tutmak gerekir.
 
-Yeni bir özellik ya da hata düzeltmesi testiyle gelir. Testi yazdıktan sonra, korduğu davranışı bilerek bozup testin kırıldığını görmek, testin işe yaradığının kanıtıdır.
+Yeni bir özellik ya da hata düzeltmesi testiyle gelir. Testi yazdıktan sonra, koruduğu davranışı bilerek bozup testin kırıldığını görmek, testin işe yaradığının kanıtıdır.
 
 ## Son denetim
 
