@@ -44,6 +44,7 @@ Bir sorun görürsen telefonun modelini, Android sürümünü ve ne yaptığınd
 - [ ] Ayarlar → Veriler → Yedekle → Dosya olarak kaydet: sistemin dosya seçicisi açılıyor, yedek seçilen klasöre (ör. İndirilenler, Drive) kaydediliyor.
 - [ ] Birkaç oyun daha oyna, sonra Geri yükle → Dosya aç ile aynı yedeği seç: geçmiş, istatistikler ve ayarlar yedekteki hâline dönüyor; yarım kalan oyun da.
 - [ ] Panoya kopyala / Panodan yapıştır ile de aynısı oluyor.
+- [ ] Ana menüde Günün Sudokusu'nun yanındaki takvim düğmesi arşivi açıyor; geçmiş bir güne dokununca o günün bulmacası açılıyor, yarıda bırakılınca takvimde "Başlandı" görünüyor, bitince "Sonradan çözüldü" oluyor ve seri değişmiyor.
 - [ ] Oyundayken Duraklat → Ayarlar'dan geri yükleyip geri çıkınca menüye dönülüyor, eski oyun yedeğin üstüne kaydedilmiyor.
 
 **Tablet (varsa)**

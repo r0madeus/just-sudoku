@@ -30,6 +30,9 @@ var multi_cells: Array[int] = []
 var multi_select_enabled: bool = true
 ## Digit whose cells are highlighted instead of the selected cell's (digit-first input), 0 for none
 var highlight_digit: int = 0
+## Candidates drawn struck through, cell index -> digit bitmask (a lesson showing what a technique
+## removes); empty in a game
+var strike_marks: Dictionary = {}
 
 var _pressing: bool = false
 
@@ -206,6 +209,10 @@ func set_highlight_digit(digit: int) -> void:
 	highlight_digit = digit
 	refresh_highlights()
 
+func set_strike_marks(marks: Dictionary) -> void:
+	strike_marks = marks
+	refresh_highlights()
+
 func move_selection(d_row: int, d_col: int) -> void:
 	if selected_idx == -1:
 		select_cell(0)
@@ -249,6 +256,7 @@ func refresh_highlights() -> void:
 		var is_wrong: bool = game_state.checked_wrong_indices.has(idx)
 
 		cells[idx].mark_color = game_state.get_cell_color(idx)
+		cells[idx].strike_mask = int(strike_marks.get(idx, 0))
 		cells[idx].set_cell_data(val, is_given, cands, is_sel, is_peer, is_same, is_conf, is_wrong)
 
 	if lines_overlay != null:

@@ -20,7 +20,7 @@
 **Puzzles**
 - Four levels (Easy, Medium, Hard, Expert), rated by the techniques a person needs to solve them: from Naked Singles to X-Wing, Swordfish, XYZ-Wing, Simple Coloring and XY-Chain. Every puzzle has exactly one solution and can be solved by logic alone, without guessing, so a hint can always explain the next step.
 - A new puzzle opens at once. Medium, Hard and Expert come from a bank of puzzles rated in advance, each shown in a different disguise (digits relabelled, rows and columns shuffled), which keeps its difficulty exactly.
-- **Daily Sudoku**: the same puzzle for everyone each day, with a streak.
+- **Daily Sudoku**: the same puzzle for everyone each day, with a streak. A calendar keeps the last year: play any day you missed (only days solved on the day count for the streak).
 - Replay any puzzle from your history, or share it as a number or an 81-character code and import someone else's.
 
 **Solving**
@@ -28,6 +28,7 @@
 - Undo and redo, a number pad that dims the digits that cannot go in the selected cell, and clash highlighting.
 - Your way of entering digits: pick the cell first or the digit first, drag over several cells to note a digit in all of them at once, and mark cells with nine colours.
 - Hints in three steps: where to look, which technique, then the move itself. A step-by-step solution viewer when you are stuck.
+- A **Techniques guide**: every technique the levels are rated by, explained in plain words and shown on a real board, with the move played for you and practice puzzles that need it.
 - Check the board, or have wrong digits shown as you place them.
 
 **Progress**
@@ -73,7 +74,7 @@ The Android build uses a Godot export template built with only what the game nee
 GODOT=/path/to/godot tools/run_tests.sh
 ```
 
-Runs all 46 test suites, four at a time, each with its own empty save folder (under a minute). They also run on every pull request. [docs/testing.md](docs/testing.md) explains them, and how `tools/mutation_audit.py` checks that the tests really catch mistakes: it breaks 36 behaviours one at a time and all 36 are caught.
+Runs all 48 test suites, four at a time, each with its own empty save folder (under a minute). They also run on every pull request. [docs/testing.md](docs/testing.md) explains them, and how `tools/mutation_audit.py` checks that the tests really catch mistakes: it breaks 41 behaviours one at a time and all 41 are caught.
 
 ## Project layout
 

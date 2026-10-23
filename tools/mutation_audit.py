@@ -28,7 +28,7 @@ MUTATIONS = [
  ("M16", "scripts/data/achievement_manager.gd", "\t\tif r.get(\"assisted\", false):\n\t\t\tcontinue", "\t\tif false:\n\t\t\tcontinue", "A shown solution earns achievements"),
  ("M17", "scripts/services/theme_manager.gd", "\treturn roundi(px * (1.0 + (text_scale - 1.0) * weight))", "\treturn roundi(px)", "Text size setting does nothing"),
  ("M18", "scenes/gameplay/sudoku_cell.gd", "\t\tvar marked: bool = is_conflict or is_wrong", "\t\tvar marked: bool = false", "Wrong digits lose their shape mark"),
- ("M19", "scenes/gameplay/game_screen.gd", "\t\tDailyManager.mark_today_completed()\n", "\t\tpass\n", "Solving the Daily does not mark the day"),
+ ("M19", "scenes/gameplay/game_screen.gd", "\t\tDailyManager.mark_completed(daily_date)\n", "\t\tpass\n", "Solving the Daily does not mark the day"),
  ("M20", "scenes/gameplay/game_screen.gd", "\tHistoryManager.add_record(summary)\n", "\tpass\n", "A finished game is not recorded"),
  ("M21", "scenes/menus/settings_screen.gd", "\t\tfile.store_string(JSON.stringify(data, \"\\t\"))\n\t\tfile.close()\n\t_notify_listeners()", "\t\tfile.close()\n\t_notify_listeners()", "Settings are not saved"),
  ("M22", "scripts/gameplay/game_state.gd", "\t\t\tset_number(step.cells[0], step.digit, true)", "\t\t\tset_number(step.cells[0], step.digit % 9 + 1, true)", "A hint places the wrong digit"),
@@ -46,6 +46,11 @@ MUTATIONS = [
  ("M34", "scripts/data/backup_manager.gd", "if part.is_empty() or part == \".\" or part == \"..\":", "if false:", "A backup can write outside the save folder"),
  ("M35", "scenes/app_root.gd", "\tgame_screen.close_game()\n", "", "The game left open saves over a restore"),
  ("M36", "scripts/data/backup_manager.gd", "\t_remove_json(SAVES_DIR)\n", "", "A restore keeps files the backup does not have"),
+ ("M37", "scripts/data/daily_manager.gd", "\tif date_str == get_today_date_string():\n\t\tmark_today_completed()", "\tif true:\n\t\tmark_today_completed()", "An archive day counts as today's Daily"),
+ ("M38", "scripts/data/daily_manager.gd", "if last.is_empty() or days_between(last, get_today_date_string()) > 1:", "if last.is_empty():", "A broken streak still shows as going"),
+ ("M39", "scripts/data/daily_manager.gd", "for back in range(ARCHIVE_DAYS):", "for back in range(1):", "Past Dailies are not known as Dailies"),
+ ("M40", "scenes/menus/techniques_screen.gd", "\t\tTechniqueLibrary.apply_step(board, current_step)\n", "\t\tpass\n", "A technique lesson's Show the move changes nothing"),
+ ("M41", "scenes/menus/techniques_screen.gd", "\tvar puzzles := TechniqueLibrary.practice(current_technique)\n", "\tvar puzzles := TechniqueLibrary.practice(TechniqueLibrary.ORDER[0])\n", "Practice starts a puzzle for another technique"),
 ]
 
 def main():

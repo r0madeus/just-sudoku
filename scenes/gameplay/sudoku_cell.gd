@@ -25,6 +25,9 @@ var is_wrong: bool = false
 var candidates_mask: int = 0
 ## Player's colour for this cell, 0 for none (set before set_cell_data)
 var mark_color: int = 0
+## Notes drawn struck through in the warning colour (candidate bitmask): the ones a lesson on the
+## Techniques screen is about to remove. 0 in a game.
+var strike_mask: int = 0
 
 var bg_panel: PanelContainer
 var bg_style: StyleBoxFlat
@@ -50,6 +53,9 @@ class NotesView extends Control:
 	var mask: int = 0
 	var color: Color = Color.WHITE
 	var font_size: int = 10
+	## Notes in the mask drawn in strike_color with a line through them (shape, not colour alone)
+	var strike_mask: int = 0
+	var strike_color: Color = Color.RED
 
 	func _notification(what: int) -> void:
 		# A new font (Settings) arrives as a theme change
@@ -71,7 +77,14 @@ class NotesView extends Control:
 			var row: int = (d - 1) / 3
 			# Centred in its third of the cell the way a Label centres its line
 			var baseline := Vector2(col * cw, row * ch + (ch - line_h) * 0.5 + ascent)
-			draw_string(font, baseline, str(d), HORIZONTAL_ALIGNMENT_CENTER, cw, font_size, color)
+			if strike_mask & (1 << d) == 0:
+				draw_string(font, baseline, str(d), HORIZONTAL_ALIGNMENT_CENTER, cw, font_size, color)
+				continue
+			draw_string(font, baseline, str(d), HORIZONTAL_ALIGNMENT_CENTER, cw, font_size, strike_color)
+			var half: float = font.get_string_size(str(d), HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x * 0.75
+			var mid_y: float = baseline.y - ascent * 0.35
+			draw_line(Vector2(col * cw + cw * 0.5 - half, mid_y), Vector2(col * cw + cw * 0.5 + half, mid_y),
+				strike_color, maxf(1.0, font_size * 0.12))
 
 ## A bar under a wrong or clashing digit: the error shows by shape too, not by colour alone
 ## (red and the other digit colours are hard to tell apart with colour-blindness)
@@ -376,9 +389,13 @@ func _update_visuals() -> void:
 			num_label.text = ""
 		notes_view.visible = (candidates_mask != 0)
 		var note_col: Color = ThemeManager.get_color("text_notes")
-		if notes_view.mask != candidates_mask or notes_view.color != note_col:
+		var strike_col: Color = ThemeManager.get_color("text_wrong")
+		if notes_view.mask != candidates_mask or notes_view.color != note_col \
+				or notes_view.strike_mask != strike_mask or notes_view.strike_color != strike_col:
 			notes_view.mask = candidates_mask
 			notes_view.color = note_col
+			notes_view.strike_mask = strike_mask
+			notes_view.strike_color = strike_col
 			notes_view.queue_redraw()
 
 	_update_font_sizes()

@@ -15,7 +15,9 @@ var game_screen: GameScreen
 var load_game_screen: LoadGameScreen
 var history_screen: HistoryScreen
 var statistics_screen: StatisticsScreen
+var techniques_screen: TechniquesScreen
 var settings_screen: SettingsScreen
+var daily_archive_screen: DailyArchiveScreen
 var new_game_dialog: NewGameDialog
 var import_puzzle_dialog: ImportPuzzleDialog
 var custom_theme_dialog: CustomThemeDialog
@@ -24,6 +26,8 @@ var root_bg: ColorRect
 var current_screen: Control = null
 var _transition_tween: Tween = null
 var _previous_screen_before_settings: Control = null
+## Puzzle being made for an archive day, so a second tap does not start another
+var _archive_request: int = 0
 
 func _init() -> void:
 	SettingsScreen.load_config()
@@ -105,6 +109,10 @@ func handle_back() -> void:
 		history_screen.back_requested.emit()
 	elif current_screen == statistics_screen:
 		statistics_screen.back_requested.emit()
+	elif current_screen == daily_archive_screen:
+		daily_archive_screen.back_requested.emit()
+	elif current_screen == techniques_screen:
+		techniques_screen.handle_back()
 	elif current_screen == load_game_screen:
 		load_game_screen.back_requested.emit()
 	else:
@@ -139,6 +147,14 @@ func _instantiate_screens() -> void:
 	statistics_screen.visible = false
 	add_child(statistics_screen)
 
+	daily_archive_screen = DailyArchiveScreen.new()
+	daily_archive_screen.visible = false
+	add_child(daily_archive_screen)
+
+	techniques_screen = TechniquesScreen.new()
+	techniques_screen.visible = false
+	add_child(techniques_screen)
+
 	settings_screen = SettingsScreen.new()
 	settings_screen.visible = false
 	add_child(settings_screen)
@@ -158,9 +174,16 @@ func _connect_signals() -> void:
 	main_menu.new_game_requested.connect(func(): new_game_dialog.open_dialog())
 	main_menu.load_game_requested.connect(func(): load_game_screen.refresh_list(); _show_screen(load_game_screen))
 	main_menu.daily_sudoku_requested.connect(_on_daily_sudoku_requested)
+	main_menu.daily_archive_requested.connect(func():
+		daily_archive_screen.show_current_month()
+		_show_screen(daily_archive_screen)
+	)
+	daily_archive_screen.back_requested.connect(func(): main_menu.refresh_buttons(); _show_screen(main_menu))
+	daily_archive_screen.day_requested.connect(_open_daily_date)
 	# Build before showing: showing first would build it twice (on becoming visible, then here)
 	main_menu.history_requested.connect(func(): history_screen.refresh_history(); _show_screen(history_screen))
 	main_menu.statistics_requested.connect(func(): statistics_screen.refresh_stats(); _show_screen(statistics_screen))
+	main_menu.techniques_requested.connect(func(): techniques_screen.show_list(); _show_screen(techniques_screen))
 	main_menu.settings_requested.connect(func():
 		_previous_screen_before_settings = main_menu
 		_show_screen(settings_screen)
@@ -187,6 +210,8 @@ func _connect_signals() -> void:
 	history_screen.back_requested.connect(func(): _show_screen(main_menu))
 	history_screen.replay_requested.connect(_on_history_replay_requested)
 	statistics_screen.back_requested.connect(func(): _show_screen(main_menu))
+	techniques_screen.back_requested.connect(func(): _show_screen(main_menu))
+	techniques_screen.practice_requested.connect(_on_new_puzzle_generated)
 	settings_screen.back_requested.connect(func():
 		if _previous_screen_before_settings != null:
 			var prev: Control = _previous_screen_before_settings
@@ -200,7 +225,7 @@ func _show_screen(target: Control) -> void:
 	if target == null:
 		return
 
-	var screens := [main_menu, game_screen, load_game_screen, history_screen, statistics_screen, settings_screen]
+	var screens := [main_menu, game_screen, load_game_screen, history_screen, statistics_screen, techniques_screen, settings_screen, daily_archive_screen]
 
 	if _transition_tween != null and _transition_tween.is_valid():
 		_transition_tween.kill()
@@ -323,6 +348,39 @@ func _on_daily_sudoku_requested() -> void:
 				var state := GameState.new()
 				state.init_from_puzzle(gen)
 				DailyManager.save_today_game(state)
+				SaveManager.save_active_game(state)
+				_start_game_session(state)
+	)
+
+## A day picked in the archive: its saved game if there is one, else its puzzle, fresh
+func _open_daily_date(date_str: String) -> void:
+	if date_str == DailyManager.get_today_date_string():
+		_on_daily_sudoku_requested()
+		return
+	if not DailyManager.is_in_archive(date_str) or _archive_request != 0:
+		return
+	var seed_val := DailyManager.get_seed_for_date_string(date_str)
+	var saved := DailyManager.load_daily_game(date_str)
+	if saved != null and saved.seed_value == seed_val:
+		if not saved.is_completed:
+			SaveManager.save_active_game(saved)
+		_start_game_session(saved)
+		return
+	if SaveManager.has_active_game():
+		var active := SaveManager.load_active_game()
+		if active != null and active.seed_value == seed_val:
+			DailyManager.save_daily_game(active, date_str)
+			_start_game_session(active)
+			return
+	_archive_request = AsyncPuzzleGenerator.request_puzzle_async(
+		seed_val,
+		DifficultyAnalyzer.LEVEL_MEDIUM,
+		func(gen: SudokuGenerator.GeneratedPuzzle):
+			_archive_request = 0
+			if gen != null:
+				var state := GameState.new()
+				state.init_from_puzzle(gen)
+				DailyManager.save_daily_game(state, date_str)
 				SaveManager.save_active_game(state)
 				_start_game_session(state)
 	)

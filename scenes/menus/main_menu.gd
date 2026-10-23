@@ -16,9 +16,12 @@ signal continue_pressed()
 signal new_game_requested()
 signal load_game_requested()
 signal daily_sudoku_requested()
+## The calendar of past Dailies
+signal daily_archive_requested()
 signal history_requested()
 signal statistics_requested()
 signal settings_requested()
+signal techniques_requested()
 
 const AmbientBackdrop = preload("res://scenes/ui/ambient_backdrop.gd")
 const GlassPanel = preload("res://scenes/ui/glass_panel.gd")
@@ -49,7 +52,8 @@ var new_game_btn: Button
 
 # 3. Daily Sudoku Strip (Distinct & Restrained)
 var daily_panel: PanelContainer
-var daily_icon_tex: TextureRect
+## Calendar icon at the start of the Daily strip; opens the archive
+var daily_archive_btn: Button
 var daily_title_label: Label
 var daily_meta_label: Label
 var daily_btn: Button
@@ -61,9 +65,11 @@ var load_game_btn: Button
 var nav_section_vbox: VBoxContainer
 var nav_separator: HSeparator
 var nav_glass: GlassPanel
-var nav_hbox: HBoxContainer
+## The navigation buttons: one row, or two rows of two where one row cannot fit them
+var nav_grid: GridContainer
 var history_btn: Button
 var stats_btn: Button
+var techniques_btn: Button
 var settings_btn: Button
 
 # Backwards compatibility reference
@@ -113,12 +119,53 @@ func _apply_responsive_layout() -> void:
 	var vp := ResponsiveManager.get_viewport_size(self)
 	if resume_card != null:
 		resume_card.set_compact(vp.y < 720.0)
-	# Narrow phones: the navigation labels alone fit, with the icons they would overflow
-	var narrow: bool = vp.x < 400.0
-	if history_btn != null:
-		history_btn.icon = null if narrow else ThemeManager.get_icon("rotate-ccw")
-		stats_btn.icon = null if narrow else ThemeManager.get_icon("chart-column-big")
-		settings_btn.icon = null if narrow else ThemeManager.get_icon("settings")
+	_fit_nav_buttons()
+
+func _nav_buttons() -> Array[Button]:
+	return [history_btn, stats_btn, techniques_btn, settings_btn]
+
+## Fits the four navigation buttons on the screen, whatever the language, text size and screen:
+## the roomiest look that fits wins, from icons beside the labels down to labels with less padding
+## in a smaller size, and at last two rows of two. Measured from the buttons themselves, as the
+## labels differ per language.
+func _fit_nav_buttons() -> void:
+	if history_btn == null or not is_inside_tree():
+		return
+	var room: float = ResponsiveManager.get_viewport_size(self).x - 2.0 * SHADOW_PAD
+	if margin_container != null:
+		room -= margin_container.get_theme_constant("margin_left") + margin_container.get_theme_constant("margin_right")
+	room -= nav_glass.get_combined_minimum_size().x - nav_grid.get_combined_minimum_size().x
+	var looks: Array[Dictionary] = [
+		{"icons": true, "pad": -1, "font": 13.0, "gap": 8, "columns": 4},
+		{"icons": false, "pad": -1, "font": 13.0, "gap": 8, "columns": 4},
+		{"icons": false, "pad": 6, "font": 13.0, "gap": 4, "columns": 4},
+		{"icons": false, "pad": 6, "font": 12.0, "gap": 4, "columns": 4},
+		{"icons": false, "pad": -1, "font": 13.0, "gap": 8, "columns": 2},
+	]
+	# A side-by-side layout has the room, and a wide window must not change the phone look
+	var last: int = 0 if is_wide else looks.size() - 1
+	for i in range(looks.size()):
+		_set_nav_look(looks[i])
+		if i >= last or nav_grid.get_combined_minimum_size().x <= room:
+			break
+
+func _set_nav_look(look: Dictionary) -> void:
+	var icon_names := ["rotate-ccw", "chart-column-big", "lightbulb", "settings"]
+	nav_grid.columns = look["columns"]
+	nav_grid.add_theme_constant_override("h_separation", look["gap"])
+	var buttons := _nav_buttons()
+	for i in range(buttons.size()):
+		var btn: Button = buttons[i]
+		btn.icon = ThemeManager.get_icon(icon_names[i]) if look["icons"] else null
+		ThemeManager.set_font_size(btn, look["font"])
+		# The theme's styleboxes, with less padding at the sides when the row is short of room
+		for state in ["normal", "hover", "pressed", "disabled"]:
+			btn.remove_theme_stylebox_override(state)
+			if look["pad"] >= 0:
+				var sb: StyleBox = btn.get_theme_stylebox(state).duplicate()
+				sb.content_margin_left = look["pad"]
+				sb.content_margin_right = look["pad"]
+				btn.add_theme_stylebox_override(state, sb)
 
 ## Moves the resume card and the actions between the single column and the two-column row.
 ## Only their parents change; the order within the single column is the original one.
@@ -294,12 +341,15 @@ func _build_ui() -> void:
 	daily_hbox.add_theme_constant_override("separation", 12)
 	daily_panel.add_child(daily_hbox)
 
-	daily_icon_tex = TextureRect.new()
-	daily_icon_tex.texture = ThemeManager.get_icon("clock-3")
-	daily_icon_tex.custom_minimum_size = Vector2(20, 20)
-	daily_icon_tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	daily_icon_tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	daily_hbox.add_child(daily_icon_tex)
+	daily_archive_btn = Button.new()
+	daily_archive_btn.theme_type_variation = "IconButton"
+	daily_archive_btn.icon = ThemeManager.get_icon("calendar")
+	daily_archive_btn.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	daily_archive_btn.add_theme_constant_override("icon_max_width", 20)
+	daily_archive_btn.custom_minimum_size = Vector2(ResponsiveManager.TOUCH_TARGET_MIN, ResponsiveManager.TOUCH_TARGET_MIN)
+	daily_archive_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	daily_archive_btn.pressed.connect(func(): daily_archive_requested.emit())
+	daily_hbox.add_child(daily_archive_btn)
 
 	var daily_info_vbox := VBoxContainer.new()
 	daily_info_vbox.size_flags_horizontal = SIZE_EXPAND_FILL
@@ -410,11 +460,12 @@ func _build_ui() -> void:
 	nav_glass.size_flags_horizontal = SIZE_EXPAND_FILL
 	nav_section_vbox.add_child(nav_glass)
 
-	nav_hbox = HBoxContainer.new()
-	nav_hbox.size_flags_horizontal = SIZE_EXPAND_FILL
-	nav_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	nav_hbox.add_theme_constant_override("separation", 8)
-	nav_glass.add_child(nav_hbox)
+	nav_grid = GridContainer.new()
+	nav_grid.columns = 4
+	nav_grid.size_flags_horizontal = SIZE_EXPAND_FILL
+	nav_grid.add_theme_constant_override("h_separation", 8)
+	nav_grid.add_theme_constant_override("v_separation", 2)
+	nav_glass.add_child(nav_grid)
 
 	history_btn = Button.new()
 	history_btn.size_flags_horizontal = SIZE_EXPAND_FILL
@@ -425,7 +476,7 @@ func _build_ui() -> void:
 	ThemeManager.set_font_size(history_btn, 13)
 	history_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	history_btn.pressed.connect(func(): history_requested.emit())
-	nav_hbox.add_child(history_btn)
+	nav_grid.add_child(history_btn)
 
 	stats_btn = Button.new()
 	stats_btn.size_flags_horizontal = SIZE_EXPAND_FILL
@@ -436,7 +487,18 @@ func _build_ui() -> void:
 	ThemeManager.set_font_size(stats_btn, 13)
 	stats_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	stats_btn.pressed.connect(func(): statistics_requested.emit())
-	nav_hbox.add_child(stats_btn)
+	nav_grid.add_child(stats_btn)
+
+	techniques_btn = Button.new()
+	techniques_btn.size_flags_horizontal = SIZE_EXPAND_FILL
+	techniques_btn.custom_minimum_size = Vector2(0, 44)
+	techniques_btn.theme_type_variation = "GhostButton"
+	techniques_btn.icon = ThemeManager.get_icon("lightbulb")
+	techniques_btn.add_theme_constant_override("icon_max_width", 16)
+	ThemeManager.set_font_size(techniques_btn, 13)
+	techniques_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	techniques_btn.pressed.connect(func(): techniques_requested.emit())
+	nav_grid.add_child(techniques_btn)
 
 	settings_btn = Button.new()
 	settings_btn.size_flags_horizontal = SIZE_EXPAND_FILL
@@ -447,7 +509,7 @@ func _build_ui() -> void:
 	ThemeManager.set_font_size(settings_btn, 13)
 	settings_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	settings_btn.pressed.connect(func(): settings_requested.emit())
-	nav_hbox.add_child(settings_btn)
+	nav_grid.add_child(settings_btn)
 
 	wide_row = HBoxContainer.new()
 	wide_row.size_flags_horizontal = SIZE_EXPAND_FILL
@@ -463,6 +525,10 @@ func _build_ui() -> void:
 
 	_apply_theme_polish()
 
+## A new text size is on every label by now: the buttons may need another look
+func _on_text_size_changed() -> void:
+	_fit_nav_buttons()
+
 func _apply_theme_polish() -> void:
 	if title_label != null:
 		title_label.add_theme_color_override("font_color", ThemeManager.get_color("text_given"))
@@ -470,8 +536,6 @@ func _apply_theme_polish() -> void:
 		subtitle_label.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
 	if continue_meta_label != null:
 		continue_meta_label.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
-	if daily_icon_tex != null:
-		daily_icon_tex.modulate = ThemeManager.get_color("text_secondary")
 	if daily_title_label != null:
 		daily_title_label.add_theme_color_override("font_color", ThemeManager.get_color("text_given"))
 	if daily_meta_label != null:
@@ -480,6 +544,8 @@ func _apply_theme_polish() -> void:
 		history_btn.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
 	if stats_btn != null:
 		stats_btn.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
+	if techniques_btn != null:
+		techniques_btn.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
 	if settings_btn != null:
 		settings_btn.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
 
@@ -487,6 +553,7 @@ func _on_theme_changed() -> void:
 	if bg != null:
 		bg.color = ThemeManager.get_color("bg")
 	_apply_theme_polish()
+	_fit_nav_buttons()
 
 func _update_locale_texts() -> void:
 	var is_tr := (LocalizationManager.get_locale() == LocalizationManager.LOCALE_TR)
@@ -500,12 +567,17 @@ func _update_locale_texts() -> void:
 		new_game_btn.text = LocalizationManager.translate("BTN_NEW_GAME")
 	if daily_title_label != null:
 		daily_title_label.text = LocalizationManager.translate("BTN_DAILY_SUDOKU")
+	if daily_archive_btn != null:
+		daily_archive_btn.tooltip_text = LocalizationManager.translate("ARCHIVE_TITLE")
 	if load_game_btn != null:
 		load_game_btn.text = LocalizationManager.translate("BTN_LOAD_GAME")
 	if history_btn != null:
 		history_btn.text = LocalizationManager.translate("BTN_HISTORY")
 	if stats_btn != null:
 		stats_btn.text = LocalizationManager.translate("BTN_STATS")
+	if techniques_btn != null:
+		techniques_btn.text = LocalizationManager.translate("BTN_TECHNIQUES")
 	if settings_btn != null:
 		settings_btn.text = LocalizationManager.translate("BTN_SETTINGS")
+	_fit_nav_buttons()
 	refresh_buttons()
