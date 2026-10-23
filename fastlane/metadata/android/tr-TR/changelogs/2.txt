@@ -1,0 +1,1 @@
+Telefondaki gibi kaydırma; kaydırırken kutular işaretlenmiyor, listeler açılmıyor. Uygulamaya uyan açılır listeler. Dil ve temada telefonu takip eden Sistem seçeneği. Daha hızlı açılış; uygulamaya dönünce ekranın taşması düzeltildi. Duraklat simgesi, çözüm penceresi ve Ayarlar düzeltmeleri. Her başlatıcıya uyan yeni simge.
