@@ -15,6 +15,7 @@ var game_screen: GameScreen
 var load_game_screen: LoadGameScreen
 var history_screen: HistoryScreen
 var statistics_screen: StatisticsScreen
+var techniques_screen: TechniquesScreen
 var settings_screen: SettingsScreen
 var daily_archive_screen: DailyArchiveScreen
 var new_game_dialog: NewGameDialog
@@ -110,6 +111,8 @@ func handle_back() -> void:
 		statistics_screen.back_requested.emit()
 	elif current_screen == daily_archive_screen:
 		daily_archive_screen.back_requested.emit()
+	elif current_screen == techniques_screen:
+		techniques_screen.handle_back()
 	elif current_screen == load_game_screen:
 		load_game_screen.back_requested.emit()
 	else:
@@ -148,6 +151,10 @@ func _instantiate_screens() -> void:
 	daily_archive_screen.visible = false
 	add_child(daily_archive_screen)
 
+	techniques_screen = TechniquesScreen.new()
+	techniques_screen.visible = false
+	add_child(techniques_screen)
+
 	settings_screen = SettingsScreen.new()
 	settings_screen.visible = false
 	add_child(settings_screen)
@@ -176,6 +183,7 @@ func _connect_signals() -> void:
 	# Build before showing: showing first would build it twice (on becoming visible, then here)
 	main_menu.history_requested.connect(func(): history_screen.refresh_history(); _show_screen(history_screen))
 	main_menu.statistics_requested.connect(func(): statistics_screen.refresh_stats(); _show_screen(statistics_screen))
+	main_menu.techniques_requested.connect(func(): techniques_screen.show_list(); _show_screen(techniques_screen))
 	main_menu.settings_requested.connect(func():
 		_previous_screen_before_settings = main_menu
 		_show_screen(settings_screen)
@@ -202,6 +210,8 @@ func _connect_signals() -> void:
 	history_screen.back_requested.connect(func(): _show_screen(main_menu))
 	history_screen.replay_requested.connect(_on_history_replay_requested)
 	statistics_screen.back_requested.connect(func(): _show_screen(main_menu))
+	techniques_screen.back_requested.connect(func(): _show_screen(main_menu))
+	techniques_screen.practice_requested.connect(_on_new_puzzle_generated)
 	settings_screen.back_requested.connect(func():
 		if _previous_screen_before_settings != null:
 			var prev: Control = _previous_screen_before_settings
@@ -215,7 +225,7 @@ func _show_screen(target: Control) -> void:
 	if target == null:
 		return
 
-	var screens := [main_menu, game_screen, load_game_screen, history_screen, statistics_screen, settings_screen, daily_archive_screen]
+	var screens := [main_menu, game_screen, load_game_screen, history_screen, statistics_screen, techniques_screen, settings_screen, daily_archive_screen]
 
 	if _transition_tween != null and _transition_tween.is_valid():
 		_transition_tween.kill()

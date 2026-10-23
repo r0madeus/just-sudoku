@@ -49,6 +49,8 @@ MUTATIONS = [
  ("M37", "scripts/data/daily_manager.gd", "\tif date_str == get_today_date_string():\n\t\tmark_today_completed()", "\tif true:\n\t\tmark_today_completed()", "An archive day counts as today's Daily"),
  ("M38", "scripts/data/daily_manager.gd", "if last.is_empty() or days_between(last, get_today_date_string()) > 1:", "if last.is_empty():", "A broken streak still shows as going"),
  ("M39", "scripts/data/daily_manager.gd", "for back in range(ARCHIVE_DAYS):", "for back in range(1):", "Past Dailies are not known as Dailies"),
+ ("M40", "scenes/menus/techniques_screen.gd", "\t\tTechniqueLibrary.apply_step(board, current_step)\n", "\t\tpass\n", "A technique lesson's Show the move changes nothing"),
+ ("M41", "scenes/menus/techniques_screen.gd", "\tvar puzzles := TechniqueLibrary.practice(current_technique)\n", "\tvar puzzles := TechniqueLibrary.practice(TechniqueLibrary.ORDER[0])\n", "Practice starts a puzzle for another technique"),
 ]
 
 def main():
