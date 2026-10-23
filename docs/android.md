@@ -23,6 +23,7 @@ Bir sorun görürsen telefonun modelini, Android sürümünü ve ne yaptığınd
 
 **Ekran kenarları**
 - [ ] Üstteki geri butonu, başlık ve saat çentiğin (kamera deliğinin) altında kalmıyor.
+- [ ] Uygulamadan çıkıp birkaç kez geri gel (ana ekran, son uygulamalar, kilit ekranı): menü ve oyun ekranı sağdan taşmıyor, kaymıyor. Taşarsa Ayarlar'ın en altındaki ekran satırının görüntüsünü al.
 - [ ] Alttaki butonlar, hareketle gezinme çubuğuyla çakışmıyor.
 
 **Geri tuşu / geri hareketi**

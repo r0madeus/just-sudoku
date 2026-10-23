@@ -227,33 +227,70 @@ static func get_scale_factor(viewport_size: Vector2) -> float:
 ## Automatically detects hardware notch / home indicator via DisplayServer,
 ## or provides sensible design defaults.
 static func get_safe_area_insets(node: Control = null) -> Dictionary:
+	return insets_from_safe_area(DisplayServer.get_display_safe_area(), DisplayServer.window_get_size(),
+		get_viewport_size(node))
+
+## Largest share of the width a side inset (a camera cut-out in landscape) may take, and of the
+## height for the top and bottom (status bar, gesture bar)
+const MAX_SIDE_INSET_SHARE: float = 1.0 / 6.0
+const MAX_TOP_BOTTOM_INSET_SHARE: float = 0.25
+
+## The insets for a safe rect and window size (device pixels) in a viewport of vp_size (logical
+## pixels). Android can report the safe area of the other orientation for a moment, coming back
+## from the background: a portrait screen then got the cut-out as a wide left margin, pushing
+## everything off the right edge until the next resize. A safe rect that does not fit inside the
+## window, or a side larger than real cut-outs and system bars ever are, is not trusted: the
+## defaults are used instead.
+static func insets_from_safe_area(safe_rect: Rect2i, window_size: Vector2i, vp_size: Vector2) -> Dictionary:
 	var insets := {
 		"top": 16,
 		"bottom": 16,
 		"left": 0,
 		"right": 0
 	}
+	if window_size.x <= 0 or window_size.y <= 0 or safe_rect.size.x <= 0 or safe_rect.size.y <= 0:
+		return insets
+	if not Rect2i(Vector2i.ZERO, window_size).encloses(safe_rect):
+		return insets
+	var left_px: int = safe_rect.position.x
+	var right_px: int = window_size.x - safe_rect.end.x
+	var top_px: int = safe_rect.position.y
+	var bottom_px: int = window_size.y - safe_rect.end.y
+	if maxi(left_px, right_px) > window_size.x * MAX_SIDE_INSET_SHARE \
+			or maxi(top_px, bottom_px) > window_size.y * MAX_TOP_BOTTOM_INSET_SHARE:
+		return insets
 
-	# Check OS / DisplayServer safe area
-	var safe_rect: Rect2i = DisplayServer.get_display_safe_area()
-	var window_size: Vector2i = DisplayServer.window_get_size()
-
-	if window_size.x > 0 and window_size.y > 0 and safe_rect.size.x > 0 and safe_rect.size.y > 0:
-		var vp_size := get_viewport_size(node)
-		var scale_x: float = vp_size.x / float(window_size.x)
-		var scale_y: float = vp_size.y / float(window_size.y)
-
-		var top_inset: int = int(float(safe_rect.position.y) * scale_y)
-		var bottom_inset: int = int(float(window_size.y - (safe_rect.position.y + safe_rect.size.y)) * scale_y)
-		var left_inset: int = int(float(safe_rect.position.x) * scale_x)
-		var right_inset: int = int(float(window_size.x - (safe_rect.position.x + safe_rect.size.x)) * scale_x)
-
-		insets["top"] = maxi(16, top_inset)
-		insets["bottom"] = maxi(16, bottom_inset)
-		insets["left"] = maxi(0, left_inset)
-		insets["right"] = maxi(0, right_inset)
-
+	var scale_x: float = vp_size.x / float(window_size.x)
+	var scale_y: float = vp_size.y / float(window_size.y)
+	insets["top"] = maxi(16, int(top_px * scale_y))
+	insets["bottom"] = maxi(16, int(bottom_px * scale_y))
+	insets["left"] = int(left_px * scale_x)
+	insets["right"] = int(right_px * scale_x)
 	return insets
+
+## One line about the display, for the bottom of Settings: when a layout looks wrong on a phone,
+## a screenshot of it says what the app was told
+static func describe_display(window: Window) -> String:
+	if window == null:
+		return ""
+	var safe := DisplayServer.get_display_safe_area()
+	return "%dx%d px · %dx%d dp · %.2fx · safe %d,%d %dx%d" % [
+		window.size.x, window.size.y,
+		roundi(window.get_visible_rect().size.x), roundi(window.get_visible_rect().size.y),
+		float(window.get_meta(&"dp_density", 0.0)),
+		safe.position.x, safe.position.y, safe.size.x, safe.size.y]
+
+## Lays every screen and open dialog out again, from the window as it is now. Coming back from
+## the background, Android may have told the app the wrong size or safe area for a moment, and
+## nothing else would make the screens measure again.
+static func relayout(window: Window) -> void:
+	if window == null:
+		return
+	if window.has_meta(&"dp_density"):
+		_fit_to_density(window)
+	for node in window.find_children("*", "Control", true, false):
+		if node.has_method("_apply_responsive_layout") and node.is_inside_tree():
+			node._apply_responsive_layout()
 
 # =============================================================================
 # 5. SEMANTIC TOKEN SCALING HELPERS

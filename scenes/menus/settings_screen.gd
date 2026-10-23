@@ -70,6 +70,8 @@ var card_gameplay: PanelContainer
 var card_feedback: PanelContainer
 var backup_section: BackupSection
 var version_label: Label
+## Display size, density and safe area, under the version
+var display_label: Label
 
 # Setting Rows
 var lang_row: SettingRow
@@ -142,7 +144,7 @@ func _exit_tree() -> void:
 	FontManager.remove_listener(_update_font_option_selection)
 
 func _notification(what: int) -> void:
-	if what == NOTIFICATION_RESIZED:
+	if what == NOTIFICATION_RESIZED or (what == NOTIFICATION_VISIBILITY_CHANGED and is_visible_in_tree()):
 		_apply_responsive_layout()
 
 func _apply_responsive_layout() -> void:
@@ -151,6 +153,8 @@ func _apply_responsive_layout() -> void:
 	ResponsiveManager.apply_content_margins(self, margin, ResponsiveManager.MAX_CONTENT_WIDTH, true)
 	if sections != null:
 		sections.columns = ResponsiveManager.content_columns(ResponsiveManager.get_viewport_size(self))
+	if display_label != null and is_inside_tree():
+		display_label.text = ResponsiveManager.describe_display(get_window())
 
 ## The version players see and report: project.godot application/config/version, kept equal to
 ## the Android export's version/name (tests/test_release.gd checks it)
@@ -541,6 +545,16 @@ func _build_ui() -> void:
 	AdaptiveColumns.set_column(version_label, 1)
 	list_vbox.add_child(version_label)
 
+	# What the app was told about the display, for reports of a layout that looks wrong
+	display_label = Label.new()
+	display_label.theme_type_variation = "Caption"
+	display_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	display_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	ThemeManager.set_font_size(display_label, 10)
+	display_label.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
+	AdaptiveColumns.set_column(display_label, 1)
+	list_vbox.add_child(display_label)
+
 func _create_divider() -> HSeparator:
 	var div := HSeparator.new()
 	div.add_theme_constant_override("separation", 2)
@@ -552,6 +566,8 @@ func _on_theme_changed() -> void:
 	_update_theme_option_selection()
 	if version_label != null:
 		version_label.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
+	if display_label != null:
+		display_label.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
 
 func _on_language_selected(idx: int) -> void:
 	var loc := LocalizationManager.LOCALE_TR if idx == 0 else LocalizationManager.LOCALE_EN
