@@ -1,5 +1,7 @@
 extends SceneTree
 
+## RUN ALONE: it measures puzzle generation time, which other suites running at the same time would skew
+
 const SudokuBoard = preload("res://scripts/core/sudoku_board.gd")
 const SudokuGenerator = preload("res://scripts/core/sudoku_generator.gd")
 const SudokuSolver = preload("res://scripts/core/sudoku_solver.gd")

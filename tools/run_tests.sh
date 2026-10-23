@@ -1,7 +1,9 @@
 #!/bin/bash
 # Runs every tests/test_*.gd, four at a time, each in its own empty user:// folder, so no suite
-# leans on data another one (or an earlier run) left behind. Prints the failing suites and exits 1
-# if there are any. Logs go to $LOG_DIR (default: a temporary folder).
+# leans on data another one (or an earlier run) left behind. Suites that time themselves carry a
+# "## RUN ALONE" line and run one by one afterwards, so other suites do not skew their timings.
+# Prints the failing suites with their failed checks and exits 1 if there are any. Logs go to
+# $LOG_DIR (default: a temporary folder).
 #   GODOT=/path/to/godot tools/run_tests.sh
 set -u
 repo=$(cd "$(dirname "$0")/.." && pwd)
@@ -20,9 +22,15 @@ run_one() {
 	if [ $rc -ne 0 ] || grep -q "✗ FAIL\|-> FAILED\|SCRIPT ERROR" <<< "$out"; then echo "FAIL $name"; fi
 }
 export -f run_one; export repo godot logs
-failed=$(ls "$repo"/tests/test_*.gd | xargs -P"$jobs" -I{} bash -c 'run_one {}' | sort)
+alone=$(grep -l "^## RUN ALONE" "$repo"/tests/test_*.gd)
+together=$(ls "$repo"/tests/test_*.gd | grep -vxF -f <(echo "$alone"))
+failed=$( (echo "$together" | xargs -P"$jobs" -I{} bash -c 'run_one {}'; for t in $alone; do run_one "$t"; done) | sort)
 total=$(ls "$repo"/tests/test_*.gd | wc -l)
 if [ -n "$failed" ]; then
-	echo "$failed"; echo "$(grep -c . <<< "$failed") of $total suites failed (logs: $logs)"; exit 1
+	echo "$failed"
+	for name in $(awk '{print $2}' <<< "$failed"); do
+		echo "--- $name"; grep -E "✗ FAIL|-> FAILED|SCRIPT ERROR" "$logs/$name.log" | head -8
+	done
+	echo "$(grep -c "^FAIL" <<< "$failed") of $total suites failed (logs: $logs)"; exit 1
 fi
 echo "All $total suites passed (logs: $logs)"
