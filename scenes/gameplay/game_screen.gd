@@ -1102,6 +1102,13 @@ func _on_complete_custom_action(action: String) -> void:
 				DailyManager.save_today_game(game_state)
 			setup_game(game_state)
 
+## Lets go of the game without saving it (its saves were replaced, see AppRoot._on_data_restored)
+func close_game() -> void:
+	game_timer.stop()
+	if pause_overlay != null and pause_overlay.visible:
+		_hide_pause_overlay()
+	game_state = null
+
 func _on_back_pressed() -> void:
 	if game_state != null and not game_state.is_completed:
 		_save_progress()

@@ -174,6 +174,7 @@ func _connect_signals() -> void:
 
 	# Settings Screen Dialogs
 	settings_screen.custom_theme_requested.connect(func(): custom_theme_dialog.open_dialog())
+	settings_screen.data_restored.connect(_on_data_restored)
 
 	# Screens back buttons & navigation
 	game_screen.back_to_menu_requested.connect(func(): main_menu.refresh_buttons(); _show_screen(main_menu))
@@ -254,6 +255,14 @@ func _show_screen(target: Control) -> void:
 			if s != target:
 				s.visible = false
 				s.modulate.a = 1.0
+
+## A backup replaced the saved data: the game left open behind Settings is not in it any more
+## and must not save itself over it, so Back from Settings leads to the menu
+func _on_data_restored() -> void:
+	game_screen.close_game()
+	if _previous_screen_before_settings == game_screen:
+		_previous_screen_before_settings = main_menu
+	main_menu.refresh_buttons()
 
 func _start_game_session(state: GameState) -> void:
 	game_screen.setup_game(state)
