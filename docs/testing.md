@@ -33,7 +33,8 @@ Yeni bir özellik ya da hata düzeltmesi testiyle gelir. Testi yazdıktan sonra,
 | Yeni seslerle | 44 / 44 | 0 |
 | Sürüm hazırlığıyla (sürüm numaraları, izinler) | 46 / 46 | 0 |
 | Güvenli alan ve yeniden düzenle | 49 / 49 | 0 |
-| Duraklat simgesi ve çözüm penceresiyle | **52 / 52** | 0 |
+| Duraklat simgesi ve çözüm penceresiyle | 52 / 52 | 0 |
+| Dokunarak kaydırmayla | **61 / 61** | 0 |
 
 Kaçanlar: hataların ve hatasız çözümün puana etkisi, duraklatılmış oyunda hamle yapılabilmesi, istatistiklerde en iyi süre, Günün Sudokusu'nun çözülünce işaretlenmesi, ipucunun doğru rakamı koyması. Hepsi `tests/test_rules_and_records.gd` ile korunuyor. Ayrıca:
 

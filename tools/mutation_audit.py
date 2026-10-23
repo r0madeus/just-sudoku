@@ -62,6 +62,15 @@ MUTATIONS = [
  ("M50", "scenes/gameplay/game_screen.gd", "\t\tpause_menu.close_modal()\n\t_sync_pause_icon()", "\t\tpause_menu.close_modal()\n\tpass", "A game set up after Pause → Menu shows play"),
  ("M51", "scenes/gameplay/game_screen.gd", "\tgame_state.is_paused = false\n", "", "A game left through the pause sheet comes back paused"),
  ("M52", "scenes/gameplay/dialogs/solution_dialog.gd", "\tdetail_box.custom_minimum_size.y = maxf(step_h, full_info_panel.get_combined_minimum_size().y)\n", "\tpass\n", "The solution dialog resizes between its views"),
+ ("M53", "scenes/ui/touch_scroll.gd", "\t_replay(away)\n", "", "A held box is ticked by the drag that scrolls past it"),
+ ("M54", "scenes/ui/touch_scroll.gd", "\t\t_down_pos.y += SLOP * signf(event.position.y - _down_pos.y)\n", "\t\t_down_pos = event.position\n", "A drag lags behind the finger by the touch slop"),
+ ("M55", "scenes/ui/touch_scroll.gd", "\t\t\t_replay(_down_event)\n\t\t\t_replay(event)\n", "\t\t\tpass\n", "A quick tap on a scrolling list does nothing"),
+ ("M56", "scenes/ui/touch_scroll.gd", "\tstate = State.CAUGHT if was_gliding else State.PENDING\n", "\tstate = State.PENDING\n", "Stopping a glide also presses what is under the finger"),
+ ("M57", "scenes/ui/touch_scroll.gd", "\t\tif m is CanvasItem and m.visible and not m.is_ancestor_of(scroll):\n", "\t\tif false:\n", "A list scrolls under an open dialog"),
+ ("M58", "scenes/ui/touch_scroll.gd", "\t\t\tvelocity = clampf(_flick_speed(), -MAX_FLING_SPEED, MAX_FLING_SPEED)\n", "\t\t\tvelocity = 0.0\n", "A flick does not glide"),
+ ("M59", "scenes/ui/touch_scroll.gd", "\toption.action_mode = BaseButton.ACTION_MODE_BUTTON_RELEASE\n", "\tpass\n", "A list opens as the finger lands on it to scroll"),
+ ("M60", "scenes/gameplay/smart_numpad.gd", "\t\tbtn.action_mode = BaseButton.ACTION_MODE_BUTTON_PRESS\n", "", "Number pad digits wait for the finger to lift"),
+ ("M61", "scenes/menus/resume_card.gd", "\t\t\t_press_inside = true\n", "\t\t\t_press_inside = true\n\t\t\tpressed.emit()\n", "The game card opens as the finger lands, so a scroll from it opens the game"),
 ]
 
 def main():

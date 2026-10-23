@@ -56,6 +56,7 @@ Bir sorun görürsen telefonun modelini, Android sürümünü ve ne yaptığınd
 **Akıcılık ve pil**
 - [ ] Hücreye dokununca seçim ve rakam anında görünüyor.
 - [ ] Geçmiş ve Kayıtlı Oyunlar listeleri akıcı kayıyor.
+- [ ] Ayarlar'da bir onay kutusunun ya da açılır listenin üstünden başlayan kaydırma onu işaretlemiyor/açmıyor; hızlıca fırlatılan liste yavaşlayarak duruyor.
 - [ ] Uygulama açık bekletildiğinde telefon ısınmıyor, pil hızlı düşmüyor.
 
 ## Play Store için yayın sürümü

@@ -260,6 +260,7 @@ func _build_ui() -> void:
 
 	# Scrollable settings list
 	var scroll := ScrollContainer.new()
+	TouchScroll.attach(scroll)
 	scroll.size_flags_vertical = SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
@@ -297,6 +298,7 @@ func _build_ui() -> void:
 	# Dil / Language
 	# The three pickers share one width so their left edges line up down the card
 	lang_option = OptionButton.new()
+	TouchScroll.open_on_release(lang_option)
 	lang_option.custom_minimum_size = Vector2(_picker_width(), ResponsiveManager.HEIGHT_INPUT)
 	lang_option.clip_text = true
 	lang_option.fit_to_longest_item = false
@@ -313,6 +315,7 @@ func _build_ui() -> void:
 
 	# Görsel Tema / Visual Theme
 	theme_option = OptionButton.new()
+	TouchScroll.open_on_release(theme_option)
 	theme_option.custom_minimum_size = Vector2(_picker_width(), ResponsiveManager.HEIGHT_INPUT)
 	theme_option.clip_text = true
 	theme_option.fit_to_longest_item = false
@@ -348,6 +351,7 @@ func _build_ui() -> void:
 
 	# Yazı Tipi / Font Family
 	font_option = OptionButton.new()
+	TouchScroll.open_on_release(font_option)
 	font_option.custom_minimum_size = Vector2(_picker_width(), ResponsiveManager.HEIGHT_INPUT)
 	font_option.clip_text = true
 	font_option.fit_to_longest_item = false
@@ -366,6 +370,7 @@ func _build_ui() -> void:
 
 	# Yazı Boyutu / Text Size (accessibility)
 	text_size_option = OptionButton.new()
+	TouchScroll.open_on_release(text_size_option)
 	text_size_option.custom_minimum_size = Vector2(_picker_width(), ResponsiveManager.HEIGHT_INPUT)
 	text_size_option.clip_text = true
 	text_size_option.fit_to_longest_item = false

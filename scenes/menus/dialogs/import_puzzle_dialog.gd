@@ -89,6 +89,7 @@ func _build_import_ui() -> void:
 	diff_row.add_child(d_lbl)
 
 	diff_option = OptionButton.new()
+	TouchScroll.open_on_release(diff_option)
 	diff_option.add_item(DifficultyAnalyzer.LEVEL_EASY)
 	diff_option.add_item(DifficultyAnalyzer.LEVEL_MEDIUM)
 	diff_option.add_item(DifficultyAnalyzer.LEVEL_HARD)

@@ -180,6 +180,7 @@ func _build_ui() -> void:
 	col_status.add_child(status_lbl)
 
 	status_opt = OptionButton.new()
+	TouchScroll.open_on_release(status_opt)
 	status_opt.size_flags_horizontal = SIZE_EXPAND_FILL
 	status_opt.fit_to_longest_item = false
 	status_opt.clip_text = true
@@ -203,6 +204,7 @@ func _build_ui() -> void:
 	col_diff.add_child(diff_lbl)
 
 	diff_opt = OptionButton.new()
+	TouchScroll.open_on_release(diff_opt)
 	diff_opt.size_flags_horizontal = SIZE_EXPAND_FILL
 	diff_opt.fit_to_longest_item = false
 	diff_opt.clip_text = true
@@ -226,6 +228,7 @@ func _build_ui() -> void:
 	col_sort.add_child(sort_lbl)
 
 	sort_opt = OptionButton.new()
+	TouchScroll.open_on_release(sort_opt)
 	sort_opt.size_flags_horizontal = SIZE_EXPAND_FILL
 	sort_opt.fit_to_longest_item = false
 	sort_opt.clip_text = true
@@ -240,6 +243,7 @@ func _build_ui() -> void:
 
 	# --- 3. History List ScrollContainer ---
 	var scroll := ScrollContainer.new()
+	TouchScroll.attach(scroll)
 	scroll.size_flags_vertical = SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER

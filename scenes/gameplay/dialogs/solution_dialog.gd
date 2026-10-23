@@ -241,6 +241,7 @@ func _build_ui() -> void:
 
 	# A fixed number of lines; a longer explanation scrolls inside them
 	desc_scroll = ScrollContainer.new()
+	TouchScroll.attach(desc_scroll)
 	desc_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	desc_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	desc_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL

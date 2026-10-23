@@ -179,6 +179,7 @@ func _build_ui() -> void:
 
 	# 3. Grouped Color Pickers in Scroll Area
 	var scroll := ScrollContainer.new()
+	TouchScroll.attach(scroll)
 	scroll.custom_minimum_size = Vector2(0, 160)
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
