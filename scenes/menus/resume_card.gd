@@ -96,14 +96,21 @@ func _exit_tree() -> void:
 	LocalizationManager.remove_listener(_refresh_texts)
 	ThemeManager.remove_listener(_apply_card_theme)
 
+## A press began on the card and has not been let go yet
+var _press_inside: bool = false
+
 func _gui_input(event: InputEvent) -> void:
 	if not has_game:
 		return
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		pressed.emit()
-		accept_event()
-	elif event is InputEventScreenTouch and event.pressed:
-		pressed.emit()
+	# A tap: pressed and let go on the card. Touches arrive as mouse events too (emulated), so
+	# reading only those opens the game once, and a drag that starts here can still scroll.
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			_press_inside = true
+		elif _press_inside:
+			_press_inside = false
+			if Rect2(Vector2.ZERO, size).has_point(event.position):
+				pressed.emit()
 		accept_event()
 
 ## Short screens: smaller miniature and padding so the home screen fits without scrolling

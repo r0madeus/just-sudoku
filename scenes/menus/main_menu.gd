@@ -248,6 +248,7 @@ func _build_ui() -> void:
 
 	# Scrolls only when the content cannot fit (very short screens); otherwise it fills the screen
 	var scroll := ScrollContainer.new()
+	TouchScroll.attach(scroll)
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	scroll.size_flags_horizontal = SIZE_EXPAND_FILL

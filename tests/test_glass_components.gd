@@ -115,6 +115,10 @@ func _run() -> void:
 	click.button_index = MOUSE_BUTTON_LEFT
 	click.pressed = true
 	card._gui_input(click)
+	var lift := click.duplicate()
+	lift.pressed = false
+	lift.position = card.size * 0.5
+	card._gui_input(lift)
 	_check(tapped[0], "Tapping the resume card emits pressed")
 	card.set_game(null)
 	tapped[0] = false

@@ -110,6 +110,8 @@ func _build_ui() -> void:
 		if font_inter != null:
 			btn.add_theme_font_override("font", font_inter)
 		ThemeManager.apply_numpad_button_style(btn)
+		# A digit goes in as the finger lands, as on a phone keyboard, not when it is lifted
+		btn.action_mode = BaseButton.ACTION_MODE_BUTTON_PRESS
 		btn.pressed.connect(func():
 			if SettingsScreen.animations_enabled and btn.is_inside_tree():
 				btn.pivot_offset = btn.size * 0.5

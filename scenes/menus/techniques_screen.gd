@@ -165,6 +165,7 @@ func _build_ui() -> void:
 
 func _build_list(root_vbox: VBoxContainer) -> void:
 	list_scroll = ScrollContainer.new()
+	TouchScroll.attach(list_scroll)
 	list_scroll.size_flags_vertical = SIZE_EXPAND_FILL
 	list_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	list_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
@@ -199,6 +200,7 @@ func _build_list(root_vbox: VBoxContainer) -> void:
 
 func _build_lesson(root_vbox: VBoxContainer) -> void:
 	lesson_scroll = ScrollContainer.new()
+	TouchScroll.attach(lesson_scroll)
 	lesson_scroll.size_flags_vertical = SIZE_EXPAND_FILL
 	lesson_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	lesson_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
