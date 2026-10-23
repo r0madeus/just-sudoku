@@ -1,0 +1,71 @@
+name: Tests
+
+# Every test suite on every pull request and on main, each in its own empty user:// folder
+# (tools/run_tests.sh). The suites render with the GL Compatibility renderer, which runs here on
+# Mesa's software OpenGL under a virtual X display.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# A newer push to the same branch replaces a run still going
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GODOT_VERSION: "4.7-stable"
+
+jobs:
+  tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install a virtual display and software OpenGL
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb xauth libgl1-mesa-dri libglx-mesa0 > /dev/null
+
+      - name: Download the Godot editor
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/godot.zip" \
+            "https://github.com/godotengine/godot-builds/releases/download/$GODOT_VERSION/Godot_v${GODOT_VERSION}_linux.x86_64.zip"
+          unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP"
+          echo "GODOT=$RUNNER_TEMP/Godot_v${GODOT_VERSION}_linux.x86_64" >> "$GITHUB_ENV"
+
+      - name: Import the project
+        # Builds .godot/ (imported assets, the global class list) that the suites load from
+        run: timeout 300 "$GODOT" --headless --path . --import > /dev/null 2>&1 || true
+
+      - name: Run the tests
+        env:
+          LOG_DIR: ${{ runner.temp }}/test-logs
+        run: |
+          set -o pipefail
+          tools/run_tests.sh | tee "$RUNNER_TEMP/result.txt"
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "### Tests"
+            cat "$RUNNER_TEMP/result.txt" 2>/dev/null || echo "No result (the run stopped early)"
+            for log in "$RUNNER_TEMP"/test-logs/*.log; do
+              [ -f "$log" ] || continue
+              fails=$(grep -E "✗ FAIL|-> FAILED|SCRIPT ERROR" "$log" | head -5)
+              if [ -n "$fails" ]; then
+                echo; echo "**$(basename "$log" .log)**"; echo '```'; echo "$fails"; echo '```'
+              fi
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload the logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-logs
+          path: ${{ runner.temp }}/test-logs
