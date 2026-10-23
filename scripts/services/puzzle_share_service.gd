@@ -125,33 +125,22 @@ static func parse_import_string(raw_text: String, default_difficulty: String = D
 				"error": LocalizationManager.translate("SHARE_ERR_NO_UNIQUE")
 			}
 
-		# Analyze difficulty and solve
-		var analysis: DifficultyAnalyzer.AnalysisResult = DifficultyAnalyzer.analyze(board)
-		var solver_solution: SudokuBoard = SudokuSolver.solve_fast(board)
-		if solver_solution == null:
-			solver_solution = board.clone()
-
-		var gen := SudokuGenerator.GeneratedPuzzle.new()
-		gen.puzzle = board
-		gen.solution = solver_solution
-		gen.seed_value = extracted_seed if extracted_seed != 0 else SudokuGenerator.generate_new_seed()
-		gen.difficulty = analysis.level
-		gen.difficulty_score = analysis.difficulty_score
-		gen.estimated_seconds = analysis.estimated_seconds
-		gen.top_techniques = analysis.top_techniques
+		# Rate and solve (a unique solution exists, checked above)
+		var gen := SudokuGenerator.from_grid(clean_code,
+			extracted_seed if extracted_seed != 0 else SudokuGenerator.generate_new_seed())
 
 		var new_state := GameState.new()
 		new_state.init_from_puzzle(gen)
 
-		var diff_name := LocalizationManager.get_difficulty_name(analysis.level)
+		var diff_name := LocalizationManager.get_difficulty_name(gen.difficulty)
 		return {
 			"success": true,
 			"type": "puzzle_code",
 			"game_state": new_state,
-			"difficulty": analysis.level,
+			"difficulty": gen.difficulty,
 			"seed": gen.seed_value,
 			"info": LocalizationManager.translate("SHARE_INFO_CODE") % [
-				diff_name, analysis.difficulty_score
+				diff_name, gen.difficulty_score
 			]
 		}
 

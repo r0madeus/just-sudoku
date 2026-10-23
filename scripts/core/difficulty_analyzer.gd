@@ -24,7 +24,7 @@ const WEIGHT_RANGES: Dictionary = {
 	LEVEL_EASY: Vector2i(1, 2),
 	LEVEL_MEDIUM: Vector2i(3, 4),
 	LEVEL_HARD: Vector2i(5, 9),
-	LEVEL_EXPERT: Vector2i(10, 11)
+	LEVEL_EXPERT: Vector2i(10, 12)
 }
 
 class AnalysisResult extends RefCounted:
@@ -65,7 +65,8 @@ static func analyze(board: SudokuBoard) -> AnalysisResult:
 	# GDD §11: the level follows the hardest technique the puzzle forces (the solver always
 	# takes the easiest available step, so max_weight is what a human cannot avoid).
 	# Weights: 1 Naked Single, 2 Hidden Single, 3 Locked Candidates, 4 Naked Pair, 5 Hidden Pair,
-	# 6-7 Naked/Hidden Triple, 8 X-Wing, 9 XY-Wing, 10+ XYZ-Wing, Swordfish. Stuck logically -> Expert.
+	# 6-7 Naked/Hidden Triple, 8 X-Wing, 9 XY-Wing, 10 XYZ-Wing and Swordfish, 11 Simple Coloring,
+	# 12 XY-Chain. Stuck logically -> Expert (the generator never serves such a puzzle).
 	var logical: bool = result.solved_logically
 	if not logical or max_weight >= EXPERT_MIN_WEIGHT:
 		result.level = LEVEL_EXPERT

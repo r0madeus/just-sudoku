@@ -34,6 +34,9 @@ MUTATIONS = [
  ("M22", "scripts/gameplay/game_state.gd", "\t\t\tset_number(step.cells[0], step.digit, true)", "\t\t\tset_number(step.cells[0], step.digit % 9 + 1, true)", "A hint places the wrong digit"),
  ("M23", "scripts/services/puzzle_share_service.gd", "seed_label, seed_val, code_label", "seed_label, seed_val + 1, code_label", "A shared puzzle has the wrong number"),
  ("M24", "scenes/gameplay/game_screen.gd", "\t\tgame_timer.pause()\n", "\t\tpass\n", "The clock runs while paused"),
+ ("M26", "scripts/core/sudoku_solver.gd", "\t\tif step == null:\n\t\t\tstep = _swordfish_for(board, d, false)\n", "", "Swordfish is only looked for along rows"),
+ ("M27", "scripts/core/sudoku_solver.gd", "\t\t\t\tif p1_cands[0] == p2_cands[0] and p1_cands[1] == p2_cands[1]:\n\t\t\t\t\tcontinue\n", "", "XYZ-Wing accepts two identical wings (unsound)"),
+ ("M28", "scripts/core/sudoku_generator.gd", "\treturn LEVEL_ORDER.find(a.level) if a.solved_logically else LEVEL_ORDER.size()", "\treturn LEVEL_ORDER.find(a.level)", "Puzzles that need guessing pass as Expert"),
  ("M25", "scenes/gameplay/sudoku_grid.gd", "var is_same: bool = (idx != selected_idx and sel_val != 0 and val == sel_val)", "var is_same: bool = false", "Same digits are not highlighted"),
 ]
 

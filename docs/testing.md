@@ -25,9 +25,11 @@ Yeni bir özellik ya da hata düzeltmesi testiyle gelir. Testi yazdıktan sonra,
 |---|---|---|
 | Denetimden önce | 18 / 24 | 6 |
 | Denetimden sonra | **25 / 25** | 0 |
+| Bulmaca bankası ve çözücü düzeltmeleriyle | **28 / 28** | 0 |
 
 Kaçanlar: hataların ve hatasız çözümün puana etkisi, duraklatılmış oyunda hamle yapılabilmesi, istatistiklerde en iyi süre, Günün Sudokusu'nun çözülünce işaretlenmesi, ipucunun doğru rakamı koyması. Hepsi `tests/test_rules_and_records.gd` ile korunuyor. Ayrıca:
 
 - Testleri boş kayıt klasörlerinde çalıştırmak **iki gerçek hata** ortaya çıkardı: yeni kurulumda ayarlar kaydedilmiyordu; kayıtlı oyun yokken küçük telefonda Kayıtlı Oyunlar ekranı taşıyordu.
 - "Aynı rakamları vurgula" kontrolü, kullandığı bulmacada ilk hücre boş olduğu için hiç çalışmıyordu; artık dolu bir hücre seçiyor.
+- Uzman bulmacaların kılık değiştirilmiş hâllerini denetlemek çözücüde iki hata ortaya çıkardı: Swordfish yalnızca satırlarda aranıyordu ve XYZ-Wing aynı iki kanadı kabul edip yanlış eleme yapabiliyordu. İkisi de düzeltildi; M26 ve M27 bunları, M28 ise mantıkla çözülemeyen bir bulmacanın bir seviyeye yerleştirilmemesini koruyor.
 - Bulmaca üretim hızı testinin sınırı, bu makinede ölçülen değerin tam üstündeydi ve rastgele kırılıyordu (bir mutasyonu yanlışlıkla "yakalandı" gösterdi). Sınırlar ölçülen değerin ~1,75 katına çekildi: gerçek bir yavaşlamayı yakalar, meşgul bir makineyi değil.

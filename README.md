@@ -18,8 +18,8 @@
 ## Features
 
 **Puzzles**
-- Four levels (Easy, Medium, Hard, Expert), rated by the techniques a person needs to solve them, from Naked Singles to X-Wing, Swordfish and XY-Wing. Every puzzle has exactly one solution.
-- A new puzzle opens at once: the next one is prepared in the background.
+- Four levels (Easy, Medium, Hard, Expert), rated by the techniques a person needs to solve them: from Naked Singles to X-Wing, Swordfish, XYZ-Wing, Simple Coloring and XY-Chain. Every puzzle has exactly one solution and can be solved by logic alone, without guessing, so a hint can always explain the next step.
+- A new puzzle opens at once. Medium, Hard and Expert come from a bank of puzzles rated in advance, each shown in a different disguise (digits relabelled, rows and columns shuffled), which keeps its difficulty exactly.
 - **Daily Sudoku**: the same puzzle for everyone each day, with a streak.
 - Replay any puzzle from your history, or share it as a number or an 81-character code and import someone else's.
 
@@ -71,7 +71,7 @@ The Android build uses a Godot export template built with only what the game nee
 GODOT=/path/to/godot tools/run_tests.sh
 ```
 
-Runs all 43 test suites, four at a time, each with its own empty save folder (about 1.5 minutes). They also run on every pull request. [docs/testing.md](docs/testing.md) explains them, and how `tools/mutation_audit.py` checks that the tests really catch mistakes: it breaks 25 behaviours one at a time and all 25 are caught.
+Runs all 44 test suites, four at a time, each with its own empty save folder (under a minute). They also run on every pull request. [docs/testing.md](docs/testing.md) explains them, and how `tools/mutation_audit.py` checks that the tests really catch mistakes: it breaks 28 behaviours one at a time and all 28 are caught.
 
 ## Project layout
 
