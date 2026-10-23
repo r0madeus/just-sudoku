@@ -41,6 +41,10 @@ Bir sorun görürsen telefonun modelini, Android sürümünü ve ne yaptığınd
 - [ ] Tema ve dil değişince her ekran hemen güncelleniyor.
 - [ ] Ayarlar → Yazı Boyutu "Çok Büyük" seçilince yazılar her ekranda büyüyor, hiçbir yazı kesilmiyor ya da üst üste binmiyor.
 - [ ] Bulmaca paylaşma / dışa aktarma panoya kopyalıyor, İçe Aktar ile geri açılabiliyor.
+- [ ] Ayarlar → Veriler → Yedekle → Dosya olarak kaydet: sistemin dosya seçicisi açılıyor, yedek seçilen klasöre (ör. İndirilenler, Drive) kaydediliyor.
+- [ ] Birkaç oyun daha oyna, sonra Geri yükle → Dosya aç ile aynı yedeği seç: geçmiş, istatistikler ve ayarlar yedekteki hâline dönüyor; yarım kalan oyun da.
+- [ ] Panoya kopyala / Panodan yapıştır ile de aynısı oluyor.
+- [ ] Oyundayken Duraklat → Ayarlar'dan geri yükleyip geri çıkınca menüye dönülüyor, eski oyun yedeğin üstüne kaydedilmiyor.
 
 **Tablet (varsa)**
 - [ ] Tablet yan çevrilince ekran dönüyor, oyun tahtası ve tuşlar yan yana diziliyor.

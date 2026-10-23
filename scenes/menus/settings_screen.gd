@@ -9,12 +9,15 @@ const ResponsiveManager = preload("res://scripts/services/responsive_manager.gd"
 const AmbientBackdrop = preload("res://scenes/ui/ambient_backdrop.gd")
 const GlassPanel = preload("res://scenes/ui/glass_panel.gd")
 const AdaptiveColumns = preload("res://scenes/ui/adaptive_columns.gd")
+const BackupSection = preload("res://scenes/menus/backup_section.gd")
 
 ## Settings Menu Screen (GDD §17, §19, §38, §40, §41, §44)
 ## Clean settings list with clear sections and aligned controls.
 
 signal back_requested()
 signal custom_theme_requested()
+## A backup replaced the saved data
+signal data_restored()
 
 const CONFIG_PATH: String = "user://saves/config.json"
 
@@ -65,6 +68,7 @@ var sec_feedback_lbl: Label
 var card_appearance: PanelContainer
 var card_gameplay: PanelContainer
 var card_feedback: PanelContainer
+var backup_section: BackupSection
 
 # Setting Rows
 var lang_row: SettingRow
@@ -512,6 +516,14 @@ func _build_ui() -> void:
 		haptics_check.toggled.connect(func(v): haptics_enabled = v; save_config())
 		haptics_row = SettingRow.new("", "", haptics_check)
 		feed_vbox.add_child(haptics_row)
+
+	# =========================================================================
+	# 4. Data Section (Veriler): backup and restore
+	# =========================================================================
+	backup_section = BackupSection.new()
+	AdaptiveColumns.set_column(backup_section, 1)
+	backup_section.data_restored.connect(func(): data_restored.emit())
+	list_vbox.add_child(backup_section)
 
 func _create_divider() -> HSeparator:
 	var div := HSeparator.new()

@@ -42,6 +42,10 @@ MUTATIONS = [
  ("M30", "scenes/gameplay/sudoku_grid.gd", "elif event is InputEventMouseMotion and _pressing:", "elif false:", "Dragging over the board selects nothing more"),
  ("M31", "scenes/gameplay/game_screen.gd", "\t\t_apply_key(locked_digit, one)", "\t\tpass", "Digit-first taps place nothing"),
  ("M32", "scripts/gameplay/game_state.gd", "\t\t\"colors\": Array(cell_colors),\n", "", "Cell colours are not saved"),
+ ("M33", "scripts/data/backup_manager.gd", "\tHistoryManager.clear_cache()\n", "", "A restore leaves the old history on screen"),
+ ("M34", "scripts/data/backup_manager.gd", "if part.is_empty() or part == \".\" or part == \"..\":", "if false:", "A backup can write outside the save folder"),
+ ("M35", "scenes/app_root.gd", "\tgame_screen.close_game()\n", "", "The game left open saves over a restore"),
+ ("M36", "scripts/data/backup_manager.gd", "\t_remove_json(SAVES_DIR)\n", "", "A restore keeps files the backup does not have"),
 ]
 
 def main():

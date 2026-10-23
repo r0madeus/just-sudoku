@@ -34,6 +34,7 @@
 - A score out of 100 for each solve (time, mistakes, hints), with your record and average at each level.
 - History with filters, statistics per level, and 13 quiet achievements.
 - Unfinished games are saved as you play, and several can be kept side by side.
+- Back up everything (history, statistics, achievements, saved games, settings) to a file or the clipboard, and restore it on a new phone.
 
 **For everyone**
 - Five themes (Dark, AMOLED, Light, Sepia, Forest) plus your own colours; three typefaces.
@@ -49,7 +50,7 @@
 
 ## Privacy
 
-Just Sudoku asks for no permission except vibration. It has no internet permission at all, so it cannot send anything anywhere: no ads, no analytics, no account. Your games, history and settings stay on your device (Android backup is off as well). To move a game to another device, export it and import it there.
+Just Sudoku asks for no permission except vibration. It has no internet permission at all, so it cannot send anything anywhere: no ads, no analytics, no account. Your games, history and settings stay on your device (Android backup is off as well). To move to another device, back everything up in Settings → Data and restore it there; a single game can also be exported and imported.
 
 ## Download
 
@@ -72,7 +73,7 @@ The Android build uses a Godot export template built with only what the game nee
 GODOT=/path/to/godot tools/run_tests.sh
 ```
 
-Runs all 45 test suites, four at a time, each with its own empty save folder (under a minute). They also run on every pull request. [docs/testing.md](docs/testing.md) explains them, and how `tools/mutation_audit.py` checks that the tests really catch mistakes: it breaks 32 behaviours one at a time and all 32 are caught.
+Runs all 46 test suites, four at a time, each with its own empty save folder (under a minute). They also run on every pull request. [docs/testing.md](docs/testing.md) explains them, and how `tools/mutation_audit.py` checks that the tests really catch mistakes: it breaks 36 behaviours one at a time and all 36 are caught.
 
 ## Project layout
 
