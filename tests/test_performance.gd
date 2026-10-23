@@ -1,5 +1,7 @@
 extends SceneTree
 
+## RUN ALONE: it measures frames drawn and the time of cell selections, which other suites running at the same time would skew
+
 ## Performance guards: an idle screen is not redrawn, a tap on the board does not re-style all
 ## 81 cells, the board is built from few nodes, and hidden lists are not built at start.
 ## Timings have wide margins (about 10x the measured cost) so slower machines still pass.

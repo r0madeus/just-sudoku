@@ -6,7 +6,7 @@
 GODOT=/godot/yolu tools/run_tests.sh
 ```
 
-Her `tests/test_*.gd` dosyası dörder dörder, **her biri kendi boş kayıt klasöründe** (`user://`) çalışır. Böylece hiçbir test, başka bir testin ya da önceki bir çalıştırmanın bıraktığı verilere yaslanamaz. Tek bir test: `godot --path . -s tests/test_xxx.gd`. Başarısızlıkta çıkış kodu 1'dir.
+Her `tests/test_*.gd` dosyası dörder dörder, **her biri kendi boş kayıt klasöründe** (`user://`) çalışır. Böylece hiçbir test, başka bir testin ya da önceki bir çalıştırmanın bıraktığı verilere yaslanamaz. Süre ölçen testler (dosyanın başında `## RUN ALONE` satırı olanlar) diğerleri bittikten sonra tek tek çalışır; yanlarında çalışan başka testler ölçümlerini bozmasın diye. Başarısız testlerin kırılan kontrolleri çıktıda listelenir. Tek bir test: `godot --path . -s tests/test_xxx.gd`. Başarısızlıkta çıkış kodu 1'dir.
 
 ## Testlerin gerçekten bir şey yakaladığını denetlemek
 
