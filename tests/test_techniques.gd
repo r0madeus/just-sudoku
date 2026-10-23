@@ -182,7 +182,7 @@ func test_list() -> void:
 	await _frames(2)
 	var hidden_single_level := _row_text(s.row_buttons["Hidden Single"].get_parent(), "Level")
 	var x_wing_level := _row_text(s.row_buttons["X-Wing"].get_parent(), "Level")
-	_check("Levels read 'From Easy' and 'From Hard' (%s, %s)" % [hidden_single_level, x_wing_level], hidden_single_level == "FROM EASY" and x_wing_level == "FROM HARD")
+	_check("Levels read 'Easy and up' and 'Hard and up' (%s, %s)" % [hidden_single_level, x_wing_level], hidden_single_level == "EASY AND UP" and x_wing_level == "HARD AND UP")
 
 	_emitted.clear()
 	s.back_requested.connect(func(): _emitted.append("back"))
