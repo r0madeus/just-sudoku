@@ -2,6 +2,7 @@ class_name GameScreen
 extends Control
 
 const SoundManager = preload("res://scripts/services/sound_manager.gd")
+const GameRecorder = preload("res://scripts/gameplay/game_recorder.gd")
 const ThemeManager = preload("res://scripts/services/theme_manager.gd")
 const SettingsScreen = preload("res://scenes/menus/settings_screen.gd")
 const PuzzleShareService = preload("res://scripts/services/puzzle_share_service.gd")
@@ -64,6 +65,7 @@ var side_panel: VBoxContainer
 var _landscape: bool = false
 
 # Overlays
+var pause_menu: PauseMenu
 var pause_overlay: Control
 var pause_panel: PanelContainer
 var pause_title: Label
@@ -225,6 +227,12 @@ func _build_ui() -> void:
 	root_vbox.add_theme_constant_override("separation", 0)
 	margin_container.add_child(root_vbox)
 
+	_build_header()
+	_build_play_area()
+	_build_dialogs()
+
+## Back button, level title, clock and pause
+func _build_header() -> void:
 	# --- 1. Top Header (Editorial Headline + Technical Precision Timer) ---
 	header_bar = HBoxContainer.new()
 	header_bar.custom_minimum_size = Vector2(0, 44)
@@ -289,6 +297,8 @@ func _build_ui() -> void:
 	# The timer makes the right side wider than the back button; keep the level centred
 	ResponsiveManager.balance_header(header_bar, title_container)
 
+## Board, Check, the action dock and the number pad, top to bottom
+func _build_play_area() -> void:
 	# --- 2. Top Spacer (Airy breathing room between Header and Grid) ---
 	top_spacer = Control.new()
 	top_spacer.custom_minimum_size = Vector2(0, 24)
@@ -373,105 +383,32 @@ func _build_ui() -> void:
 
 	_apply_theme_polish()
 
+## Pause sheet, hint, result and solution dialogs
+func _build_dialogs() -> void:
 	# --- 6. Pause Overlay (AppModal) ---
-	var pause_modal := AppModal.new()
-	pause_modal.title = LocalizationManager.translate("PAUSE_TITLE")
-	pause_modal.primary_btn.visible = false
-	pause_modal.cancel_btn.visible = false
-	pause_modal.show_close_button = false
-	pause_modal.title_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	pause_modal.ambient_background = true
-	pause_modal.canceled.connect(toggle_pause)
-	add_child(pause_modal)
-
-	pause_overlay = pause_modal
-	pause_panel = pause_modal.modal_panel
-	pause_title = pause_modal.title_label
-	pause_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-
-	pause_info_label = Label.new()
-	pause_info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	pause_info_label.theme_type_variation = "Subtitle"
-	ThemeManager.set_font_size(pause_info_label, 13)
-	pause_info_label.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
-	pause_modal.body_vbox.add_child(pause_info_label)
-
-	pause_toast_label = Label.new()
-	pause_toast_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	pause_toast_label.theme_type_variation = "Caption"
-	pause_toast_label.add_theme_color_override("font_color", ThemeManager.get_color("accent"))
-	pause_toast_label.visible = false
-	pause_modal.body_vbox.add_child(pause_toast_label)
-
-	resume_btn = Button.new()
-	resume_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	resume_btn.custom_minimum_size = Vector2(0, ResponsiveManager.HEIGHT_BUTTON_PRIMARY)
-	resume_btn.theme_type_variation = "PrimaryButton"
-	resume_btn.icon = ThemeManager.get_icon("play")
-	resume_btn.add_theme_constant_override("icon_max_width", 18)
-	ThemeManager.set_font_size(resume_btn, 16)
-	resume_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	resume_btn.pressed.connect(toggle_pause)
-	pause_modal.actions_vbox.add_child(resume_btn)
-
-	share_puzzle_btn = Button.new()
-	share_puzzle_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	share_puzzle_btn.custom_minimum_size = Vector2(0, ResponsiveManager.HEIGHT_BUTTON_SECONDARY)
-	share_puzzle_btn.theme_type_variation = "SecondaryButton"
-	share_puzzle_btn.icon = ThemeManager.get_icon("upload")
-	share_puzzle_btn.add_theme_constant_override("icon_max_width", 18)
-	ThemeManager.set_font_size(share_puzzle_btn, 14)
-	share_puzzle_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	share_puzzle_btn.pressed.connect(_on_share_puzzle_pressed)
-	pause_modal.actions_vbox.add_child(share_puzzle_btn)
-
-	export_save_btn = Button.new()
-	export_save_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	export_save_btn.custom_minimum_size = Vector2(0, ResponsiveManager.HEIGHT_BUTTON_SECONDARY)
-	export_save_btn.theme_type_variation = "SecondaryButton"
-	export_save_btn.icon = ThemeManager.get_icon("save")
-	export_save_btn.add_theme_constant_override("icon_max_width", 18)
-	ThemeManager.set_font_size(export_save_btn, 14)
-	export_save_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	export_save_btn.pressed.connect(_on_export_save_pressed)
-	pause_modal.actions_vbox.add_child(export_save_btn)
-
-	solution_btn = Button.new()
-	solution_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	solution_btn.custom_minimum_size = Vector2(0, ResponsiveManager.HEIGHT_BUTTON_SECONDARY)
-	solution_btn.theme_type_variation = "SecondaryButton"
-	solution_btn.icon = ThemeManager.get_icon("lightbulb")
-	solution_btn.add_theme_constant_override("icon_max_width", 18)
-	ThemeManager.set_font_size(solution_btn, 14)
-	solution_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	solution_btn.pressed.connect(_on_view_solution_pressed)
-	pause_modal.actions_vbox.add_child(solution_btn)
-
-	pause_settings_btn = Button.new()
-	pause_settings_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	pause_settings_btn.custom_minimum_size = Vector2(0, ResponsiveManager.HEIGHT_BUTTON_SECONDARY)
-	pause_settings_btn.theme_type_variation = "SecondaryButton"
-	pause_settings_btn.icon = ThemeManager.get_icon("settings")
-	pause_settings_btn.add_theme_constant_override("icon_max_width", 18)
-	ThemeManager.set_font_size(pause_settings_btn, 14)
-	pause_settings_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	pause_settings_btn.pressed.connect(_on_pause_settings_pressed)
-	pause_modal.actions_vbox.add_child(pause_settings_btn)
-
-	pause_menu_btn = Button.new()
-	pause_menu_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	pause_menu_btn.custom_minimum_size = Vector2(0, ResponsiveManager.HEIGHT_BUTTON_SECONDARY)
-	pause_menu_btn.theme_type_variation = "GhostButton"
-	pause_menu_btn.icon = ThemeManager.get_icon("chevron-left")
-	pause_menu_btn.add_theme_constant_override("icon_max_width", 18)
-	ThemeManager.set_font_size(pause_menu_btn, 14)
-	pause_menu_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	pause_menu_btn.pressed.connect(func():
-		if pause_overlay is AppModal:
-			(pause_overlay as AppModal).close_modal()
+	pause_menu = PauseMenu.new()
+	pause_menu.resume_requested.connect(toggle_pause)
+	pause_menu.share_requested.connect(_on_share_puzzle_pressed)
+	pause_menu.export_requested.connect(_on_export_save_pressed)
+	pause_menu.solution_requested.connect(_on_view_solution_pressed)
+	pause_menu.settings_requested.connect(_on_pause_settings_pressed)
+	pause_menu.menu_requested.connect(func():
+		pause_menu.close_modal()
 		_on_back_pressed()
 	)
-	pause_modal.actions_vbox.add_child(pause_menu_btn)
+	add_child(pause_menu)
+	# The names the rest of the screen (and the tests) know its parts by
+	pause_overlay = pause_menu
+	pause_panel = pause_menu.modal_panel
+	pause_title = pause_menu.title_label
+	pause_info_label = pause_menu.info_label
+	pause_toast_label = pause_menu.toast_label
+	resume_btn = pause_menu.resume_btn
+	share_puzzle_btn = pause_menu.share_puzzle_btn
+	export_save_btn = pause_menu.export_save_btn
+	solution_btn = pause_menu.solution_btn
+	pause_settings_btn = pause_menu.settings_btn
+	pause_menu_btn = pause_menu.menu_btn
 
 	# --- 7. Hint Dialog (AppModal) ---
 	hint_dialog = AppModal.new()
@@ -564,17 +501,10 @@ func toggle_pause() -> void:
 		game_timer.pause()
 		if pause_btn != null:
 			pause_btn.icon = ThemeManager.get_icon("play")
-		if pause_info_label != null:
-			pause_info_label.text = "%s • %s" % [
-				LocalizationManager.get_difficulty_name(game_state.difficulty),
-				LocalizationManager.translate("PUZZLE_NUMBER") % game_state.seed_value
-			]
-		if pause_toast_label != null:
-			pause_toast_label.visible = false
-		if pause_overlay is AppModal:
-			(pause_overlay as AppModal).open_modal()
-		else:
-			pause_overlay.visible = true
+		pause_menu.open_for("%s • %s" % [
+			LocalizationManager.get_difficulty_name(game_state.difficulty),
+			LocalizationManager.translate("PUZZLE_NUMBER") % game_state.seed_value
+		])
 	else:
 		game_timer.resume()
 		_hide_pause_overlay()
@@ -582,23 +512,10 @@ func toggle_pause() -> void:
 func _hide_pause_overlay() -> void:
 	if pause_btn != null:
 		pause_btn.icon = ThemeManager.get_icon("pause")
-	if pause_overlay is AppModal:
-		(pause_overlay as AppModal).close_modal()
-	else:
-		pause_overlay.visible = false
+	pause_menu.close_modal()
 
 func _show_pause_toast(msg: String) -> void:
-	if pause_toast_label == null:
-		return
-	pause_toast_label.text = msg
-	pause_toast_label.visible = true
-	var t := create_tween()
-	if t != null:
-		t.tween_interval(1.8)
-		t.tween_callback(func():
-			if is_instance_valid(pause_toast_label):
-				pause_toast_label.visible = false
-		)
+	pause_menu.show_toast(msg)
 
 func _on_share_puzzle_pressed() -> void:
 	if game_state != null and game_state.initial_puzzle != null:
@@ -900,21 +817,6 @@ func _update_locale_texts() -> void:
 		notes_btn.text = LocalizationManager.translate("BTN_NOTES_ON") if (numpad != null and numpad.is_notes_mode) else LocalizationManager.translate("BTN_NOTES")
 	if hint_btn != null:
 		hint_btn.text = LocalizationManager.translate("BTN_HINT")
-	if pause_title != null:
-		pause_title.text = LocalizationManager.translate("PAUSE_TITLE")
-		pause_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	if resume_btn != null:
-		resume_btn.text = LocalizationManager.translate("BTN_RESUME")
-	if share_puzzle_btn != null:
-		share_puzzle_btn.text = LocalizationManager.translate("BTN_SHARE_PUZZLE")
-	if export_save_btn != null:
-		export_save_btn.text = LocalizationManager.translate("BTN_COPY_SAVE")
-	if solution_btn != null:
-		solution_btn.text = LocalizationManager.translate("BTN_SOLUTION")
-	if pause_settings_btn != null:
-		pause_settings_btn.text = LocalizationManager.translate("BTN_SETTINGS")
-	if pause_menu_btn != null:
-		pause_menu_btn.text = LocalizationManager.translate("BTN_MENU")
 	if hint_dialog != null:
 		hint_dialog.title = LocalizationManager.translate("HINT_DIALOG_TITLE")
 		hint_dialog.ok_button_text = LocalizationManager.translate("HINT_APPLY_MOVE")
@@ -1028,33 +930,10 @@ func _on_game_completed(summary: Dictionary) -> void:
 	game_timer.stop()
 	SoundManager.play_complete()
 	Haptics.game_completed()
-	SaveManager.clear_active_game()
-	if game_state != null and game_state.is_completed:
-		# Marks it finished in the index, so it leaves the saved games list
-		SaveManager.save_game_slot(game_state)
-
-	# Achievements as they were before this game is recorded (GDD §36)
-	var achievements_before := AchievementManager.status()
-	var seed_val: int = int(summary.get("seed", 0))
-	# Only a Daily solved on its own day counts as one (streaks, achievements); an archive day
-	# is marked done in the calendar
-	var daily_date := DailyManager.date_for_seed(seed_val)
-	var is_daily: bool = daily_date == DailyManager.get_today_date_string()
-	summary["is_daily"] = is_daily
-	if not daily_date.is_empty():
-		DailyManager.mark_completed(daily_date)
-		if game_state != null:
-			DailyManager.save_daily_game(game_state, daily_date)
-
-	# References as they were before this game, then record it (GDD §25, §26)
+	var result := GameRecorder.record(game_state, summary)
 	var difficulty: String = summary.get("difficulty", DifficultyAnalyzer.LEVEL_MEDIUM)
-	var prev_best := HistoryManager.get_best_record_for_seed(seed_val)
-	var bench := HistoryManager.get_level_benchmarks(difficulty)
-	HistoryManager.add_record(summary)
-
-	var streak: int = DailyManager.get_current_streak() if is_daily else 0
-	var new_achievements := AchievementManager.newly_unlocked(achievements_before, AchievementManager.status())
-	complete_summary.show_result(summary, ResultSummary.build_highlights(summary, bench, prev_best, streak), new_achievements)
+	complete_summary.show_result(summary,
+		ResultSummary.build_highlights(summary, result.bench, result.prev_best, result.streak), result.new_achievements)
 	complete_dialog.dialog_text = ""
 	_new_puzzle_req = 0
 	complete_dialog.primary_btn.disabled = false
