@@ -39,6 +39,7 @@
 
 **For everyone**
 - Five themes (Dark, AMOLED, Light, Sepia, Forest) plus your own colours; three typefaces.
+- Quiet sounds made in code (no audio files): a soft marimba note for each digit, rising from 1 to 9, lighter taps for notes, bells when a row, column or box is done. They can be turned off.
 - Text size setting; wrong digits are marked by shape as well as colour, for colour-blind players; the text in every built-in theme meets WCAG AA contrast.
 - English and Turkish.
 - Phone and tablet layouts, including side-by-side layouts on a tablet in landscape.
@@ -74,7 +75,7 @@ The Android build uses a Godot export template built with only what the game nee
 GODOT=/path/to/godot tools/run_tests.sh
 ```
 
-Runs all 48 test suites, four at a time, each with its own empty save folder (under a minute). They also run on every pull request. [docs/testing.md](docs/testing.md) explains them, and how `tools/mutation_audit.py` checks that the tests really catch mistakes: it breaks 41 behaviours one at a time and all 41 are caught.
+Runs all 49 test suites, four at a time, each with its own empty save folder (under a minute). They also run on every pull request. [docs/testing.md](docs/testing.md) explains them, and how `tools/mutation_audit.py` checks that the tests really catch mistakes: it breaks 44 behaviours one at a time and all 44 are caught.
 
 ## Project layout
 

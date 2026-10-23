@@ -661,18 +661,18 @@ func _apply_key(num: int, targets: Array[int]) -> void:
 		return
 	if numpad.is_color_mode:
 		if game_state.set_cell_color(targets, num):
-			SoundManager.play_number_placed()
+			SoundManager.play_note()
 			Haptics.tap()
 			sudoku_grid.refresh_highlights()
 			_save_progress()
 		return
 	if targets.size() > 1:
 		if game_state.toggle_candidate_many(targets, num):
-			SoundManager.play_number_placed()
+			SoundManager.play_note()
 			Haptics.tap()
 	elif numpad.is_notes_mode:
 		if game_state.toggle_candidate(targets[0], num):
-			SoundManager.play_number_placed()
+			SoundManager.play_note()
 			Haptics.tap()
 	else:
 		var idx: int = targets[0]
@@ -682,8 +682,12 @@ func _apply_key(num: int, targets: Array[int]) -> void:
 			if conflicts.has(idx) or game_state.checked_wrong_indices.has(idx):
 				SoundManager.play_conflict()
 				Haptics.conflict()
+			elif game_state.current_board.get_cell(idx) == 0:
+				# The same digit again takes it out
+				SoundManager.play_erase()
+				Haptics.tap()
 			else:
-				SoundManager.play_number_placed()
+				SoundManager.play_number_placed(num)
 				Haptics.tap()
 
 	_after_player_move()
@@ -756,7 +760,7 @@ func _on_notes_toggle_pressed() -> void:
 func _on_fill_notes_pressed() -> void:
 	if game_state != null and game_state.fill_notes():
 		sudoku_grid.refresh_all_cells()
-		SoundManager.play_number_placed()
+		SoundManager.play_note()
 		Haptics.tap()
 		_after_player_move()
 

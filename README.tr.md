@@ -39,6 +39,7 @@
 
 **Herkes için**
 - Beş tema (Koyu, AMOLED, Açık, Sepya, Orman) ve kendi renklerin; üç yazı tipi.
+- Kodla üretilen sakin sesler (ses dosyası yok): her rakama 1'den 9'a yükselen yumuşak bir marimba notası, notlar için daha hafif dokunuşlar, bir satır, sütun ya da kutu tamamlanınca çan sesi. İstersen kapatabilirsin.
 - **Erişilebilirlik:**
   - Yazı boyutu ayarı.
   - Renk körü oyuncular için yanlış rakamlar renkle birlikte şekille de işaretleniyor.
@@ -83,9 +84,9 @@ Android sürümü, yalnızca oyunun ihtiyaç duyduklarıyla derlenmiş bir Godot
 GODOT=/godot/yolu tools/run_tests.sh
 ```
 
-48 test dosyasının hepsini dörder dörder, her birini kendi boş kayıt klasöründe çalıştırıyor (bir dakikadan kısa). Testler her PR'da da çalışıyor.
+49 test dosyasının hepsini dörder dörder, her birini kendi boş kayıt klasöründe çalıştırıyor (bir dakikadan kısa). Testler her PR'da da çalışıyor.
 
-Ayrıntılar [docs/testing.md](docs/testing.md) dosyasında. Orada `tools/mutation_audit.py` aracı da anlatılıyor: oyunun 41 davranışını tek tek bilerek bozup testlerin bunu yakalayıp yakalamadığını kontrol ediyor. Şu an 41'in 41'i yakalanıyor.
+Ayrıntılar [docs/testing.md](docs/testing.md) dosyasında. Orada `tools/mutation_audit.py` aracı da anlatılıyor: oyunun 44 davranışını tek tek bilerek bozup testlerin bunu yakalayıp yakalamadığını kontrol ediyor. Şu an 44'ün 44'ü yakalanıyor.
 
 ## Proje yapısı
 

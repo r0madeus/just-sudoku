@@ -51,6 +51,9 @@ MUTATIONS = [
  ("M39", "scripts/data/daily_manager.gd", "for back in range(ARCHIVE_DAYS):", "for back in range(1):", "Past Dailies are not known as Dailies"),
  ("M40", "scenes/menus/techniques_screen.gd", "\t\tTechniqueLibrary.apply_step(board, current_step)\n", "\t\tpass\n", "A technique lesson's Show the move changes nothing"),
  ("M41", "scenes/menus/techniques_screen.gd", "\tvar puzzles := TechniqueLibrary.practice(current_technique)\n", "\tvar puzzles := TechniqueLibrary.practice(TechniqueLibrary.ORDER[0])\n", "Practice starts a puzzle for another technique"),
+ ("M42", "scripts/services/sound_manager.gd", "var freq: float = DIGIT_NOTES[d - 1] if d >= 1 else DIGIT_NOTES[5]", "var freq: float = DIGIT_NOTES[5]", "Every digit sounds the same"),
+ ("M43", "scripts/services/sound_manager.gd", "\t\tif from_end < fade:\n", "\t\tif false:\n", "Sounds end with a click"),
+ ("M44", "scripts/services/sound_manager.gd", "\t\t_prerender_task = WorkerThreadPool.add_task(_prerender, false, \"Render sounds\")\n", "\t\tpass\n", "Sounds are rendered when first played, stalling the game"),
 ]
 
 def main():
