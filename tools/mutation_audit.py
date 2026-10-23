@@ -28,7 +28,7 @@ MUTATIONS = [
  ("M16", "scripts/data/achievement_manager.gd", "\t\tif r.get(\"assisted\", false):\n\t\t\tcontinue", "\t\tif false:\n\t\t\tcontinue", "A shown solution earns achievements"),
  ("M17", "scripts/services/theme_manager.gd", "\treturn roundi(px * (1.0 + (text_scale - 1.0) * weight))", "\treturn roundi(px)", "Text size setting does nothing"),
  ("M18", "scenes/gameplay/sudoku_cell.gd", "\t\tvar marked: bool = is_conflict or is_wrong", "\t\tvar marked: bool = false", "Wrong digits lose their shape mark"),
- ("M19", "scenes/gameplay/game_screen.gd", "\t\tDailyManager.mark_today_completed()\n", "\t\tpass\n", "Solving the Daily does not mark the day"),
+ ("M19", "scenes/gameplay/game_screen.gd", "\t\tDailyManager.mark_completed(daily_date)\n", "\t\tpass\n", "Solving the Daily does not mark the day"),
  ("M20", "scenes/gameplay/game_screen.gd", "\tHistoryManager.add_record(summary)\n", "\tpass\n", "A finished game is not recorded"),
  ("M21", "scenes/menus/settings_screen.gd", "\t\tfile.store_string(JSON.stringify(data, \"\\t\"))\n\t\tfile.close()\n\t_notify_listeners()", "\t\tfile.close()\n\t_notify_listeners()", "Settings are not saved"),
  ("M22", "scripts/gameplay/game_state.gd", "\t\t\tset_number(step.cells[0], step.digit, true)", "\t\t\tset_number(step.cells[0], step.digit % 9 + 1, true)", "A hint places the wrong digit"),
