@@ -38,6 +38,7 @@ Bir sorun görürsen telefonun modelini, Android sürümünü ve ne yaptığınd
 
 **Ses, titreşim, ayarlar**
 - [ ] Sesler ve titreşim ayarlardan açılıp kapanıyor ve gerçekten etkili oluyor.
+- [ ] Sesler yumuşak ve tıklamasız; hızlı art arda rakam girince sesler gecikmeden üst üste çalıyor; bulmaca bitince çan sesi animasyonu takılmadan çalıyor.
 - [ ] Tema ve dil değişince her ekran hemen güncelleniyor.
 - [ ] Ayarlar → Yazı Boyutu "Çok Büyük" seçilince yazılar her ekranda büyüyor, hiçbir yazı kesilmiyor ya da üst üste binmiyor.
 - [ ] Bulmaca paylaşma / dışa aktarma panoya kopyalıyor, İçe Aktar ile geri açılabiliyor.

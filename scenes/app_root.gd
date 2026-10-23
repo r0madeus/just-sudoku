@@ -75,6 +75,7 @@ func _exit_tree() -> void:
 	# Background generation (prefetch, New Game preview) must be finished before the engine exits
 	PuzzlePrefetcher.stop()
 	AsyncPuzzleGenerator.shutdown()
+	SoundManager.shutdown()
 
 func _on_theme_changed() -> void:
 	_rebuild_theme()
