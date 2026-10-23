@@ -28,11 +28,11 @@ func _init() -> void:
 
 	# 1. Smart Candidates Default State (GDD §17 & User Request)
 	run_test.call("Smart Candidates is OFF by default in Settings", func() -> bool:
-		return SettingsScreen.smart_candidates_enabled == false
+		return AppSettings.smart_candidates_enabled == false
 	)
 
 	run_test.call("New game starts with ZERO candidate clutter on empty cells by default", func() -> bool:
-		SettingsScreen.smart_candidates_enabled = false
+		AppSettings.smart_candidates_enabled = false
 		var gen := SudokuGenerator.generate(12345678, DifficultyAnalyzer.LEVEL_EASY)
 		var state := GameState.new()
 		state.init_from_puzzle(gen)
@@ -45,7 +45,7 @@ func _init() -> void:
 	)
 
 	run_test.call("Manual notes work properly when Smart Candidates is OFF", func() -> bool:
-		SettingsScreen.smart_candidates_enabled = false
+		AppSettings.smart_candidates_enabled = false
 		var gen := SudokuGenerator.generate(12345678, DifficultyAnalyzer.LEVEL_EASY)
 		var state := GameState.new()
 		state.init_from_puzzle(gen)
@@ -82,14 +82,14 @@ func _init() -> void:
 			return false
 
 		# Toggle ON
-		SettingsScreen.smart_candidates_enabled = true
-		SettingsScreen._notify_listeners()
+		AppSettings.smart_candidates_enabled = true
+		AppSettings._notify_listeners()
 
 		var has_cands := (state.current_board.candidates[empty_idx] != 0)
 
 		# Toggle OFF
-		SettingsScreen.smart_candidates_enabled = false
-		SettingsScreen._notify_listeners()
+		AppSettings.smart_candidates_enabled = false
+		AppSettings._notify_listeners()
 
 		var cleared := (state.current_board.candidates[empty_idx] == 0)
 

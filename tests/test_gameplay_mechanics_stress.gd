@@ -163,7 +163,7 @@ func test_dimension_2_smart_numpad() -> void:
 	assert_true(empty_idx != -1, "Test için boş hücre bulundu: %d" % empty_idx)
 
 	# 1. Update Smart Numpad states
-	SettingsScreen.smart_numpad_enabled = true
+	AppSettings.smart_numpad_enabled = true
 	numpad.set_notes_mode(false)
 	numpad.update_smart_states(state.current_board, empty_idx)
 
@@ -225,12 +225,12 @@ func test_dimension_3_notes_and_candidates() -> void:
 		assert_true(state.current_board.has_candidate(peer_idx, 2) == false, "Auto-Remove Notes: Sayı yerleştirilince komşu hücredeki aday 2 otomatik silindi")
 
 	# 3. Smart Candidates setting
-	SettingsScreen.smart_candidates_enabled = true
+	AppSettings.smart_candidates_enabled = true
 	var sc_state := GameState.new()
 	sc_state.init_from_puzzle(test_gen)
 	assert_true(sc_state.current_board.candidates[empty_idx] != 0, "Smart Candidates = Açık iken boş hücrelerde adaylar otomatik hesaplandı")
 
-	SettingsScreen.smart_candidates_enabled = false
+	AppSettings.smart_candidates_enabled = false
 	var clean_state := GameState.new()
 	clean_state.init_from_puzzle(test_gen)
 	assert_true(clean_state.current_board.candidates[empty_idx] == 0, "Smart Candidates = Kapalı iken başlangıç tahtası 0 kalabalıkla temiz başladı")

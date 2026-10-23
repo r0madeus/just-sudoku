@@ -7,7 +7,7 @@ static func is_available() -> bool:
 	return OS.has_feature("mobile")
 
 static func _vibrate(duration_ms: int, amplitude: float) -> void:
-	if not SettingsScreen.haptics_enabled or not is_available():
+	if not AppSettings.haptics_enabled or not is_available():
 		return
 	Input.vibrate_handheld(duration_ms, amplitude)
 

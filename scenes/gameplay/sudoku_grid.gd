@@ -252,7 +252,7 @@ func refresh_highlights() -> void:
 		var is_sel: bool = (idx == selected_idx) or (multi and multi_cells.has(idx))
 		var is_peer: bool = (not is_sel and sel_peers.has(idx))
 		var is_same: bool = (not is_sel and sel_val != 0 and val == sel_val)
-		var is_conf: bool = conflicts.has(idx) and SettingsScreen.show_conflicts
+		var is_conf: bool = conflicts.has(idx) and AppSettings.show_conflicts
 		var is_wrong: bool = game_state.checked_wrong_indices.has(idx)
 
 		cells[idx].mark_color = game_state.get_cell_color(idx)
@@ -324,7 +324,7 @@ func set_hint_focus(unit_idx: int) -> void:
 		lines_overlay.queue_redraw()
 
 func play_victory_wave(on_finished: Callable = Callable()) -> void:
-	if not SettingsScreen.animations_enabled or cells.size() != SudokuBoard.CELL_COUNT:
+	if not AppSettings.animations_enabled or cells.size() != SudokuBoard.CELL_COUNT:
 		if on_finished.is_valid():
 			on_finished.call()
 		return
@@ -355,7 +355,7 @@ func play_victory_wave(on_finished: Callable = Callable()) -> void:
 
 ## Light sweep over each completed row/column/box, rippling out from the cell just filled
 func play_units_completed(origin_idx: int, units: Array) -> void:
-	if not SettingsScreen.animations_enabled or cells.size() != SudokuBoard.CELL_COUNT:
+	if not AppSettings.animations_enabled or cells.size() != SudokuBoard.CELL_COUNT:
 		return
 	var o_r: int = SudokuBoard.CELL_ROW[origin_idx]
 	var o_c: int = SudokuBoard.CELL_COL[origin_idx]
@@ -369,7 +369,7 @@ func play_units_completed(origin_idx: int, units: Array) -> void:
 			cells[idx].animate_unit_completed(dist * 0.035)
 
 func play_digit_completed_pulse(digit: int) -> void:
-	if not SettingsScreen.animations_enabled or cells.size() != SudokuBoard.CELL_COUNT:
+	if not AppSettings.animations_enabled or cells.size() != SudokuBoard.CELL_COUNT:
 		return
 	var ripple_delay: float = 0.015
 	var count: int = 0

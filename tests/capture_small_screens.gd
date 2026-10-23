@@ -24,7 +24,7 @@ func _shot(file: String) -> void:
 	print("saved ", ProjectSettings.globalize_path(OUT + file))
 
 func _run() -> void:
-	SettingsScreen.auto_open_last_game = false
+	AppSettings.auto_open_last_game = false
 	ThemeManager.set_theme(ThemeManager.THEME_DARK)
 	var win := get_root()
 	win.content_scale_mode = Window.CONTENT_SCALE_MODE_DISABLED

@@ -15,10 +15,10 @@ func _init() -> void:
 	print("🧪 RUNNING FILL NOTES & SHOW WRONG DIGITS TESTS")
 	print("========================================")
 
-	var smart: bool = SettingsScreen.smart_candidates_enabled
-	var wrong: bool = SettingsScreen.show_wrong_immediately
-	SettingsScreen.smart_candidates_enabled = false
-	SettingsScreen.show_wrong_immediately = false
+	var smart: bool = AppSettings.smart_candidates_enabled
+	var wrong: bool = AppSettings.show_wrong_immediately
+	AppSettings.smart_candidates_enabled = false
+	AppSettings.show_wrong_immediately = false
 
 	test_fill_notes()
 	test_fill_notes_undo_after_reload()
@@ -29,8 +29,8 @@ func _init() -> void:
 	test_resume_keeps_notes()
 	test_enabling_show_wrong_reveals_board()
 
-	SettingsScreen.smart_candidates_enabled = smart
-	SettingsScreen.show_wrong_immediately = wrong
+	AppSettings.smart_candidates_enabled = smart
+	AppSettings.show_wrong_immediately = wrong
 
 	print("========================================")
 	print("🏁 RESULTS: %d Passed, %d Failed" % [tests_passed, tests_failed])
@@ -141,12 +141,12 @@ func test_show_wrong_immediately() -> void:
 			idx = i
 			break
 
-	SettingsScreen.show_wrong_immediately = false
+	AppSettings.show_wrong_immediately = false
 	state.set_number(idx, wrong)
 	assert_true(state.mistakes_count == 0 and not state.checked_wrong_indices.has(idx), "Off: a legal wrong digit is not revealed")
 	state.clear_cell(idx)
 
-	SettingsScreen.show_wrong_immediately = true
+	AppSettings.show_wrong_immediately = true
 	state.set_number(idx, wrong)
 	assert_true(state.checked_wrong_indices.has(idx), "On: the wrong digit is marked at once")
 	assert_true(state.mistakes_count == 1, "On: it counts as one mistake")
@@ -155,7 +155,7 @@ func test_show_wrong_immediately() -> void:
 
 	state.set_number(idx, state.solution.get_cell(idx))
 	assert_true(not state.checked_wrong_indices.has(idx) and state.mistakes_count == 1, "Fixing the cell clears the mark")
-	SettingsScreen.show_wrong_immediately = false
+	AppSettings.show_wrong_immediately = false
 
 func test_checked_wrong_survives_reload() -> void:
 	print("\n--- Test 5: Checked wrong cells survive a save ---")
@@ -183,7 +183,7 @@ func test_settings_change_keeps_notes() -> void:
 	screen.setup_game(state)
 	var idx: int = _empty_cells(state)[0]
 	state.toggle_candidate(idx, 5)
-	SettingsScreen._notify_listeners()
+	AppSettings._notify_listeners()
 	assert_true(state.current_board.has_candidate(idx, 5), "Note kept after another setting changed")
 	screen.queue_free()
 
@@ -214,10 +214,10 @@ func test_enabling_show_wrong_reveals_board() -> void:
 			break
 	state.set_number(idx, wrong)
 	assert_true(not state.checked_wrong_indices.has(idx), "Hidden while the setting is off")
-	SettingsScreen.show_wrong_immediately = true
-	SettingsScreen._notify_listeners()
+	AppSettings.show_wrong_immediately = true
+	AppSettings._notify_listeners()
 	assert_true(state.checked_wrong_indices.has(idx) and state.mistakes_count == 1, "Revealed and counted once when turned on")
-	SettingsScreen._notify_listeners()
+	AppSettings._notify_listeners()
 	assert_true(state.mistakes_count == 1, "Further setting changes do not count it again")
-	SettingsScreen.show_wrong_immediately = false
+	AppSettings.show_wrong_immediately = false
 	screen.queue_free()

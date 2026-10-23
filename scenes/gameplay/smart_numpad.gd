@@ -7,7 +7,7 @@ signal number_pressed(num: int)
 signal erase_pressed()
 signal notes_toggled(is_notes: bool)
 
-const SettingsScreen = preload("res://scenes/menus/settings_screen.gd")
+const AppSettings = preload("res://scripts/services/app_settings.gd")
 const SudokuCell = preload("res://scenes/gameplay/sudoku_cell.gd")
 
 var is_notes_mode: bool = false
@@ -113,7 +113,7 @@ func _build_ui() -> void:
 		# A digit goes in as the finger lands, as on a phone keyboard, not when it is lifted
 		btn.action_mode = BaseButton.ACTION_MODE_BUTTON_PRESS
 		btn.pressed.connect(func():
-			if SettingsScreen.animations_enabled and btn.is_inside_tree():
+			if AppSettings.animations_enabled and btn.is_inside_tree():
 				btn.pivot_offset = btn.size * 0.5
 				var bt := btn.create_tween()
 				if bt != null:
@@ -167,7 +167,7 @@ func update_smart_states(board: SudokuBoard, selected_idx: int) -> void:
 		if val >= 1 and val <= 9:
 			digit_counts[val] += 1
 
-	var is_smart: bool = smart_enabled and SettingsScreen.smart_numpad_enabled
+	var is_smart: bool = smart_enabled and AppSettings.smart_numpad_enabled
 	if is_color_mode:
 		# Any cell can take any colour
 		for btn in num_buttons:

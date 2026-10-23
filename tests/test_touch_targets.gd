@@ -157,8 +157,8 @@ func _run() -> void:
 	print("========================================")
 	print("🧪 RUNNING TOUCH TARGET TESTS")
 	print("========================================")
-	SettingsScreen.auto_open_last_game = false
-	SettingsScreen.animations_enabled = false
+	AppSettings.auto_open_last_game = false
+	AppSettings.animations_enabled = false
 	HistoryManager.add_record({"game_id": "touch_1", "seed": 101, "difficulty": "Hard", "score": 88,
 		"time": 420.0, "mistakes": 1, "hints": 0, "is_replay": false})
 	var st := GameState.new()

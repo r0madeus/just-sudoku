@@ -36,8 +36,8 @@ func _run() -> void:
 	print("========================================")
 	print("🧪 RUNNING RULES AND RECORDS TESTS")
 	print("========================================")
-	SettingsScreen.animations_enabled = false
-	SettingsScreen.show_wrong_immediately = false
+	AppSettings.animations_enabled = false
+	AppSettings.show_wrong_immediately = false
 	# The player's own history and Daily dates are put back afterwards
 	var saved_records: Array[Dictionary] = HistoryManager.load_all_records(true).duplicate(true)
 	var saved_daily: Dictionary = DailyManager.load_daily_data()

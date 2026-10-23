@@ -154,7 +154,7 @@ func _init() -> void:
 		var gen := SudokuGenerator.generate(99118822, DifficultyAnalyzer.LEVEL_EASY)
 		r._on_new_puzzle_generated(gen)
 
-		var grid := r.game_screen.sudoku_grid
+		var grid: SudokuGrid = r.game_screen.sudoku_grid
 		grid.select_cell(4)
 		if grid.selected_idx != 4: return false
 

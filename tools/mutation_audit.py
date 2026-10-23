@@ -30,7 +30,7 @@ MUTATIONS = [
  ("M18", "scenes/gameplay/sudoku_cell.gd", "\t\tvar marked: bool = is_conflict or is_wrong", "\t\tvar marked: bool = false", "Wrong digits lose their shape mark"),
  ("M19", "scripts/gameplay/game_recorder.gd", "\t\tDailyManager.mark_completed(daily_date)\n", "\t\tpass\n", "Solving the Daily does not mark the day"),
  ("M20", "scripts/gameplay/game_recorder.gd", "\tHistoryManager.add_record(summary)\n", "\tpass\n", "A finished game is not recorded"),
- ("M21", "scenes/menus/settings_screen.gd", "\t\tfile.store_string(JSON.stringify(data, \"\\t\"))\n\t\tfile.close()\n\t_notify_listeners()", "\t\tfile.close()\n\t_notify_listeners()", "Settings are not saved"),
+ ("M21", "scripts/services/app_settings.gd", "\t\tfile.store_string(JSON.stringify(data, \"\\t\"))\n\t\tfile.close()\n\t_notify_listeners()", "\t\tfile.close()\n\t_notify_listeners()", "Settings are not saved"),
  ("M22", "scripts/gameplay/game_state.gd", "\t\t\tset_number(step.cells[0], step.digit, true)", "\t\t\tset_number(step.cells[0], step.digit % 9 + 1, true)", "A hint places the wrong digit"),
  ("M23", "scripts/services/puzzle_share_service.gd", "seed_label, seed_val, code_label", "seed_label, seed_val + 1, code_label", "A shared puzzle has the wrong number"),
  ("M24", "scenes/gameplay/game_screen.gd", "\t\tgame_timer.pause()\n", "\t\tpass\n", "The clock runs while paused"),
@@ -54,7 +54,7 @@ MUTATIONS = [
  ("M42", "scripts/services/sound_manager.gd", "var freq: float = DIGIT_NOTES[d - 1] if d >= 1 else DIGIT_NOTES[5]", "var freq: float = DIGIT_NOTES[5]", "Every digit sounds the same"),
  ("M43", "scripts/services/sound_manager.gd", "\t\tif from_end < fade:\n", "\t\tif false:\n", "Sounds end with a click"),
  ("M44", "scripts/services/sound_manager.gd", "\t\t_prerender_task = WorkerThreadPool.add_task(_prerender, false, \"Render sounds\")\n", "\t\tpass\n", "Sounds are rendered when first played, stalling the game"),
- ("M45", "scenes/menus/settings_screen.gd", "version_label.text = \"Just Sudoku \" + app_version()", "version_label.text = \"Just Sudoku\"", "Settings does not show the version"),
+ ("M45", "scenes/menus/settings_screen.gd", "version_label.text = \"Just Sudoku \" + AppSettings.app_version()", "version_label.text = \"Just Sudoku\"", "Settings does not show the version"),
  ("M46", "export_presets.cfg", "permissions/internet=false", "permissions/internet=true", "The app asks for the internet"),
  ("M47", "scenes/app_root.gd", "\t\t_relayout_after_resume()\n", "\t\tpass\n", "Coming back from the background keeps a broken layout"),
  ("M48", "scripts/services/responsive_manager.gd", "\tif not Rect2i(Vector2i.ZERO, window_size).encloses(safe_rect):\n\t\treturn insets\n", "", "A safe area outside the window is trusted"),
@@ -71,6 +71,12 @@ MUTATIONS = [
  ("M59", "scenes/ui/touch_scroll.gd", "\toption.action_mode = BaseButton.ACTION_MODE_BUTTON_RELEASE\n", "\tpass\n", "A list opens as the finger lands on it to scroll"),
  ("M60", "scenes/gameplay/smart_numpad.gd", "\t\tbtn.action_mode = BaseButton.ACTION_MODE_BUTTON_PRESS\n", "", "Number pad digits wait for the finger to lift"),
  ("M61", "scenes/menus/resume_card.gd", "\t\t\t_press_inside = true\n", "\t\t\t_press_inside = true\n\t\t\tpressed.emit()\n", "The game card opens as the finger lands, so a scroll from it opens the game"),
+ ("M62", "scripts/gameplay/game_state.gd", "const AppSettings = preload(\"res://scripts/services/app_settings.gd\")\n", "const AppSettings = preload(\"res://scripts/services/app_settings.gd\")\nconst SettingsScreen = preload(\"res://scenes/menus/settings_screen.gd\")\n", "Start-up loads the Settings screen again, through the game's state"),
+ ("M63", "scenes/app_root.gd", "\t_start_warm_up()\n", "", "The screens behind the menu are only made when first opened, so the first tap waits"),
+ ("M64", "scenes/app_root.gd", "\tadd_child(node)\n\t_keep_dialogs_on_top()\n", "\tadd_child(node)\n", "A screen made after a dialog covers it"),
+ ("M65", "scenes/app_root.gd", "\t\tnode.visible = false\n", "\t\tpass\n", "A screen made in the background shows over the menu"),
+ ("M66", "scenes/app_root.gd", "\tif not _made.has(\"game_screen\"):\n\t\tmain_menu.refresh_buttons()\n\t\treturn\n", "", "Restoring a backup makes the game screen for nothing"),
+ ("M67", "scenes/app_root.gd", "\t_connect_node(key, node)\n", "", "A screen made on demand does not answer its buttons"),
 ]
 
 def main():

@@ -346,8 +346,8 @@ func test_practice_button() -> void:
 
 func test_app() -> void:
 	print("\n--- Test 10: The menu leads to the screen, Practice starts a game ---")
-	SettingsScreen.auto_open_last_game = false
-	SettingsScreen.animations_enabled = false
+	AppSettings.auto_open_last_game = false
+	AppSettings.animations_enabled = false
 	var app: AppRoot = load("res://scenes/app_root.tscn").instantiate()
 	root.add_child(app)
 	await _frames(6)
@@ -385,8 +385,8 @@ func test_app() -> void:
 
 func test_menu_fit() -> void:
 	print("\n--- Test 11: The four navigation buttons fit across a phone, in both languages and at large text ---")
-	SettingsScreen.auto_open_last_game = false
-	SettingsScreen.animations_enabled = false
+	AppSettings.auto_open_last_game = false
+	AppSettings.animations_enabled = false
 	var app: AppRoot = load("res://scenes/app_root.tscn").instantiate()
 	root.add_child(app)
 	await _frames(4)

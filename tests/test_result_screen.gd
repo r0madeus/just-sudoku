@@ -34,7 +34,7 @@ func _run() -> void:
 	print("========================================")
 	print("🧪 RUNNING RESULT SCREEN TESTS")
 	print("========================================")
-	SettingsScreen.animations_enabled = false
+	AppSettings.animations_enabled = false
 	var prev_locale := LocalizationManager.get_locale()
 	LocalizationManager.set_locale(LocalizationManager.LOCALE_EN)
 
@@ -187,7 +187,7 @@ func test_menu_and_back_button() -> void:
 	var app := AppRoot.new()
 	root.add_child(app)
 	# AppRoot loads the saved settings, which may turn animations back on
-	SettingsScreen.animations_enabled = false
+	AppSettings.animations_enabled = false
 	await _frames(5)
 	var state := GameState.new()
 	state.init_from_puzzle(SudokuGenerator.generate(9494, DifficultyAnalyzer.LEVEL_EASY))

@@ -196,7 +196,7 @@ func set_cell_data(
 		animate_shake()
 
 func animate_pop() -> void:
-	if not SettingsScreen.animations_enabled:
+	if not AppSettings.animations_enabled:
 		scale = Vector2.ONE
 		return
 	pivot_offset = size * 0.5
@@ -210,7 +210,7 @@ func animate_pop() -> void:
 		_scale_tween.tween_property(self, "scale", Vector2.ONE, 0.12).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 func animate_select() -> void:
-	if not SettingsScreen.animations_enabled:
+	if not AppSettings.animations_enabled:
 		scale = Vector2.ONE
 		return
 	pivot_offset = size * 0.5
@@ -224,7 +224,7 @@ func animate_select() -> void:
 		_scale_tween.tween_property(self, "scale", Vector2.ONE, 0.05).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
 
 func animate_shake() -> void:
-	if not SettingsScreen.animations_enabled:
+	if not AppSettings.animations_enabled:
 		return
 	_original_pos_x = position.x
 	_is_shaking = true
@@ -248,7 +248,7 @@ func animate_shake() -> void:
 	)
 
 func animate_wave(delay: float) -> void:
-	if not SettingsScreen.animations_enabled:
+	if not AppSettings.animations_enabled:
 		scale = Vector2.ONE
 		return
 	pivot_offset = size * 0.5
@@ -266,7 +266,7 @@ func animate_wave(delay: float) -> void:
 
 ## Accent wash that fades in and out, used when this cell's row, column or box is completed
 func animate_unit_completed(delay: float = 0.0) -> void:
-	if not SettingsScreen.animations_enabled or not is_inside_tree() or bg_panel == null:
+	if not AppSettings.animations_enabled or not is_inside_tree() or bg_panel == null:
 		return
 	if _flash_rect == null:
 		_flash_rect = ColorRect.new()
@@ -287,7 +287,7 @@ func animate_unit_completed(delay: float = 0.0) -> void:
 	_flash_tween.tween_property(_flash_rect, "color:a", 0.0, 0.38).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
 
 func animate_digit_completed(delay: float = 0.0) -> void:
-	if not SettingsScreen.animations_enabled:
+	if not AppSettings.animations_enabled:
 		scale = Vector2.ONE
 		return
 	pivot_offset = size * 0.5

@@ -96,8 +96,8 @@ func _run() -> void:
 	# Nodes added before the first frame are not ready yet (the board has no cells)
 	await process_frame
 	print("\n=== INPUT MODES ===")
-	SettingsScreen.digit_first = false
-	SettingsScreen.smart_candidates_enabled = false
+	AppSettings.digit_first = false
+	AppSettings.smart_candidates_enabled = false
 
 	_test_notes_in_many_cells()
 	_test_clear_many_cells()
@@ -237,7 +237,7 @@ func _test_screen_multi_selection() -> void:
 	screen.free()
 
 func _test_digit_first() -> void:
-	SettingsScreen.digit_first = true
+	AppSettings.digit_first = true
 	var screen := _new_screen()
 	screen._on_settings_changed()
 	var state := screen.game_state
@@ -276,7 +276,7 @@ func _test_digit_first() -> void:
 	screen._apply_key(3, grid.get_target_cells())
 	_check("The keyboard still fills the selected cell", state.current_board.get_cell(cells[1]) == 3)
 
-	SettingsScreen.digit_first = false
+	AppSettings.digit_first = false
 	screen._on_settings_changed()
 	_check("Turning digit-first off brings dragging back", grid.multi_select_enabled)
 	screen.free()
@@ -320,10 +320,10 @@ func _test_color_mode_screen() -> void:
 	screen.free()
 
 func _test_digit_first_setting_saved() -> void:
-	SettingsScreen.digit_first = true
-	SettingsScreen.save_config()
-	SettingsScreen.digit_first = false
-	SettingsScreen.load_config()
-	_check("Digit-first is saved with the settings", SettingsScreen.digit_first)
-	SettingsScreen.digit_first = false
-	SettingsScreen.save_config()
+	AppSettings.digit_first = true
+	AppSettings.save_config()
+	AppSettings.digit_first = false
+	AppSettings.load_config()
+	_check("Digit-first is saved with the settings", AppSettings.digit_first)
+	AppSettings.digit_first = false
+	AppSettings.save_config()

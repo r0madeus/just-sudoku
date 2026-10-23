@@ -3,7 +3,7 @@ extends Control
 
 const ThemeManager = preload("res://scripts/services/theme_manager.gd")
 const LocalizationManager = preload("res://scripts/services/localization_manager.gd")
-const SettingsScreen = preload("res://scenes/menus/settings_screen.gd")
+const AppSettings = preload("res://scripts/services/app_settings.gd")
 const ResponsiveManager = preload("res://scripts/services/responsive_manager.gd")
 const GlassPanel = preload("res://scenes/ui/glass_panel.gd")
 const AmbientBackdrop = preload("res://scenes/ui/ambient_backdrop.gd")
@@ -204,7 +204,7 @@ func open_modal() -> void:
 	if _modal_tween != null and _modal_tween.is_valid():
 		_modal_tween.kill()
 
-	if SettingsScreen.animations_enabled and is_inside_tree():
+	if AppSettings.animations_enabled and is_inside_tree():
 		modulate.a = 0.0
 		if modal_panel != null:
 			modal_panel.pivot_offset = modal_panel.size * 0.5
@@ -223,7 +223,7 @@ func close_modal() -> void:
 	if _modal_tween != null and _modal_tween.is_valid():
 		_modal_tween.kill()
 
-	if SettingsScreen.animations_enabled and is_inside_tree() and visible:
+	if AppSettings.animations_enabled and is_inside_tree() and visible:
 		_modal_tween = create_tween().set_parallel(true)
 		if _modal_tween != null:
 			_modal_tween.tween_property(self, "modulate:a", 0.0, 0.10).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)

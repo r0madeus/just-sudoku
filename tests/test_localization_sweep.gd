@@ -339,8 +339,8 @@ func _run() -> void:
 	print("========================================")
 	print("🧪 RUNNING LOCALIZATION COVERAGE TESTS")
 	print("========================================")
-	SettingsScreen.auto_open_last_game = false
-	SettingsScreen.animations_enabled = false
+	AppSettings.auto_open_last_game = false
+	AppSettings.animations_enabled = false
 	for k in LocalizationManager.DICTIONARY_EN:
 		en_values[LocalizationManager.DICTIONARY_EN[k]] = true
 	for k in LocalizationManager.DICTIONARY_TR:

@@ -32,8 +32,8 @@ func _run() -> void:
 	print("========================================")
 	print("🧪 RUNNING ACCESSIBILITY TESTS")
 	print("========================================")
-	SettingsScreen.animations_enabled = false
-	SettingsScreen.show_conflicts = true
+	AppSettings.animations_enabled = false
+	AppSettings.show_conflicts = true
 
 	test_contrast()
 	await test_error_marks()
@@ -155,7 +155,7 @@ func test_text_size_setting() -> void:
 	var app: AppRoot = load("res://scenes/app_root.tscn").instantiate()
 	root.add_child(app)
 	await _frames(5)
-	SettingsScreen.animations_enabled = false
+	AppSettings.animations_enabled = false
 	var state := GameState.new()
 	state.init_from_puzzle(SudokuGenerator.generate(6161, DifficultyAnalyzer.LEVEL_MEDIUM))
 	app._start_game_session(state)
@@ -183,7 +183,7 @@ func test_text_size_setting() -> void:
 
 	# Remembered: read back from the saved settings
 	ThemeManager.set_text_size(ThemeManager.TEXT_SIZE_NORMAL)
-	SettingsScreen.load_config()
+	AppSettings.load_config()
 	assert_true(ThemeManager.text_size == ThemeManager.TEXT_SIZE_XLARGE, "Saved and loaded again")
 
 	settings._on_text_size_selected(0)

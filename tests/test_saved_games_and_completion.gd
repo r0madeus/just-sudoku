@@ -49,7 +49,7 @@ func _run() -> void:
 	print("========================================")
 	print("🧪 RUNNING SAVED GAMES LIST & FINISHED GAME TESTS")
 	print("========================================")
-	SettingsScreen.animations_enabled = false
+	AppSettings.animations_enabled = false
 	_base = SudokuGenerator.generate(5151, DifficultyAnalyzer.LEVEL_EASY)
 
 	await test_saved_games_list_builds_in_batches()

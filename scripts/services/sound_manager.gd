@@ -85,7 +85,7 @@ static func play_complete() -> void:
 	_play("complete")
 
 static func _play(key: String) -> void:
-	if not SettingsScreen.sounds_enabled or _players.is_empty():
+	if not AppSettings.sounds_enabled or _players.is_empty():
 		return
 	var stream := get_stream(key)
 	if stream == null:

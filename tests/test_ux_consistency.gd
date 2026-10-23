@@ -44,7 +44,7 @@ func _run() -> void:
 	print("========================================")
 	print("🧪 RUNNING UX CONSISTENCY TESTS")
 	print("========================================")
-	SettingsScreen.animations_enabled = false
+	AppSettings.animations_enabled = false
 
 	test_copy_follows_glossary()
 	test_locale_aware_upper()

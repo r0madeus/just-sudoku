@@ -27,7 +27,7 @@ func _run() -> void:
 	await process_frame
 	print("\n=== RELEASE ===")
 	var preset := _android_preset()
-	var version := SettingsScreen.app_version()
+	var version := AppSettings.app_version()
 	var code := int(preset.get("version/code", 0))
 	_test_versions(preset, version, code)
 	_test_store(code)

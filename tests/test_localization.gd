@@ -95,12 +95,12 @@ func _init() -> void:
 	# --- Test 4: Settings Config Persistence of Locale ---
 	run_test.call("SettingsScreen config persists and reloads locale", func() -> bool:
 		LocalizationManager.set_locale("en")
-		SettingsScreen.save_config()
+		AppSettings.save_config()
 
 		# Reset in-memory locale
 		LocalizationManager.current_locale = "tr"
 
-		SettingsScreen.load_config()
+		AppSettings.load_config()
 		var restored_loc := LocalizationManager.get_locale()
 		if restored_loc != "en":
 			printerr("Failed to restore EN locale from config: %s" % restored_loc)
@@ -108,8 +108,8 @@ func _init() -> void:
 
 		# Switch back to TR and save
 		LocalizationManager.set_locale("tr")
-		SettingsScreen.save_config()
-		SettingsScreen.load_config()
+		AppSettings.save_config()
+		AppSettings.load_config()
 		return LocalizationManager.get_locale() == "tr"
 	)
 
