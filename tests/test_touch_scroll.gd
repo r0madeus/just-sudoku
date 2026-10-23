@@ -265,8 +265,8 @@ func _test_buttons() -> void:
 	root.add_child(settings)
 	await process_frame
 	var options: Array[OptionButton] = [settings.lang_option, settings.theme_option, settings.font_option, settings.text_size_option]
-	_check("Settings lists open when the finger is lifted",
-		options.all(func(o): return o.action_mode == BaseButton.ACTION_MODE_BUTTON_RELEASE))
+	_check("Settings lists are pickers, which open when the finger is lifted",
+		options.all(func(o): return o is PickerButton))
 	var scrolls := settings.find_children("*", "ScrollContainer", true, false)
 	_check("and Settings scrolls by touch",
 		not scrolls.is_empty() and scrolls[0].get_children(true).any(func(c): return c is TouchScroll))

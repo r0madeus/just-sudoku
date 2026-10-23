@@ -23,6 +23,12 @@ signal data_restored()
 const PICKER_WIDTH: float = 168.0
 ## The Text size choices, in the order the dropdown lists them
 const TEXT_SIZE_ORDER: Array[String] = ["normal", "large", "xlarge"]
+## The language choices in the picker's order, the phone's own first
+const LANG_ORDER: Array[String] = [AppSettings.LOCALE_SYSTEM, LocalizationManager.LOCALE_TR, LocalizationManager.LOCALE_EN]
+## The theme choices in the picker's order, with the string key of each one's name
+const THEME_ORDER: Array[String] = [ThemeManager.THEME_SYSTEM, ThemeManager.THEME_DARK, ThemeManager.THEME_AMOLED,
+	ThemeManager.THEME_LIGHT, ThemeManager.THEME_SEPIA, ThemeManager.THEME_FOREST, ThemeManager.THEME_CUSTOM]
+const THEME_KEYS: Array[String] = ["OPTION_SYSTEM", "THEME_DARK", "THEME_AMOLED", "THEME_LIGHT", "THEME_SEPIA", "THEME_FOREST", "THEME_CUSTOM"]
 var bg: ColorRect
 var margin: MarginContainer
 var back_btn: Button
@@ -66,14 +72,14 @@ var haptics_row: SettingRow
 
 # Appearance Controls
 var lang_label: Label
-var lang_option: OptionButton
+var lang_option: PickerButton
 var theme_label: Label
-var theme_option: OptionButton
+var theme_option: PickerButton
 var custom_theme_lbl: Label
 var custom_theme_btn: Button
 var font_label: Label
-var font_option: OptionButton
-var text_size_option: OptionButton
+var font_option: PickerButton
+var text_size_option: PickerButton
 
 # Gameplay Controls
 var auto_open_lbl: Label
@@ -212,39 +218,36 @@ func _build_ui() -> void:
 
 	# Dil / Language
 	# The three pickers share one width so their left edges line up down the card
-	lang_option = OptionButton.new()
-	TouchScroll.open_on_release(lang_option)
+	lang_option = PickerButton.new()
 	lang_option.custom_minimum_size = Vector2(_picker_width(), ResponsiveManager.HEIGHT_INPUT)
 	lang_option.clip_text = true
 	lang_option.fit_to_longest_item = false
+	lang_option.add_item("")
 	lang_option.add_item("Türkçe")
 	lang_option.add_item("English")
-	lang_option.selected = 0 if LocalizationManager.get_locale() == LocalizationManager.LOCALE_TR else 1
+	_update_language_selection()
 	lang_option.item_selected.connect(_on_language_selected)
 
 	lang_row = SettingRow.new("", "", lang_option)
 	lang_label = lang_row.title_label
+	lang_option.title_source = lang_label
 	app_vbox.add_child(lang_row)
 
 	app_vbox.add_child(_create_divider())
 
 	# Görsel Tema / Visual Theme
-	theme_option = OptionButton.new()
-	TouchScroll.open_on_release(theme_option)
+	theme_option = PickerButton.new()
 	theme_option.custom_minimum_size = Vector2(_picker_width(), ResponsiveManager.HEIGHT_INPUT)
 	theme_option.clip_text = true
 	theme_option.fit_to_longest_item = false
-	theme_option.add_item("Dark")
-	theme_option.add_item("AMOLED")
-	theme_option.add_item("Light")
-	theme_option.add_item("Sepia")
-	theme_option.add_item("Forest")
-	theme_option.add_item("Custom")
+	for t in THEME_ORDER:
+		theme_option.add_item(t)
 	_update_theme_option_selection()
 	theme_option.item_selected.connect(_on_theme_selected)
 
 	theme_row = SettingRow.new("", "", theme_option)
 	theme_label = theme_row.title_label
+	theme_option.title_source = theme_label
 	app_vbox.add_child(theme_row)
 
 	app_vbox.add_child(_create_divider())
@@ -265,8 +268,7 @@ func _build_ui() -> void:
 	app_vbox.add_child(_create_divider())
 
 	# Yazı Tipi / Font Family
-	font_option = OptionButton.new()
-	TouchScroll.open_on_release(font_option)
+	font_option = PickerButton.new()
 	font_option.custom_minimum_size = Vector2(_picker_width(), ResponsiveManager.HEIGHT_INPUT)
 	font_option.clip_text = true
 	font_option.fit_to_longest_item = false
@@ -279,13 +281,13 @@ func _build_ui() -> void:
 
 	font_row = SettingRow.new("", "", font_option)
 	font_label = font_row.title_label
+	font_option.title_source = font_label
 	app_vbox.add_child(font_row)
 
 	app_vbox.add_child(_create_divider())
 
 	# Yazı Boyutu / Text Size (accessibility)
-	text_size_option = OptionButton.new()
-	TouchScroll.open_on_release(text_size_option)
+	text_size_option = PickerButton.new()
 	text_size_option.custom_minimum_size = Vector2(_picker_width(), ResponsiveManager.HEIGHT_INPUT)
 	text_size_option.clip_text = true
 	text_size_option.fit_to_longest_item = false
@@ -296,6 +298,7 @@ func _build_ui() -> void:
 	text_size_option.item_selected.connect(_on_text_size_selected)
 
 	text_size_row = SettingRow.new("", "", text_size_option)
+	text_size_option.title_source = text_size_row.title_label
 	app_vbox.add_child(text_size_row)
 
 	# =========================================================================
@@ -490,20 +493,17 @@ func _on_theme_changed() -> void:
 		display_label.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
 
 func _on_language_selected(idx: int) -> void:
-	var loc := LocalizationManager.LOCALE_TR if idx == 0 else LocalizationManager.LOCALE_EN
-	LocalizationManager.set_locale(loc)
-	AppSettings.save_config()
+	AppSettings.set_language(LANG_ORDER[idx])
+	_update_language_selection()
+
+func _update_language_selection() -> void:
+	if lang_option != null:
+		lang_option.selected = 0 if AppSettings.locale_follows_system else LANG_ORDER.find(LocalizationManager.get_locale())
 
 func _on_theme_selected(idx: int) -> void:
-	match idx:
-		0: ThemeManager.set_theme(ThemeManager.THEME_DARK)
-		1: ThemeManager.set_theme(ThemeManager.THEME_AMOLED)
-		2: ThemeManager.set_theme(ThemeManager.THEME_LIGHT)
-		3: ThemeManager.set_theme(ThemeManager.THEME_SEPIA)
-		4: ThemeManager.set_theme(ThemeManager.THEME_FOREST)
-		5:
-			ThemeManager.set_theme(ThemeManager.THEME_CUSTOM)
-			custom_theme_requested.emit()
+	ThemeManager.set_theme(THEME_ORDER[idx])
+	if THEME_ORDER[idx] == ThemeManager.THEME_CUSTOM:
+		custom_theme_requested.emit()
 
 func _on_font_selected(idx: int) -> void:
 	match idx:
@@ -542,13 +542,7 @@ func _update_text_size_selection() -> void:
 func _update_theme_option_selection() -> void:
 	if theme_option == null:
 		return
-	match ThemeManager.current_theme_name:
-		ThemeManager.THEME_DARK: theme_option.selected = 0
-		ThemeManager.THEME_AMOLED: theme_option.selected = 1
-		ThemeManager.THEME_LIGHT: theme_option.selected = 2
-		ThemeManager.THEME_SEPIA: theme_option.selected = 3
-		ThemeManager.THEME_FOREST: theme_option.selected = 4
-		ThemeManager.THEME_CUSTOM: theme_option.selected = 5
+	theme_option.selected = 0 if ThemeManager.follows_system else maxi(0, THEME_ORDER.find(ThemeManager.current_theme_name))
 
 func _update_locale_texts() -> void:
 	if back_btn != null:
@@ -576,7 +570,8 @@ func _update_locale_texts() -> void:
 		lang_label.text = LocalizationManager.translate("SETTING_LANGUAGE")
 
 	if lang_option != null:
-		lang_option.selected = 0 if LocalizationManager.get_locale() == LocalizationManager.LOCALE_TR else 1
+		lang_option.set_item_text(0, LocalizationManager.translate("OPTION_SYSTEM"))
+		_update_language_selection()
 
 	if theme_row != null:
 		theme_row.set_title(LocalizationManager.translate("SETTING_THEME"))
@@ -585,12 +580,8 @@ func _update_locale_texts() -> void:
 		theme_label.text = LocalizationManager.translate("SETTING_THEME")
 
 	if theme_option != null:
-		theme_option.set_item_text(0, LocalizationManager.translate("THEME_DARK"))
-		theme_option.set_item_text(1, LocalizationManager.translate("THEME_AMOLED"))
-		theme_option.set_item_text(2, LocalizationManager.translate("THEME_LIGHT"))
-		theme_option.set_item_text(3, LocalizationManager.translate("THEME_SEPIA"))
-		theme_option.set_item_text(4, LocalizationManager.translate("THEME_FOREST"))
-		theme_option.set_item_text(5, LocalizationManager.translate("THEME_CUSTOM"))
+		for i in THEME_ORDER.size():
+			theme_option.set_item_text(i, LocalizationManager.translate(THEME_KEYS[i]))
 		_update_theme_option_selection()
 
 	if custom_theme_row != null:

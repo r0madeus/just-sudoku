@@ -21,11 +21,11 @@ var back_btn: Button
 var title: Label
 var filter_card: PanelContainer
 var status_lbl: Label
-var status_opt: OptionButton
+var status_opt: PickerButton
 var diff_lbl: Label
-var diff_opt: OptionButton
+var diff_opt: PickerButton
 var sort_lbl: Label
-var sort_opt: OptionButton
+var sort_opt: PickerButton
 ## The rows: one column on a phone, two on a wide screen
 var list_vbox: GridContainer
 var list_card: PanelContainer
@@ -179,8 +179,8 @@ func _build_ui() -> void:
 	status_lbl.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
 	col_status.add_child(status_lbl)
 
-	status_opt = OptionButton.new()
-	TouchScroll.open_on_release(status_opt)
+	status_opt = PickerButton.new()
+	status_opt.title_source = status_lbl
 	status_opt.size_flags_horizontal = SIZE_EXPAND_FILL
 	status_opt.fit_to_longest_item = false
 	status_opt.clip_text = true
@@ -203,8 +203,8 @@ func _build_ui() -> void:
 	diff_lbl.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
 	col_diff.add_child(diff_lbl)
 
-	diff_opt = OptionButton.new()
-	TouchScroll.open_on_release(diff_opt)
+	diff_opt = PickerButton.new()
+	diff_opt.title_source = diff_lbl
 	diff_opt.size_flags_horizontal = SIZE_EXPAND_FILL
 	diff_opt.fit_to_longest_item = false
 	diff_opt.clip_text = true
@@ -227,8 +227,8 @@ func _build_ui() -> void:
 	sort_lbl.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
 	col_sort.add_child(sort_lbl)
 
-	sort_opt = OptionButton.new()
-	TouchScroll.open_on_release(sort_opt)
+	sort_opt = PickerButton.new()
+	sort_opt.title_source = sort_lbl
 	sort_opt.size_flags_horizontal = SIZE_EXPAND_FILL
 	sort_opt.fit_to_longest_item = false
 	sort_opt.clip_text = true

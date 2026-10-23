@@ -25,6 +25,11 @@ const THEME_LIGHT: String = "Light"
 const THEME_SEPIA: String = "Sepia"
 const THEME_FOREST: String = "Forest"
 const THEME_CUSTOM: String = "Custom"
+## Light or Dark, as the phone is set; looked at again whenever the app comes back to the front
+const THEME_SYSTEM: String = "System"
+## Saved settings from before 1.0.1 had no version: they always held a concrete theme, as the
+## phone's was saved on the first start, so a plain Light or Dark there was never chosen
+const SETTINGS_VERSION: int = 2
 
 const SETTINGS_PATH: String = "user://saves/settings.json"
 
@@ -53,20 +58,34 @@ static func _sync_clear_color() -> void:
 		current_palette["button_disabled"] = Color(current_palette["bg"]).lerp(Color(dis, 1.0), dis.a)
 	RenderingServer.set_default_clear_color(get_color("bg"))
 
+## Whether the theme follows the phone's light or dark mode (the System choice)
+static var follows_system: bool = true
+
 static func set_theme(theme_name: String) -> void:
-	if theme_name == "Auto" or theme_name == "System":
+	follows_system = theme_name == "Auto" or theme_name == THEME_SYSTEM
+	if follows_system:
 		theme_name = detect_system_theme()
+	_apply_palette(theme_name)
+	save_settings()
+	_notify_listeners()
+
+## Following the phone, and it switched between light and dark while the app was away
+static func refresh_system_theme() -> void:
+	if follows_system and detect_system_theme() != current_theme_name:
+		_apply_palette(detect_system_theme())
+		_notify_listeners()
+
+static func _apply_palette(theme_name: String) -> void:
 	if PALETTES.has(theme_name):
 		current_theme_name = theme_name
 		current_palette = PALETTES[theme_name].duplicate()
 	_sync_clear_color()
-	save_settings()
-	_notify_listeners()
 
 static func get_color(key: String, fallback: Color = Color.WHITE) -> Color:
 	return current_palette.get(key, fallback)
 
 static func set_custom_color(key: String, color: Color) -> void:
+	follows_system = false
 	current_theme_name = THEME_CUSTOM
 	current_palette[key] = color
 	_sync_clear_color()
@@ -500,7 +519,8 @@ static func save_settings() -> void:
 	var file := FileAccess.open(SETTINGS_PATH, FileAccess.WRITE)
 	if file != null:
 		var data: Dictionary = {
-			"theme": current_theme_name,
+			"version": SETTINGS_VERSION,
+			"theme": THEME_SYSTEM if follows_system else current_theme_name,
 			"palette": {}
 		}
 		for k in current_palette.keys():
@@ -510,12 +530,12 @@ static func save_settings() -> void:
 
 static func load_settings() -> void:
 	if not FileAccess.file_exists(SETTINGS_PATH):
-		set_theme(detect_system_theme())
+		set_theme(THEME_SYSTEM)
 		return
 
 	var file := FileAccess.open(SETTINGS_PATH, FileAccess.READ)
 	if file == null:
-		set_theme(detect_system_theme())
+		set_theme(THEME_SYSTEM)
 		return
 	var content: String = file.get_as_text()
 	file.close()
@@ -523,10 +543,13 @@ static func load_settings() -> void:
 	var json = JSON.new()
 	if json.parse(content) == OK and json.data is Dictionary:
 		var t_name: String = json.data.get("theme", "")
-		if t_name.is_empty() or t_name == "Auto" or t_name == "System":
-			set_theme(detect_system_theme())
+		var old_file: bool = int(json.data.get("version", 1)) < SETTINGS_VERSION
+		if t_name.is_empty() or t_name == "Auto" or t_name == THEME_SYSTEM \
+				or (old_file and (t_name == THEME_DARK or t_name == THEME_LIGHT)):
+			set_theme(THEME_SYSTEM)
 			return
 		if json.data.has("palette") and t_name == THEME_CUSTOM:
+			follows_system = false
 			current_theme_name = THEME_CUSTOM
 			for k in json.data["palette"].keys():
 				current_palette[k] = Color(json.data["palette"][k])
@@ -535,6 +558,6 @@ static func load_settings() -> void:
 		elif PALETTES.has(t_name):
 			set_theme(t_name)
 		else:
-			set_theme(detect_system_theme())
+			set_theme(THEME_SYSTEM)
 	else:
-		set_theme(detect_system_theme())
+		set_theme(THEME_SYSTEM)

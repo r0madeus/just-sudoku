@@ -379,8 +379,9 @@ func _run() -> void:
 		# Switch through Settings like a player would
 		app._show_screen(app.settings_screen)
 		await _frames(3)
-		app.settings_screen.lang_option.selected = 0 if loc == "tr" else 1
-		app.settings_screen._on_language_selected(0 if loc == "tr" else 1)
+		var lang_idx: int = SettingsScreen.LANG_ORDER.find(loc)
+		app.settings_screen.lang_option.selected = lang_idx
+		app.settings_screen._on_language_selected(lang_idx)
 		FontManager.set_font(fonts[i % fonts.size()])
 		var size_idx: int = SettingsScreen.TEXT_SIZE_ORDER.find(p[2])
 		app.settings_screen.text_size_option.selected = size_idx

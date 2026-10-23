@@ -16,7 +16,7 @@ var paste_btn: Button
 var clear_btn: Button
 var diff_row: HBoxContainer
 var d_lbl: Label
-var diff_option: OptionButton
+var diff_option: PickerButton
 var status_card: PanelContainer
 var status_label: Label
 
@@ -88,8 +88,8 @@ func _build_import_ui() -> void:
 	d_lbl.size_flags_horizontal = SIZE_EXPAND_FILL
 	diff_row.add_child(d_lbl)
 
-	diff_option = OptionButton.new()
-	TouchScroll.open_on_release(diff_option)
+	diff_option = PickerButton.new()
+	diff_option.title_source = d_lbl
 	diff_option.add_item(DifficultyAnalyzer.LEVEL_EASY)
 	diff_option.add_item(DifficultyAnalyzer.LEVEL_MEDIUM)
 	diff_option.add_item(DifficultyAnalyzer.LEVEL_HARD)

@@ -195,7 +195,7 @@ func test_settings_screen_theme_integration() -> void:
 	assert_true(settings.custom_theme_btn != null, "SettingsScreen has custom_theme_btn")
 
 	# Verify all 6 options in dropdown
-	assert_true(settings.theme_option.item_count == 6, "Theme dropdown has 6 items (Dark, AMOLED, Light, Sepia, Forest, Custom)")
+	assert_true(settings.theme_option.item_count == 7, "Theme dropdown has 7 items (System, Dark, AMOLED, Light, Sepia, Forest, Custom)")
 
 	# Verify clicking custom theme button emits signal
 	var custom_requested := [false]
@@ -204,13 +204,11 @@ func test_settings_screen_theme_integration() -> void:
 	assert_true(custom_requested[0], "custom_theme_requested signal emitted when button pressed")
 
 	# Verify selecting Sepia in dropdown updates ThemeManager
-	# Item index 3 is Sepia
-	settings._on_theme_selected(3)
+	settings._on_theme_selected(SettingsScreen.THEME_ORDER.find(ThemeManager.THEME_SEPIA))
 	assert_true(ThemeManager.current_theme_name == ThemeManager.THEME_SEPIA, "Selecting Sepia index sets ThemeManager to Sepia")
 
 	# Verify selecting Forest in dropdown updates ThemeManager
-	# Item index 4 is Forest
-	settings._on_theme_selected(4)
+	settings._on_theme_selected(SettingsScreen.THEME_ORDER.find(ThemeManager.THEME_FOREST))
 	assert_true(ThemeManager.current_theme_name == ThemeManager.THEME_FOREST, "Selecting Forest index sets ThemeManager to Forest")
 
 	# Reset back to Dark for clean test end

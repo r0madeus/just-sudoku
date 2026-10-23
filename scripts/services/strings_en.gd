@@ -180,6 +180,7 @@ const STRINGS: Dictionary = {
 	"THEME_SEPIA": "Sepia",
 	"THEME_FOREST": "Forest",
 	"THEME_CUSTOM": "Custom Theme",
+	"OPTION_SYSTEM": "System",
 	"CUSTOM_THEME_TITLE": "Custom Theme",
 	"BTN_EDIT_CUSTOM_THEME": "Customize Theme",
 	"PREVIEW_MINI_GRID": "Preview",
