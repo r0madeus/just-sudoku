@@ -177,6 +177,7 @@ const STRINGS: Dictionary = {
 	"THEME_SEPIA": "Sepya",
 	"THEME_FOREST": "Orman",
 	"THEME_CUSTOM": "Özel Tema",
+	"OPTION_SYSTEM": "Sistem",
 	"CUSTOM_THEME_TITLE": "Özel Tema",
 	"BTN_EDIT_CUSTOM_THEME": "Özel Temayı Düzenle",
 	"PREVIEW_MINI_GRID": "Önizleme",

@@ -68,7 +68,6 @@ MUTATIONS = [
  ("M56", "scenes/ui/touch_scroll.gd", "\tstate = State.CAUGHT if was_gliding else State.PENDING\n", "\tstate = State.PENDING\n", "Stopping a glide also presses what is under the finger"),
  ("M57", "scenes/ui/touch_scroll.gd", "\t\tif m is CanvasItem and m.visible and not m.is_ancestor_of(scroll):\n", "\t\tif false:\n", "A list scrolls under an open dialog"),
  ("M58", "scenes/ui/touch_scroll.gd", "\t\t\tvelocity = clampf(_flick_speed(), -MAX_FLING_SPEED, MAX_FLING_SPEED)\n", "\t\t\tvelocity = 0.0\n", "A flick does not glide"),
- ("M59", "scenes/ui/touch_scroll.gd", "\toption.action_mode = BaseButton.ACTION_MODE_BUTTON_RELEASE\n", "\tpass\n", "A list opens as the finger lands on it to scroll"),
  ("M60", "scenes/gameplay/smart_numpad.gd", "\t\tbtn.action_mode = BaseButton.ACTION_MODE_BUTTON_PRESS\n", "", "Number pad digits wait for the finger to lift"),
  ("M61", "scenes/menus/resume_card.gd", "\t\t\t_press_inside = true\n", "\t\t\t_press_inside = true\n\t\t\tpressed.emit()\n", "The game card opens as the finger lands, so a scroll from it opens the game"),
  ("M62", "scripts/gameplay/game_state.gd", "const AppSettings = preload(\"res://scripts/services/app_settings.gd\")\n", "const AppSettings = preload(\"res://scripts/services/app_settings.gd\")\nconst SettingsScreen = preload(\"res://scenes/menus/settings_screen.gd\")\n", "Start-up loads the Settings screen again, through the game's state"),
@@ -77,6 +76,17 @@ MUTATIONS = [
  ("M65", "scenes/app_root.gd", "\t\tnode.visible = false\n", "\t\tpass\n", "A screen made in the background shows over the menu"),
  ("M66", "scenes/app_root.gd", "\tif not _made.has(\"game_screen\"):\n\t\tmain_menu.refresh_buttons()\n\t\treturn\n", "", "Restoring a backup makes the game screen for nothing"),
  ("M67", "scenes/app_root.gd", "\t_connect_node(key, node)\n", "", "A screen made on demand does not answer its buttons"),
+ ("M59", "scenes/ui/picker_button.gd", "\t\tif event.pressed:\n\t\t\t_press_inside = true\n", "\t\tif event.pressed:\n\t\t\t_press_inside = true\n\t\t\topen_picker()\n", "A list opens as the finger lands on it to scroll"),
+ ("M68", "scenes/ui/picker_button.gd", "MOUSE_BUTTON_LEFT:\n\t\taccept_event()\n", "MOUSE_BUTTON_LEFT:\n", "Dropdowns open Godot's popup menu as well as the app's sheet"),
+ ("M69", "scenes/ui/picker_button.gd", "\twhile host.get_parent() is Control:\n\t\thost = host.get_parent()\n", "", "A picker's sheet opens squeezed inside its row"),
+ ("M70", "scenes/ui/picker_button.gd", "\tif index == selected:\n\t\treturn\n", "", "Picking the current choice again applies it again"),
+ ("M71", "scripts/services/theme_manager.gd", " \\\n\t\t\t\tor (old_file and (t_name == THEME_DARK or t_name == THEME_LIGHT))", "", "Players of 1.0.0 keep the theme found on their first start instead of following the phone"),
+ ("M72", "scripts/services/theme_manager.gd", "\"theme\": THEME_SYSTEM if follows_system else current_theme_name,", "\"theme\": current_theme_name,", "Following the phone's theme is forgotten on the next start"),
+ ("M73", "scripts/services/theme_manager.gd", "\tif follows_system and detect_system_theme() != current_theme_name:\n", "\tif detect_system_theme() != current_theme_name:\n", "A theme picked is replaced by the phone's on return"),
+ ("M74", "scripts/services/app_settings.gd", "\"locale\": LOCALE_SYSTEM if locale_follows_system else LocalizationManager.get_locale(),", "\"locale\": LocalizationManager.get_locale(),", "Following the phone's language is forgotten on the next start"),
+ ("M75", "scripts/services/app_settings.gd", "int(json.data.get(\"version\", 1)) < CONFIG_VERSION \\\n\t\t\t\tor ", "", "Players of 1.0.0 keep the language found on their first start"),
+ ("M76", "scenes/app_root.gd", "\tAppSettings.follow_system_changes()\n", "", "A language or light/dark change on the phone is missed until the app restarts"),
+ ("M77", "scenes/menus/settings_screen.gd", "lang_option.selected = 0 if AppSettings.locale_follows_system else ", "lang_option.selected = ", "Settings shows the phone's language as picked, not System"),
 ]
 
 def main():

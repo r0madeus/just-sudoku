@@ -57,6 +57,7 @@ Bir sorun görürsen telefonun modelini, Android sürümünü ve ne yaptığınd
 **Akıcılık ve pil**
 - [ ] Hücreye dokununca seçim ve rakam anında görünüyor.
 - [ ] Geçmiş ve Kayıtlı Oyunlar listeleri akıcı kayıyor.
+- [ ] Ayarlar'da Dil ve Tema "Sistem" iken telefonun dili ya da koyu/açık modu değiştirilip uygulamaya dönülünce uygulama da değişiyor; açılır listeler uygulamanın kendi penceresinde açılıyor.
 - [ ] Ayarlar'da bir onay kutusunun ya da açılır listenin üstünden başlayan kaydırma onu işaretlemiyor/açmıyor; hızlıca fırlatılan liste yavaşlayarak duruyor.
 - [ ] Uygulama açık bekletildiğinde telefon ısınmıyor, pil hızlı düşmüyor.
 

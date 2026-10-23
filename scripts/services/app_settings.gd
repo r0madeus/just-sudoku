@@ -10,6 +10,13 @@ const FontManager = preload("res://scripts/services/font_manager.gd")
 ## builds) at start-up.
 
 const CONFIG_PATH: String = "user://saves/config.json"
+## Saved as the language when it follows the phone's
+const LOCALE_SYSTEM: String = "system"
+## A config without it is from before 1.0.1, which saved the phone's language as if chosen
+const CONFIG_VERSION: int = 2
+
+## Whether the language follows the phone's (the System choice)
+static var locale_follows_system: bool = true
 
 static var auto_open_last_game: bool = true
 static var smart_numpad_enabled: bool = true
@@ -44,7 +51,8 @@ static func app_version() -> String:
 
 static func save_config() -> void:
 	var data := {
-		"locale": LocalizationManager.get_locale(),
+		"version": CONFIG_VERSION,
+		"locale": LOCALE_SYSTEM if locale_follows_system else LocalizationManager.get_locale(),
 		"font": FontManager.current_font_name,
 		"text_size": ThemeManager.text_size,
 		"auto_open": auto_open_last_game,
@@ -68,6 +76,7 @@ static func save_config() -> void:
 
 static func load_config() -> void:
 	if not FileAccess.file_exists(CONFIG_PATH):
+		locale_follows_system = true
 		LocalizationManager.set_locale(LocalizationManager.detect_system_locale())
 		return
 	var file := FileAccess.open(CONFIG_PATH, FileAccess.READ)
@@ -76,9 +85,9 @@ static func load_config() -> void:
 	var json = JSON.new()
 	if json.parse(file.get_as_text()) == OK and json.data is Dictionary:
 		var saved_loc: String = json.data.get("locale", "")
-		if saved_loc.is_empty() or not LocalizationManager.SUPPORTED_LOCALES.has(saved_loc):
-			saved_loc = LocalizationManager.detect_system_locale()
-		LocalizationManager.set_locale(saved_loc)
+		locale_follows_system = int(json.data.get("version", 1)) < CONFIG_VERSION \
+				or not LocalizationManager.SUPPORTED_LOCALES.has(saved_loc)
+		LocalizationManager.set_locale(LocalizationManager.detect_system_locale() if locale_follows_system else saved_loc)
 		var saved_font: String = json.data.get("font", FontManager.FONT_MODERN_SANS)
 		FontManager.set_font(saved_font)
 		ThemeManager.set_text_size(json.data.get("text_size", ThemeManager.TEXT_SIZE_NORMAL))
@@ -92,3 +101,15 @@ static func load_config() -> void:
 		animations_enabled = json.data.get("animations", true)
 		sounds_enabled = json.data.get("sounds", true)
 		haptics_enabled = json.data.get("haptics", true)
+
+## A language picked in Settings, or LOCALE_SYSTEM to follow the phone's
+static func set_language(locale: String) -> void:
+	locale_follows_system = locale == LOCALE_SYSTEM
+	LocalizationManager.set_locale(LocalizationManager.detect_system_locale() if locale_follows_system else locale)
+	save_config()
+
+## Back in the front: the phone's language or light/dark mode may have changed meanwhile
+static func follow_system_changes() -> void:
+	if locale_follows_system and LocalizationManager.detect_system_locale() != LocalizationManager.get_locale():
+		LocalizationManager.set_locale(LocalizationManager.detect_system_locale())
+	ThemeManager.refresh_system_theme()

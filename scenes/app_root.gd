@@ -133,6 +133,7 @@ func _notification(what: int) -> void:
 func _relayout_after_resume() -> void:
 	if not is_inside_tree():
 		return
+	AppSettings.follow_system_changes()
 	ResponsiveManager.relayout(get_window())
 	for delay in RELAYOUT_DELAYS:
 		get_tree().create_timer(delay).timeout.connect(func():

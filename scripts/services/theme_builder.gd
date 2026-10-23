@@ -270,6 +270,24 @@ static func build_godot_theme() -> Theme:
 	theme.set_color("icon_disabled_color", "GhostButton", btn_text_disabled)
 	theme.set_font_size("font_size", "GhostButton", ThemeManager.fs(ThemeManager.FONT_SIZE_BODY))
 
+	# PickerItem (A choice in a picker sheet; the chosen one is tinted with the accent)
+	theme.set_type_variation("PickerItem", "Button")
+	var accent_tint := Color(accent_col, 0.16)
+	theme.set_stylebox("normal", "PickerItem", sb_ghost_norm)
+	theme.set_stylebox("hover", "PickerItem", sb_ghost_hov)
+	theme.set_stylebox("pressed", "PickerItem", ThemeManager.create_flat_stylebox(accent_tint, ThemeManager.RADIUS_CAPSULE, ThemeManager.BORDER_NONE, Color.TRANSPARENT, 14, 8))
+	theme.set_stylebox("hover_pressed", "PickerItem", ThemeManager.create_flat_stylebox(Color(accent_col, 0.22), ThemeManager.RADIUS_CAPSULE, ThemeManager.BORDER_NONE, Color.TRANSPARENT, 14, 8))
+	theme.set_stylebox("disabled", "PickerItem", sb_ghost_dis)
+	theme.set_stylebox("focus", "PickerItem", sb_empty)
+	theme.set_color("font_color", "PickerItem", text_primary)
+	theme.set_color("font_hover_color", "PickerItem", text_primary)
+	theme.set_color("font_pressed_color", "PickerItem", accent_col)
+	theme.set_color("font_hover_pressed_color", "PickerItem", accent_col)
+	theme.set_color("font_disabled_color", "PickerItem", btn_text_disabled)
+	theme.set_color("icon_pressed_color", "PickerItem", accent_col)
+	theme.set_color("icon_hover_pressed_color", "PickerItem", accent_col)
+	theme.set_font_size("font_size", "PickerItem", ThemeManager.fs(ThemeManager.FONT_SIZE_BODY))
+
 	# IconButton (Circular for square aspect, compact capsule for elongated aspect)
 	theme.set_type_variation("IconButton", "Button")
 	var sb_icon_norm := ThemeManager.create_flat_stylebox(surface_elevated_col, ThemeManager.RADIUS_CAPSULE, ThemeManager.BORDER_HAIRLINE, border, 10, 10, ThemeManager.get_shadow_color(0.06), 2, Vector2(0, 1))
@@ -330,7 +348,7 @@ static func build_godot_theme() -> Theme:
 	theme.set_color("icon_disabled_color", "SegmentButton", Color.WHITE)
 	theme.set_font_size("font_size", "SegmentButton", ThemeManager.fs(ThemeManager.FONT_SIZE_SUBTITLE))
 
-	for btn_var in ["PrimaryButton", "SecondaryButton", "CompactButton", "CompactPrimaryButton", "CompactSecondaryButton", "GhostButton", "IconButton", "ToolbarButton", "SegmentButton"]:
+	for btn_var in ["PrimaryButton", "SecondaryButton", "CompactButton", "CompactPrimaryButton", "CompactSecondaryButton", "GhostButton", "PickerItem", "IconButton", "ToolbarButton", "SegmentButton"]:
 		if active_font != null:
 			theme.set_font("font", btn_var, active_font)
 

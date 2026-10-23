@@ -53,11 +53,6 @@ static func attach(target: ScrollContainer) -> TouchScroll:
 	target.add_child(ts, false, Node.INTERNAL_MODE_BACK)
 	return ts
 
-## A list opens when the finger is lifted, not as it lands, so a scroll that starts on it does
-## not open it
-static func open_on_release(option: OptionButton) -> void:
-	option.action_mode = BaseButton.ACTION_MODE_BUTTON_RELEASE
-
 func _enter_tree() -> void:
 	if not _all.has(self):
 		_all.append(self)
