@@ -5,6 +5,10 @@ extends Control
 ## Positions 81 SudokuCells, draws crisp 3x3 block & cell borders, and manages highlights.
 
 signal cell_selected(idx: int, val: int)
+## A cell was pressed (the selection has already moved to it)
+signal cell_tapped(idx: int)
+## More than one cell is selected now, or no longer
+signal multi_selection_changed(cells: Array[int])
 
 class GridOverlay extends Control:
 	var grid_ref: SudokuGrid = null
@@ -19,6 +23,15 @@ var game_state: GameState = null
 var lines_overlay: GridOverlay = null
 ## Unit (SudokuSolver.ALL_UNITS index) outlined by a first-level hint, -1 for none
 var hint_focus_unit: int = -1
+## Cells picked by dragging over the board (or Ctrl/Shift-click), selected_idx among them.
+## Empty when only selected_idx is selected.
+var multi_cells: Array[int] = []
+## Dragging over cells adds them to the selection
+var multi_select_enabled: bool = true
+## Digit whose cells are highlighted instead of the selected cell's (digit-first input), 0 for none
+var highlight_digit: int = 0
+
+var _pressing: bool = false
 
 
 func _ready() -> void:
@@ -38,7 +51,8 @@ func _create_cells() -> void:
 	for i in range(SudokuBoard.CELL_COUNT):
 		var cell := SudokuCell.new()
 		cell.cell_index = i
-		cell.cell_clicked.connect(_on_cell_clicked)
+		# The board reads presses and drags itself, so a drag can run over many cells
+		cell.mouse_filter = MOUSE_FILTER_IGNORE
 		add_child(cell)
 		cells.append(cell)
 
@@ -94,6 +108,7 @@ func select_cell(idx: int) -> void:
 		selected_idx = -1
 	else:
 		selected_idx = idx
+	_set_multi([])
 
 	refresh_highlights()
 
@@ -102,8 +117,94 @@ func select_cell(idx: int) -> void:
 		val = game_state.current_board.get_cell(selected_idx)
 	cell_selected.emit(selected_idx, val)
 
-func _on_cell_clicked(idx: int) -> void:
-	select_cell(idx)
+## The cells a number or colour applies to: the multi-selection, else the selected cell
+func get_target_cells() -> Array[int]:
+	if not multi_cells.is_empty():
+		return multi_cells.duplicate()
+	var one: Array[int] = []
+	if selected_idx != -1:
+		one.append(selected_idx)
+	return one
+
+func is_multi_selection() -> bool:
+	return multi_cells.size() > 1
+
+func _set_multi(cells_sel: Array[int]) -> void:
+	var was_multi := is_multi_selection()
+	multi_cells = cells_sel
+	if was_multi or is_multi_selection():
+		multi_selection_changed.emit(multi_cells.duplicate())
+
+## Index of the cell under a point in the board's own coordinates, -1 outside the cells
+func cell_at(pos: Vector2) -> int:
+	var grid_size: float = minf(size.x, size.y)
+	if grid_size <= 0.0:
+		return -1
+	var local := pos - Vector2((size.x - grid_size) * 0.5, (size.y - grid_size) * 0.5)
+	if local.x < 0.0 or local.y < 0.0 or local.x >= grid_size or local.y >= grid_size:
+		return -1
+	var cell_size: float = grid_size / 9.0
+	return SudokuBoard.get_index(int(local.y / cell_size), int(local.x / cell_size))
+
+# Mouse events only: on touch screens Godot also sends each touch as a mouse event, so reading
+# both would press every cell twice
+func _gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if not event.pressed:
+			_pressing = false
+			return
+		var idx := cell_at(event.position)
+		if idx == -1:
+			return
+		accept_event()
+		if multi_select_enabled and (event.ctrl_pressed or event.shift_pressed or event.meta_pressed):
+			_toggle_in_selection(idx)
+			return
+		_pressing = true
+		select_cell(idx)
+		cell_tapped.emit(idx)
+	elif event is InputEventMouseMotion and _pressing:
+		if (event.button_mask & MOUSE_BUTTON_MASK_LEFT) == 0:
+			_pressing = false
+			return
+		var idx := cell_at(event.position)
+		if idx == -1 or not multi_select_enabled or idx == selected_idx or multi_cells.has(idx):
+			return
+		accept_event()
+		var cells_sel: Array[int] = multi_cells.duplicate()
+		if cells_sel.is_empty():
+			cells_sel.append(selected_idx)
+		cells_sel.append(idx)
+		_extend_selection(cells_sel, idx)
+
+## Ctrl/Shift-click: adds a cell to the selection, or takes it out
+func _toggle_in_selection(idx: int) -> void:
+	if selected_idx == -1:
+		select_cell(idx)
+		return
+	var cells_sel: Array[int] = multi_cells.duplicate()
+	if cells_sel.is_empty():
+		cells_sel.append(selected_idx)
+	if cells_sel.has(idx):
+		if cells_sel.size() == 1:
+			return
+		cells_sel.erase(idx)
+		_extend_selection(cells_sel, cells_sel[cells_sel.size() - 1])
+	else:
+		cells_sel.append(idx)
+		_extend_selection(cells_sel, idx)
+
+func _extend_selection(cells_sel: Array[int], primary: int) -> void:
+	selected_idx = primary
+	_set_multi(cells_sel if cells_sel.size() > 1 else ([] as Array[int]))
+	refresh_highlights()
+	cell_selected.emit(selected_idx, game_state.current_board.get_cell(selected_idx) if game_state != null else 0)
+
+func set_highlight_digit(digit: int) -> void:
+	if highlight_digit == digit:
+		return
+	highlight_digit = digit
+	refresh_highlights()
 
 func move_selection(d_row: int, d_col: int) -> void:
 	if selected_idx == -1:
@@ -127,21 +228,27 @@ func refresh_highlights() -> void:
 	var sel_val: int = 0
 	var sel_peers: Array = []
 
+	var multi := is_multi_selection()
 	if selected_idx != -1:
 		sel_val = game_state.current_board.get_cell(selected_idx)
-		sel_peers = SudokuBoard.PEERS[selected_idx]
+		# Many selected cells have no single row and column to tint
+		if not multi:
+			sel_peers = SudokuBoard.PEERS[selected_idx]
+	if highlight_digit != 0:
+		sel_val = highlight_digit
 
 	for idx in range(SudokuBoard.CELL_COUNT):
 		var val: int = game_state.current_board.get_cell(idx)
 		var is_given: bool = game_state.initial_puzzle.is_given(idx)
 		var cands: int = game_state.current_board.candidates[idx]
 
-		var is_sel: bool = (idx == selected_idx)
-		var is_peer: bool = (idx != selected_idx and sel_peers.has(idx))
-		var is_same: bool = (idx != selected_idx and sel_val != 0 and val == sel_val)
+		var is_sel: bool = (idx == selected_idx) or (multi and multi_cells.has(idx))
+		var is_peer: bool = (not is_sel and sel_peers.has(idx))
+		var is_same: bool = (not is_sel and sel_val != 0 and val == sel_val)
 		var is_conf: bool = conflicts.has(idx) and SettingsScreen.show_conflicts
 		var is_wrong: bool = game_state.checked_wrong_indices.has(idx)
 
+		cells[idx].mark_color = game_state.get_cell_color(idx)
 		cells[idx].set_cell_data(val, is_given, cands, is_sel, is_peer, is_same, is_conf, is_wrong)
 
 	if lines_overlay != null:

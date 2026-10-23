@@ -37,7 +37,11 @@ MUTATIONS = [
  ("M26", "scripts/core/sudoku_solver.gd", "\t\tif step == null:\n\t\t\tstep = _swordfish_for(board, d, false)\n", "", "Swordfish is only looked for along rows"),
  ("M27", "scripts/core/sudoku_solver.gd", "\t\t\t\tif p1_cands[0] == p2_cands[0] and p1_cands[1] == p2_cands[1]:\n\t\t\t\t\tcontinue\n", "", "XYZ-Wing accepts two identical wings (unsound)"),
  ("M28", "scripts/core/sudoku_generator.gd", "\treturn LEVEL_ORDER.find(a.level) if a.solved_logically else LEVEL_ORDER.size()", "\treturn LEVEL_ORDER.find(a.level)", "Puzzles that need guessing pass as Expert"),
- ("M25", "scenes/gameplay/sudoku_grid.gd", "var is_same: bool = (idx != selected_idx and sel_val != 0 and val == sel_val)", "var is_same: bool = false", "Same digits are not highlighted"),
+ ("M25", "scenes/gameplay/sudoku_grid.gd", "var is_same: bool = (not is_sel and sel_val != 0 and val == sel_val)", "var is_same: bool = false", "Same digits are not highlighted"),
+ ("M29", "scripts/gameplay/game_state.gd", "var next: int = prev | (1 << num) if add else prev & ~(1 << num)", "var next: int = prev | (1 << num)", "A note in several cells can never be taken out"),
+ ("M30", "scenes/gameplay/sudoku_grid.gd", "elif event is InputEventMouseMotion and _pressing:", "elif false:", "Dragging over the board selects nothing more"),
+ ("M31", "scenes/gameplay/game_screen.gd", "\t\t_apply_key(locked_digit, one)", "\t\tpass", "Digit-first taps place nothing"),
+ ("M32", "scripts/gameplay/game_state.gd", "\t\t\"colors\": Array(cell_colors),\n", "", "Cell colours are not saved"),
 ]
 
 def main():

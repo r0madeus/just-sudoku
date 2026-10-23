@@ -25,7 +25,8 @@ Yeni bir özellik ya da hata düzeltmesi testiyle gelir. Testi yazdıktan sonra,
 |---|---|---|
 | Denetimden önce | 18 / 24 | 6 |
 | Denetimden sonra | **25 / 25** | 0 |
-| Bulmaca bankası ve çözücü düzeltmeleriyle | **28 / 28** | 0 |
+| Bulmaca bankası ve çözücü düzeltmeleriyle | 28 / 28 | 0 |
+| Giriş modlarıyla (çoklu seçim, önce rakam, renkler) | **32 / 32** | 0 |
 
 Kaçanlar: hataların ve hatasız çözümün puana etkisi, duraklatılmış oyunda hamle yapılabilmesi, istatistiklerde en iyi süre, Günün Sudokusu'nun çözülünce işaretlenmesi, ipucunun doğru rakamı koyması. Hepsi `tests/test_rules_and_records.gd` ile korunuyor. Ayrıca:
 

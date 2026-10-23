@@ -4,7 +4,15 @@ extends Control
 ## Single 9x9 Sudoku cell UI component
 ## Handles number display, 3x3 candidate notes, and highlight states (GDD §15, §17, §18)
 
-signal cell_clicked(idx: int)
+## Colours the player can mark cells with (GameState.cell_colors 1..9). Mid-tone hues, so a
+## light wash of them reads on both the light and the dark boards.
+const MARK_COLORS: Array[Color] = [
+	Color("#e5484d"), Color("#f76b15"), Color("#e2b714"),
+	Color("#46a758"), Color("#12a594"), Color("#3e8ef7"),
+	Color("#8e4ec6"), Color("#d6409f"), Color("#8b8d98"),
+]
+## How strongly a colour mark tints the cell
+const MARK_WASH: float = 0.34
 
 var cell_index: int = 0
 var value: int = 0
@@ -15,6 +23,8 @@ var is_same_number: bool = false
 var is_conflict: bool = false
 var is_wrong: bool = false
 var candidates_mask: int = 0
+## Player's colour for this cell, 0 for none (set before set_cell_data)
+var mark_color: int = 0
 
 var bg_panel: PanelContainer
 var bg_style: StyleBoxFlat
@@ -134,16 +144,6 @@ func _ready() -> void:
 	add_child(error_mark)
 
 	_update_visuals()
-
-func _gui_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton:
-		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-			cell_clicked.emit(cell_index)
-			accept_event()
-	elif event is InputEventScreenTouch:
-		if event.pressed:
-			cell_clicked.emit(cell_index)
-			accept_event()
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_RESIZED and num_label != null:
@@ -336,6 +336,9 @@ func _update_visuals() -> void:
 		_set_border(0, Color.TRANSPARENT)
 	else:
 		_set_border(0, Color.TRANSPARENT)
+	# The colour mark under the highlights: a selected cell keeps a lighter wash of it
+	if mark_color > 0 and mark_color <= MARK_COLORS.size():
+		bg_col = bg_col.lerp(MARK_COLORS[mark_color - 1], MARK_WASH * (0.6 if is_selected else 1.0))
 
 	if bg_style.bg_color != bg_col:
 		bg_style.bg_color = bg_col

@@ -22,6 +22,9 @@ const HINT_LEVEL_FOCUS: int = 1
 const HINT_LEVEL_TECHNIQUE: int = 2
 const HINT_LEVEL_APPLY: int = 3
 
+## Cell colours the player can choose from (see SudokuCell.MARK_COLORS)
+const MARK_COLOR_COUNT: int = 9
+
 var game_id: String = ""
 var seed_value: int = 0
 var difficulty: String = DifficultyAnalyzer.LEVEL_MEDIUM
@@ -44,6 +47,8 @@ var is_paused: bool = false
 var is_replay: bool = false
 
 var checked_wrong_indices: Array[int] = []
+## Colour the player gave each cell (0 = none, 1..MARK_COLOR_COUNT); a solving aid outside Undo
+var cell_colors: PackedByteArray = PackedByteArray()
 
 var undo_stack: Array[Dictionary] = []
 var redo_stack: Array[Dictionary] = []
@@ -56,6 +61,7 @@ func _init() -> void:
 	initial_puzzle = SudokuBoard.new()
 	current_board = SudokuBoard.new()
 	solution = SudokuBoard.new()
+	cell_colors.resize(SudokuBoard.CELL_COUNT)
 	game_id = str(Time.get_unix_time_from_system()) + "_" + str(Time.get_ticks_msec())
 
 func init_from_puzzle(gen: SudokuGenerator.GeneratedPuzzle) -> void:
@@ -84,6 +90,7 @@ func init_from_puzzle(gen: SudokuGenerator.GeneratedPuzzle) -> void:
 	is_replay = false
 	_reset_hint_progress()
 	checked_wrong_indices.clear()
+	cell_colors.fill(0)
 	undo_stack.clear()
 	redo_stack.clear()
 
@@ -106,6 +113,7 @@ func reset_for_replay() -> void:
 	is_replay = true
 	_reset_hint_progress()
 	checked_wrong_indices.clear()
+	cell_colors.fill(0)
 	undo_stack.clear()
 	redo_stack.clear()
 
@@ -256,6 +264,87 @@ func toggle_candidate(idx: int, num: int) -> bool:
 	cell_changed.emit(idx, 0, new_cands)
 	return true
 
+## The note num in several cells as one undoable move: added to every empty editable cell when
+## any of them lacks it, otherwise removed from all of them
+func toggle_candidate_many(indices: Array, num: int) -> bool:
+	if num < 1 or num > 9:
+		return false
+	var targets: Array[int] = []
+	for idx in indices:
+		if can_edit_cell(idx) and current_board.get_cell(idx) == 0:
+			targets.append(idx)
+	if targets.is_empty():
+		return false
+	var add := false
+	for idx in targets:
+		if not current_board.has_candidate(idx, num):
+			add = true
+			break
+	var changes: Dictionary = {}
+	for idx in targets:
+		var prev: int = current_board.candidates[idx]
+		var next: int = prev | (1 << num) if add else prev & ~(1 << num)
+		if next != prev:
+			changes[idx] = [prev, next]
+			current_board.candidates[idx] = next
+	_push_cand_changes("notes_many", changes)
+	return true
+
+## Clears the digits and notes of several cells as one undoable move
+func clear_cells(indices: Array) -> bool:
+	var changes: Dictionary = {}
+	for idx in indices:
+		if not can_edit_cell(idx):
+			continue
+		var prev_val: int = current_board.get_cell(idx)
+		var prev_cands: int = current_board.candidates[idx]
+		if prev_val == 0 and prev_cands == 0:
+			continue
+		changes[idx] = [prev_val, prev_cands, 0, 0]
+		current_board.set_cell(idx, 0, false)
+		current_board.clear_candidates(idx)
+		checked_wrong_indices.erase(idx)
+	if changes.is_empty():
+		return false
+	undo_stack.append({
+		"action": "clear_cells",
+		"cell": -1,
+		"prev_val": 0,
+		"new_val": 0,
+		"prev_cands": 0,
+		"new_cands": 0,
+		"auto_removed": {},
+		"cell_changes": changes
+	})
+	redo_stack.clear()
+	for idx in changes.keys():
+		cell_changed.emit(idx, 0, 0)
+	return true
+
+## Gives the cells colour (1..MARK_COLOR_COUNT), or takes it off when they all have it already.
+## Colours are marks for the player's own reasoning, so they stay out of Undo and the score.
+func set_cell_color(indices: Array, color: int) -> bool:
+	if is_completed or is_paused or color < 1 or color > MARK_COLOR_COUNT:
+		return false
+	var cells: Array[int] = []
+	for idx in indices:
+		if idx >= 0 and idx < SudokuBoard.CELL_COUNT:
+			cells.append(idx)
+	if cells.is_empty():
+		return false
+	var all_have := true
+	for idx in cells:
+		if cell_colors[idx] != color:
+			all_have = false
+			break
+	for idx in cells:
+		cell_colors[idx] = 0 if all_have else color
+		cell_changed.emit(idx, current_board.get_cell(idx), current_board.candidates[idx])
+	return true
+
+func get_cell_color(idx: int) -> int:
+	return cell_colors[idx] if idx >= 0 and idx < cell_colors.size() else 0
+
 ## Writes every possible candidate into empty cells without notes; cells that already have notes
 ## keep the player's eliminations and only lose candidates that are no longer possible.
 ## One undoable move; returns false when nothing changed.
@@ -275,9 +364,15 @@ func fill_notes() -> bool:
 			current_board.candidates[idx] = next
 	if changes.is_empty():
 		return false
+	_push_cand_changes("fill_notes", changes)
+	return true
 
+## Records a notes-only move ({idx: [prev, next]}) and shows the changed cells
+func _push_cand_changes(action: String, changes: Dictionary) -> void:
+	if changes.is_empty():
+		return
 	undo_stack.append({
-		"action": "fill_notes",
+		"action": action,
 		"cell": -1,
 		"prev_val": 0,
 		"new_val": 0,
@@ -289,7 +384,6 @@ func fill_notes() -> bool:
 	redo_stack.clear()
 	for idx in changes.keys():
 		cell_changed.emit(idx, 0, current_board.candidates[idx])
-	return true
 
 func can_undo() -> bool:
 	return not is_completed and not is_paused and not undo_stack.is_empty()
@@ -316,6 +410,7 @@ func undo() -> bool:
 		current_board.candidates[peer_idx] |= int(auto_removed[peer_str])
 		cell_changed.emit(peer_idx, current_board.get_cell(peer_idx), current_board.candidates[peer_idx])
 	_apply_cand_changes(move, 0)
+	_apply_cell_changes(move, 0)
 
 	checked_wrong_indices.erase(idx)
 	redo_stack.append(move)
@@ -343,6 +438,7 @@ func redo() -> bool:
 		current_board.candidates[peer_idx] &= ~int(auto_removed[peer_str])
 		cell_changed.emit(peer_idx, current_board.get_cell(peer_idx), current_board.candidates[peer_idx])
 	_apply_cand_changes(move, 1)
+	_apply_cell_changes(move, 1)
 
 	undo_stack.append(move)
 	if idx >= 0:
@@ -356,6 +452,18 @@ func _apply_cand_changes(move: Dictionary, side: int) -> void:
 	for idx_key in changes.keys():
 		var idx: int = int(idx_key)
 		current_board.candidates[idx] = int(changes[idx_key][side])
+		cell_changed.emit(idx, current_board.get_cell(idx), current_board.candidates[idx])
+
+## Sets each cell in a move's cell_changes ({idx: [prev_val, prev_cands, new_val, new_cands]})
+## to side 0 (before) or 1 (after)
+func _apply_cell_changes(move: Dictionary, side: int) -> void:
+	var changes: Dictionary = move.get("cell_changes", {})
+	for idx_key in changes.keys():
+		var idx: int = int(idx_key)
+		var c: Array = changes[idx_key]
+		current_board.set_cell(idx, int(c[side * 2]), false)
+		current_board.candidates[idx] = int(c[side * 2 + 1])
+		checked_wrong_indices.erase(idx)
 		cell_changed.emit(idx, current_board.get_cell(idx), current_board.candidates[idx])
 
 func check_board() -> Array[int]:
@@ -495,6 +603,7 @@ func serialize() -> Dictionary:
 		"hints": hints_used,
 		"hint_cost": hint_cost,
 		"checked_wrong": checked_wrong_indices,
+		"colors": Array(cell_colors),
 		"undo_count": undo_count,
 		"is_completed": is_completed,
 		"is_replay": is_replay,
@@ -537,6 +646,11 @@ func deserialize(data: Dictionary) -> bool:
 	checked_wrong_indices.clear()
 	for w in data.get("checked_wrong", []):
 		checked_wrong_indices.append(int(w))
+	cell_colors.fill(0)
+	var saved_colors: Array = data.get("colors", [])
+	if saved_colors.size() == SudokuBoard.CELL_COUNT:
+		for i in range(SudokuBoard.CELL_COUNT):
+			cell_colors[i] = clampi(int(saved_colors[i]), 0, MARK_COLOR_COUNT)
 	undo_count = int(data.get("undo_count", 0))
 	is_completed = bool(data.get("is_completed", false))
 	is_replay = bool(data.get("is_replay", false))

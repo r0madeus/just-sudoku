@@ -12,6 +12,7 @@ signal redo_pressed()
 signal notes_toggled(active: bool)
 signal hint_pressed()
 signal fill_notes_pressed()
+signal colors_toggled(active: bool)
 
 var action_bar: HBoxContainer
 var undo_btn: Button
@@ -20,8 +21,11 @@ var notes_btn: Button
 var hint_btn: Button
 ## Icon button next to Notes, shown only in notes mode
 var fill_notes_btn: Button
+## Icon button that turns the keys into cell colours
+var colors_btn: Button
 
 var is_notes_mode: bool = false
+var is_color_mode: bool = false
 var is_compact: bool = false
 ## Tablet scale (1 on phones, see ResponsiveManager.tablet_factor)
 var size_scale: float = 1.0
@@ -113,6 +117,21 @@ func _build_ui() -> void:
 	fill_notes_btn.pressed.connect(func(): fill_notes_pressed.emit())
 	action_bar.add_child(fill_notes_btn)
 
+	# 3c. Colours
+	colors_btn = Button.new()
+	colors_btn.size_flags_vertical = SIZE_EXPAND_FILL
+	colors_btn.custom_minimum_size = Vector2(ResponsiveManager.TOUCH_TARGET_MIN, ResponsiveManager.TOUCH_TARGET_MIN)
+	colors_btn.theme_type_variation = "GhostButton"
+	colors_btn.icon = ThemeManager.get_icon("palette")
+	colors_btn.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	colors_btn.add_theme_constant_override("icon_max_width", 18)
+	colors_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	colors_btn.pressed.connect(func():
+		set_color_active(not is_color_mode)
+		colors_toggled.emit(is_color_mode)
+	)
+	action_bar.add_child(colors_btn)
+
 	# 4. Hint Button
 	hint_btn = Button.new()
 	hint_btn.size_flags_horizontal = SIZE_EXPAND_FILL
@@ -155,12 +174,13 @@ func set_size_scale(scale: float) -> void:
 	corner_radius = dock_h * 0.5
 	custom_minimum_size.y = dock_h
 	action_bar.custom_minimum_size.y = h
-	for btn in [undo_btn, redo_btn, notes_btn, hint_btn, fill_notes_btn]:
+	for btn in [undo_btn, redo_btn, notes_btn, hint_btn, fill_notes_btn, colors_btn]:
 		btn.custom_minimum_size.y = h
 		ThemeManager.set_font_size(btn, 14.0 * scale)
 		btn.add_theme_constant_override("icon_max_width", roundi(18.0 * scale))
 	notes_btn.custom_minimum_size.x = 68.0 * scale
 	fill_notes_btn.custom_minimum_size.x = h
+	colors_btn.custom_minimum_size.x = h
 	if _available_width > 0.0:
 		fit_to_width(_available_width)
 	else:
@@ -186,9 +206,34 @@ func set_notes_active(active: bool) -> void:
 	_update_notes_visuals()
 	if fill_notes_btn != null and fill_notes_btn.visible != active:
 		fill_notes_btn.visible = active
+		# Colours and notes exclude each other, so Fill notes takes the Colours button's place
+		colors_btn.visible = not active
 		# The extra button changes the dock's width
 		if _available_width > 0.0:
 			fit_to_width(_available_width)
+
+func set_color_active(active: bool) -> void:
+	is_color_mode = active
+	_update_colors_visuals()
+
+func _update_colors_visuals() -> void:
+	if colors_btn == null:
+		return
+	if is_color_mode:
+		var sb_act := ThemeManager.create_flat_stylebox(
+			ThemeManager.get_color("accent_blue", ThemeManager.get_color("accent")),
+			ThemeManager.RADIUS_PILL_SM, 0, Color.TRANSPARENT, 4, 4
+		)
+		for state in ["normal", "hover", "pressed"]:
+			colors_btn.add_theme_stylebox_override(state, sb_act)
+		colors_btn.add_theme_color_override("icon_normal_color", Color.WHITE)
+		colors_btn.add_theme_color_override("icon_hover_color", Color.WHITE)
+		colors_btn.add_theme_color_override("icon_pressed_color", Color.WHITE)
+	else:
+		for state in ["normal", "hover", "pressed"]:
+			colors_btn.remove_theme_stylebox_override(state)
+		for c in ["icon_normal_color", "icon_hover_color", "icon_pressed_color"]:
+			colors_btn.remove_theme_color_override(c)
 
 func set_hint_enabled(enabled: bool) -> void:
 	if hint_btn != null:
@@ -240,6 +285,8 @@ func _update_locale_texts() -> void:
 		hint_btn.tooltip_text = LocalizationManager.translate("BTN_HINT")
 	if fill_notes_btn != null:
 		fill_notes_btn.tooltip_text = LocalizationManager.translate("BTN_FILL_NOTES")
+	if colors_btn != null:
+		colors_btn.tooltip_text = LocalizationManager.translate("BTN_COLORS")
 	_update_notes_visuals()
 	# Other languages have other label lengths, so re-check the fit
 	if _available_width > 0.0:
@@ -251,8 +298,9 @@ func _on_text_size_changed() -> void:
 		fit_to_width(_available_width)
 
 func _apply_theme_style() -> void:
-	# The glass surface itself is GlassPanel's job; only the Notes toggle depends on the theme here
+	# The glass surface itself is GlassPanel's job; only the toggles depend on the theme here
 	_update_notes_visuals()
+	_update_colors_visuals()
 
 func _on_theme_changed() -> void:
 	_apply_theme_style()

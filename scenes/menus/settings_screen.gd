@@ -20,6 +20,8 @@ const CONFIG_PATH: String = "user://saves/config.json"
 
 static var auto_open_last_game: bool = true
 static var smart_numpad_enabled: bool = true
+## Pick a digit first, then tap the cells it goes in
+static var digit_first: bool = false
 static var auto_remove_notes: bool = true
 static var smart_candidates_enabled: bool = false
 static var show_conflicts: bool = true
@@ -73,6 +75,8 @@ var text_size_row: SettingRow
 
 var auto_open_row: SettingRow
 var smart_numpad_row: SettingRow
+var digit_first_row: SettingRow
+var digit_first_check: CheckBox
 var auto_notes_row: SettingRow
 var smart_cand_row: SettingRow
 
@@ -150,6 +154,7 @@ static func save_config() -> void:
 		"text_size": ThemeManager.text_size,
 		"auto_open": auto_open_last_game,
 		"smart_numpad": smart_numpad_enabled,
+		"digit_first": digit_first,
 		"auto_notes": auto_remove_notes,
 		"smart_candidates": smart_candidates_enabled,
 		"show_conflicts": show_conflicts,
@@ -184,6 +189,7 @@ static func load_config() -> void:
 		ThemeManager.set_text_size(json.data.get("text_size", ThemeManager.TEXT_SIZE_NORMAL))
 		auto_open_last_game = json.data.get("auto_open", true)
 		smart_numpad_enabled = json.data.get("smart_numpad", true)
+		digit_first = json.data.get("digit_first", false)
 		auto_remove_notes = json.data.get("auto_notes", true)
 		smart_candidates_enabled = json.data.get("smart_candidates", false)
 		show_conflicts = json.data.get("show_conflicts", true)
@@ -401,6 +407,16 @@ func _build_ui() -> void:
 	smart_numpad_row = SettingRow.new("", "", smart_numpad_check)
 	smart_numpad_lbl = smart_numpad_row.title_label
 	game_vbox.add_child(smart_numpad_row)
+
+	game_vbox.add_child(_create_divider())
+
+	# Digit first
+	digit_first_check = CheckBox.new()
+	digit_first_check.button_pressed = digit_first
+	digit_first_check.toggled.connect(func(v): digit_first = v; save_config())
+
+	digit_first_row = SettingRow.new("", "", digit_first_check)
+	game_vbox.add_child(digit_first_row)
 
 	game_vbox.add_child(_create_divider())
 
@@ -652,6 +668,10 @@ func _update_locale_texts() -> void:
 		smart_numpad_row.set_description(LocalizationManager.translate("SETTING_DESC_SMART_NUMPAD"))
 	elif smart_numpad_lbl != null:
 		smart_numpad_lbl.text = LocalizationManager.translate("SETTING_SMART_NUMPAD")
+
+	if digit_first_row != null:
+		digit_first_row.set_title(LocalizationManager.translate("SETTING_DIGIT_FIRST"))
+		digit_first_row.set_description(LocalizationManager.translate("SETTING_DESC_DIGIT_FIRST"))
 
 	if auto_notes_row != null:
 		auto_notes_row.set_title(LocalizationManager.translate("SETTING_AUTO_NOTES"))
