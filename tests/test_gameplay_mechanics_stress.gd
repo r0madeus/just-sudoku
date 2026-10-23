@@ -108,16 +108,29 @@ func test_dimension_1_selection_and_highlights() -> void:
 	# 3. Non-peer cells must NOT be peer
 	assert_true(grid.cells[80].is_peer == false, "Hücre 0 ile ilişkisiz hücre 80 is_peer = false")
 
-	# 4. Same number highlight
-	var val_0: int = state.current_board.get_cell(0)
-	if val_0 != 0:
-		var same_num_found: bool = false
-		for i in range(1, SudokuBoard.CELL_COUNT):
-			if state.current_board.get_cell(i) == val_0:
-				same_num_found = true
-				assert_true(grid.cells[i].is_same_number == true, "Aynı sayıya sahip hücre %d is_same_number = true" % i)
-				break
-		assert_true(same_num_found, "Grid üzerindeki aynı sayıların tamamı görsel olarak vurgulandı")
+	# 4. Same number highlight: select a given digit (cell 0 may be empty, which would test nothing)
+	var given_idx: int = -1
+	for i in range(SudokuBoard.CELL_COUNT):
+		if state.initial_puzzle.is_given(i):
+			given_idx = i
+			break
+	var digit: int = state.current_board.get_cell(given_idx)
+	grid.select_cell(given_idx)
+	var same_total: int = 0
+	var same_marked: int = 0
+	var others_marked: int = 0
+	for i in range(SudokuBoard.CELL_COUNT):
+		if i == given_idx:
+			continue
+		if state.current_board.get_cell(i) == digit:
+			same_total += 1
+			if grid.cells[i].is_same_number:
+				same_marked += 1
+		elif grid.cells[i].is_same_number:
+			others_marked += 1
+	assert_true(same_total > 0 and same_marked == same_total, "Aynı rakam (%d) olan %d hücrenin %d'i vurgulandı" % [digit, same_total, same_marked])
+	assert_true(others_marked == 0, "Başka rakamlar vurgulanmadı (%d)" % others_marked)
+	grid.select_cell(0)
 
 	# 5. Keyboard Navigation (GDD §42 Arrow keys)
 	grid.move_selection(0, 1) # Move right
