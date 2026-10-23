@@ -20,7 +20,7 @@
 **Puzzles**
 - Four levels (Easy, Medium, Hard, Expert), rated by the techniques a person needs to solve them: from Naked Singles to X-Wing, Swordfish, XYZ-Wing, Simple Coloring and XY-Chain. Every puzzle has exactly one solution and can be solved by logic alone, without guessing, so a hint can always explain the next step.
 - A new puzzle opens at once. Medium, Hard and Expert come from a bank of puzzles rated in advance, each shown in a different disguise (digits relabelled, rows and columns shuffled), which keeps its difficulty exactly.
-- **Daily Sudoku**: the same puzzle for everyone each day, with a streak.
+- **Daily Sudoku**: the same puzzle for everyone each day, with a streak. A calendar keeps the last year: play any day you missed (only days solved on the day count for the streak).
 - Replay any puzzle from your history, or share it as a number or an 81-character code and import someone else's.
 
 **Solving**

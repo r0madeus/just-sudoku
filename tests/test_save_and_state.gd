@@ -163,8 +163,10 @@ func _init() -> void:
 			printerr("Daily seeds mismatch")
 			return false
 
-		DailyManager.mark_date_completed(2026, 10, 2)
-		DailyManager.mark_date_completed(2026, 10, 3)
+		# Yesterday and today: a streak ending earlier is over and reads 0
+		var y := DailyManager.parse_date(DailyManager.add_days(DailyManager.get_today_date_string(), -1))
+		DailyManager.mark_date_completed(y.year, y.month, y.day)
+		DailyManager.mark_today_completed()
 		var streak := DailyManager.get_current_streak()
 		if streak < 2:
 			printerr("Daily streak should be at least 2, got %d" % streak)

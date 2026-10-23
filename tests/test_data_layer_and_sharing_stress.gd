@@ -218,26 +218,36 @@ func test_dimension_3_daily_sudoku_determinism_and_streaks() -> void:
 		"last_completed_date": ""
 	})
 
+	# Days counted back from today: a streak whose last day is before yesterday is over, so
+	# fixed dates would read 0 once they are in the past
+	var today := DailyManager.get_today_date_string()
+	var day := func(back: int) -> Dictionary:
+		return DailyManager.parse_date(DailyManager.add_days(today, -back))
+	# The stored run is read directly until today is solved: days before yesterday are not a
+	# streak that is still going
+	var d1: Dictionary = day.call(3)
+	var d2: Dictionary = day.call(2)
+
 	# 2. Day 1 completion
-	DailyManager.mark_date_completed(2026, 10, 1)
-	assert_true(DailyManager.get_current_streak() == 1, "Gün 1 Tamamlama: current_streak = 1")
+	DailyManager.mark_date_completed(d1.year, d1.month, d1.day)
+	assert_true(int(DailyManager.load_daily_data().current_streak) == 1, "Gün 1 Tamamlama: current_streak = 1")
 	assert_true(DailyManager.get_longest_streak() == 1, "Gün 1 Tamamlama: longest_streak = 1")
 
 	# 3. Idempotency (same day played again)
-	DailyManager.mark_date_completed(2026, 10, 1)
-	assert_true(DailyManager.get_current_streak() == 1, "Idempotency: Aynı gün tekrar tamamlandığında mükerrer seri artışı engellendi")
+	DailyManager.mark_date_completed(d1.year, d1.month, d1.day)
+	assert_true(int(DailyManager.load_daily_data().current_streak) == 1, "Idempotency: Aynı gün tekrar tamamlandığında mükerrer seri artışı engellendi")
 
 	# 4. Day 2 completion (Consecutive)
-	DailyManager.mark_date_completed(2026, 10, 2)
-	assert_true(DailyManager.get_current_streak() == 2, "Ardışık Gün 2: current_streak = 2")
+	DailyManager.mark_date_completed(d2.year, d2.month, d2.day)
+	assert_true(int(DailyManager.load_daily_data().current_streak) == 2, "Ardışık Gün 2: current_streak = 2")
 	assert_true(DailyManager.get_longest_streak() == 2, "Ardışık Gün 2: longest_streak = 2")
 
 	# 5. Day 4 completion (Skip Day 3 -> Streak broken)
-	DailyManager.mark_date_completed(2026, 10, 4)
+	DailyManager.mark_today_completed()
 	assert_true(DailyManager.get_current_streak() == 1, "Gün Atlandı: Seri kırılarak current_streak = 1'e sıfırlandı")
 	assert_true(DailyManager.get_longest_streak() == 2, "En Uzun Seri Korundu: longest_streak = 2 olarak muhafaza edildi")
 
-	assert_true(DailyManager.is_date_completed("2026-10-02") == true, "is_date_completed(2026-10-02) = true")
+	assert_true(DailyManager.is_date_completed(DailyManager.add_days(today, -2)) == true, "is_date_completed(2 gün önce) = true")
 	assert_true(DailyManager.is_date_completed("2026-10-03") == false, "is_date_completed(2026-10-03) = false")
 
 # -----------------------------------------------------------------------------

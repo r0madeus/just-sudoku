@@ -517,11 +517,7 @@ func setup_game(state: GameState) -> void:
 	if SettingsScreen.show_wrong_immediately:
 		game_state.check_board()
 
-	var diff_text := LocalizationManager.get_difficulty_name(game_state.difficulty)
-	if game_state.seed_value == DailyManager.get_today_seed():
-		info_label.text = LocalizationManager.translate("BTN_DAILY_SUDOKU") + " • " + diff_text
-	else:
-		info_label.text = diff_text
+	info_label.text = _title_text()
 	# A pause overlay left open by the previous game must not cover the new one
 	if pause_overlay != null and pause_overlay.visible:
 		_hide_pause_overlay()
@@ -861,8 +857,9 @@ func _save_progress() -> void:
 	else:
 		game_state.elapsed_time = game_timer.elapsed_time
 		SaveManager.save_active_game(game_state)
-	if game_state.seed_value == DailyManager.get_today_seed():
-		DailyManager.save_today_game(game_state)
+	var daily_date := DailyManager.date_for_seed(game_state.seed_value)
+	if not daily_date.is_empty():
+		DailyManager.save_daily_game(game_state, daily_date)
 
 func _update_action_buttons() -> void:
 	if game_state == null:
@@ -927,11 +924,18 @@ func _update_locale_texts() -> void:
 	if complete_replay_btn != null:
 		complete_replay_btn.text = LocalizationManager.translate("BTN_MASTER_AGAIN")
 	if game_state != null and info_label != null:
-		var diff_text := LocalizationManager.get_difficulty_name(game_state.difficulty)
-		if game_state.seed_value == DailyManager.get_today_seed():
-			info_label.text = LocalizationManager.translate("BTN_DAILY_SUDOKU") + " • " + diff_text
-		else:
-			info_label.text = diff_text
+		info_label.text = _title_text()
+
+## The level, with "Daily Sudoku" in front for a Daily and the day for one from the archive
+func _title_text() -> String:
+	var diff_text := LocalizationManager.get_difficulty_name(game_state.difficulty)
+	var date := DailyManager.date_for_seed(game_state.seed_value)
+	if date.is_empty():
+		return diff_text
+	var daily := LocalizationManager.translate("BTN_DAILY_SUDOKU")
+	if date == DailyManager.get_today_date_string():
+		return daily + " • " + diff_text
+	return daily + " • " + LocalizationManager.format_short_date(date)
 
 func _on_theme_changed() -> void:
 	if bg != null:
@@ -1028,12 +1032,15 @@ func _on_game_completed(summary: Dictionary) -> void:
 	# Achievements as they were before this game is recorded (GDD §36)
 	var achievements_before := AchievementManager.status()
 	var seed_val: int = int(summary.get("seed", 0))
-	var is_daily: bool = seed_val == DailyManager.get_today_seed()
+	# Only a Daily solved on its own day counts as one (streaks, achievements); an archive day
+	# is marked done in the calendar
+	var daily_date := DailyManager.date_for_seed(seed_val)
+	var is_daily: bool = daily_date == DailyManager.get_today_date_string()
 	summary["is_daily"] = is_daily
-	if is_daily:
-		DailyManager.mark_today_completed()
+	if not daily_date.is_empty():
+		DailyManager.mark_completed(daily_date)
 		if game_state != null:
-			DailyManager.save_today_game(game_state)
+			DailyManager.save_daily_game(game_state, daily_date)
 
 	# References as they were before this game, then record it (GDD §25, §26)
 	var difficulty: String = summary.get("difficulty", DifficultyAnalyzer.LEVEL_MEDIUM)
@@ -1098,8 +1105,9 @@ func _on_complete_custom_action(action: String) -> void:
 		if game_state != null:
 			game_state.reset_for_replay()
 			SaveManager.save_active_game(game_state)
-			if game_state.seed_value == DailyManager.get_today_seed():
-				DailyManager.save_today_game(game_state)
+			var daily_date := DailyManager.date_for_seed(game_state.seed_value)
+			if not daily_date.is_empty():
+				DailyManager.save_daily_game(game_state, daily_date)
 			setup_game(game_state)
 
 ## Lets go of the game without saving it (its saves were replaced, see AppRoot._on_data_restored)

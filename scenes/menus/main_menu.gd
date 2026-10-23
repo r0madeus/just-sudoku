@@ -16,6 +16,8 @@ signal continue_pressed()
 signal new_game_requested()
 signal load_game_requested()
 signal daily_sudoku_requested()
+## The calendar of past Dailies
+signal daily_archive_requested()
 signal history_requested()
 signal statistics_requested()
 signal settings_requested()
@@ -49,7 +51,8 @@ var new_game_btn: Button
 
 # 3. Daily Sudoku Strip (Distinct & Restrained)
 var daily_panel: PanelContainer
-var daily_icon_tex: TextureRect
+## Calendar icon at the start of the Daily strip; opens the archive
+var daily_archive_btn: Button
 var daily_title_label: Label
 var daily_meta_label: Label
 var daily_btn: Button
@@ -294,12 +297,15 @@ func _build_ui() -> void:
 	daily_hbox.add_theme_constant_override("separation", 12)
 	daily_panel.add_child(daily_hbox)
 
-	daily_icon_tex = TextureRect.new()
-	daily_icon_tex.texture = ThemeManager.get_icon("clock-3")
-	daily_icon_tex.custom_minimum_size = Vector2(20, 20)
-	daily_icon_tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	daily_icon_tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	daily_hbox.add_child(daily_icon_tex)
+	daily_archive_btn = Button.new()
+	daily_archive_btn.theme_type_variation = "IconButton"
+	daily_archive_btn.icon = ThemeManager.get_icon("calendar")
+	daily_archive_btn.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	daily_archive_btn.add_theme_constant_override("icon_max_width", 20)
+	daily_archive_btn.custom_minimum_size = Vector2(ResponsiveManager.TOUCH_TARGET_MIN, ResponsiveManager.TOUCH_TARGET_MIN)
+	daily_archive_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	daily_archive_btn.pressed.connect(func(): daily_archive_requested.emit())
+	daily_hbox.add_child(daily_archive_btn)
 
 	var daily_info_vbox := VBoxContainer.new()
 	daily_info_vbox.size_flags_horizontal = SIZE_EXPAND_FILL
@@ -470,8 +476,6 @@ func _apply_theme_polish() -> void:
 		subtitle_label.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
 	if continue_meta_label != null:
 		continue_meta_label.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
-	if daily_icon_tex != null:
-		daily_icon_tex.modulate = ThemeManager.get_color("text_secondary")
 	if daily_title_label != null:
 		daily_title_label.add_theme_color_override("font_color", ThemeManager.get_color("text_given"))
 	if daily_meta_label != null:
@@ -500,6 +504,8 @@ func _update_locale_texts() -> void:
 		new_game_btn.text = LocalizationManager.translate("BTN_NEW_GAME")
 	if daily_title_label != null:
 		daily_title_label.text = LocalizationManager.translate("BTN_DAILY_SUDOKU")
+	if daily_archive_btn != null:
+		daily_archive_btn.tooltip_text = LocalizationManager.translate("ARCHIVE_TITLE")
 	if load_game_btn != null:
 		load_game_btn.text = LocalizationManager.translate("BTN_LOAD_GAME")
 	if history_btn != null:
