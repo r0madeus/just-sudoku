@@ -43,6 +43,10 @@ var step_counter_label: Label
 var btn_next: Button
 var btn_last: Button
 
+## Holds the step view and the full-solution view, at one height
+var detail_box: VBoxContainer
+## The explanation, scrolled when it is longer than DESC_LINES
+var desc_scroll: ScrollContainer
 var step_info_panel: PanelContainer
 var step_coord_badge: Label
 var step_tech_badge: Label
@@ -148,11 +152,17 @@ func _build_ui() -> void:
 	)
 	grid_frame.add_child(grid_lines)
 
+	# Both views below the board share one area of fixed height, so switching between them, or
+	# between steps with longer and shorter explanations, never resizes the dialog
+	detail_box = VBoxContainer.new()
+	detail_box.add_theme_constant_override("separation", 8)
+	body_vbox.add_child(detail_box)
+
 	# 3. Step Navigation Bar
 	step_nav_bar = HBoxContainer.new()
 	step_nav_bar.add_theme_constant_override("separation", 6)
 	step_nav_bar.alignment = BoxContainer.ALIGNMENT_CENTER
-	body_vbox.add_child(step_nav_bar)
+	detail_box.add_child(step_nav_bar)
 
 	btn_first = Button.new()
 	btn_first.custom_minimum_size = Vector2(44, 44)
@@ -208,7 +218,8 @@ func _build_ui() -> void:
 	step_info_panel = PanelContainer.new()
 	step_info_panel.custom_minimum_size = Vector2(0, 76)
 	step_info_panel.theme_type_variation = "SurfacePanel"
-	body_vbox.add_child(step_info_panel)
+	step_info_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	detail_box.add_child(step_info_panel)
 
 	var s_vbox := VBoxContainer.new()
 	s_vbox.add_theme_constant_override("separation", 2)
@@ -228,18 +239,27 @@ func _build_ui() -> void:
 	ThemeManager.set_font_size(step_tech_badge, 12)
 	badge_row.add_child(step_tech_badge)
 
+	# A fixed number of lines; a longer explanation scrolls inside them
+	desc_scroll = ScrollContainer.new()
+	desc_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	desc_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	desc_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	s_vbox.add_child(desc_scroll)
+
 	step_desc_label = Label.new()
 	step_desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	step_desc_label.theme_type_variation = "Body"
+	step_desc_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	ThemeManager.set_font_size(step_desc_label, 12)
-	s_vbox.add_child(step_desc_label)
+	desc_scroll.add_child(step_desc_label)
 
 	# 5. Full Solution Card
 	full_info_panel = PanelContainer.new()
 	full_info_panel.custom_minimum_size = Vector2(0, 76)
 	full_info_panel.visible = false
 	full_info_panel.theme_type_variation = "SurfacePanel"
-	body_vbox.add_child(full_info_panel)
+	full_info_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	detail_box.add_child(full_info_panel)
 
 	var f_vbox := VBoxContainer.new()
 	f_vbox.add_theme_constant_override("separation", 4)
@@ -337,6 +357,7 @@ func set_step(idx: int) -> void:
 		step_coord_badge.text = LocalizationManager.translate("STEP_INITIAL_BOARD")
 		step_tech_badge.text = ""
 		step_desc_label.text = LocalizationManager.translate("STEP_INITIAL_DESC")
+	desc_scroll.scroll_vertical = 0
 
 	_render_grid(active_board, target_cell, peer_cells)
 
@@ -423,6 +444,23 @@ func _apply_responsive_layout() -> void:
 	if compact != _nav_compact:
 		_nav_compact = compact
 		_update_nav_labels()
+	_fit_detail_height()
+
+## Lines of explanation shown at once
+const DESC_LINES: int = 5
+
+## The explanation gets room for DESC_LINES lines at the current text size, and the area under
+## the board the height of the taller view, whichever is on show
+func _fit_detail_height() -> void:
+	if detail_box == null or desc_scroll == null:
+		return
+	desc_scroll.custom_minimum_size.y = ceilf(step_desc_label.get_line_height() * DESC_LINES)
+	var sep: float = detail_box.get_theme_constant("separation")
+	var step_h: float = step_nav_bar.get_combined_minimum_size().y + sep + step_info_panel.get_combined_minimum_size().y
+	detail_box.custom_minimum_size.y = maxf(step_h, full_info_panel.get_combined_minimum_size().y)
+
+func _on_text_size_changed() -> void:
+	_fit_detail_height()
 
 func _update_nav_labels() -> void:
 	if btn_prev == null or btn_next == null:

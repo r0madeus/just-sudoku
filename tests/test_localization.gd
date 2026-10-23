@@ -150,7 +150,7 @@ func _init() -> void:
 
 		var tr_title := settings.title_label.text
 		var tr_lang := settings.lang_label.text
-		if tr_title != "Ayarlar" or tr_lang != "Dil / Language":
+		if tr_title != "Ayarlar" or tr_lang != "Dil":
 			printerr("Initial TR SettingsScreen failed: %s, %s" % [tr_title, tr_lang])
 			settings.queue_free()
 			return false
@@ -158,7 +158,7 @@ func _init() -> void:
 		LocalizationManager.set_locale("en")
 		var en_title := settings.title_label.text
 		var en_lang := settings.lang_label.text
-		if en_title != "Settings" or en_lang != "Language / Dil":
+		if en_title != "Settings" or en_lang != "Language":
 			printerr("Hot-swapped EN SettingsScreen failed: %s, %s" % [en_title, en_lang])
 			settings.queue_free()
 			return false

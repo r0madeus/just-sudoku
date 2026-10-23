@@ -100,7 +100,7 @@ const STRINGS: Dictionary = {
 	"SETTINGS_SEC_FEEDBACK": "Geri Bildirim ve Ses",
 	"THEME_GROUP_BOARD": "Tahta ve Yüzeyler",
 	"THEME_GROUP_NUMBERS": "Sayılar ve Vurgular",
-	"SETTING_LANGUAGE": "Dil / Language",
+	"SETTING_LANGUAGE": "Dil",
 	"SETTING_THEME": "Tema",
 	"SETTING_FONT": "Yazı tipi",
 	"FONT_MODERN_SANS": "Modern",
