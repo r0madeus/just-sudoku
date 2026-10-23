@@ -59,6 +59,9 @@ MUTATIONS = [
  ("M47", "scenes/app_root.gd", "\t\t_relayout_after_resume()\n", "\t\tpass\n", "Coming back from the background keeps a broken layout"),
  ("M48", "scripts/services/responsive_manager.gd", "\tif not Rect2i(Vector2i.ZERO, window_size).encloses(safe_rect):\n\t\treturn insets\n", "", "A safe area outside the window is trusted"),
  ("M49", "scripts/services/responsive_manager.gd", "\tif maxi(left_px, right_px) > window_size.x * MAX_SIDE_INSET_SHARE \\\n", "\tif false \\\n", "Any size of safe-area margin is trusted"),
+ ("M50", "scenes/gameplay/game_screen.gd", "\t\tpause_menu.close_modal()\n\t_sync_pause_icon()", "\t\tpause_menu.close_modal()\n\tpass", "A game set up after Pause → Menu shows play"),
+ ("M51", "scenes/gameplay/game_screen.gd", "\tgame_state.is_paused = false\n", "", "A game left through the pause sheet comes back paused"),
+ ("M52", "scenes/gameplay/dialogs/solution_dialog.gd", "\tdetail_box.custom_minimum_size.y = maxf(step_h, full_info_panel.get_combined_minimum_size().y)\n", "\tpass\n", "The solution dialog resizes between its views"),
 ]
 
 def main():

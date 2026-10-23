@@ -101,7 +101,7 @@ const STRINGS: Dictionary = {
 	"SETTINGS_SEC_FEEDBACK": "Feedback & Sound",
 	"THEME_GROUP_BOARD": "Board & Surfaces",
 	"THEME_GROUP_NUMBERS": "Numbers & Accents",
-	"SETTING_LANGUAGE": "Language / Dil",
+	"SETTING_LANGUAGE": "Language",
 	"SETTING_THEME": "Theme",
 	"SETTING_FONT": "Font",
 	"FONT_MODERN_SANS": "Modern",

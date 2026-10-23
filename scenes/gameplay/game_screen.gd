@@ -455,9 +455,12 @@ func setup_game(state: GameState) -> void:
 		game_state.check_board()
 
 	info_label.text = _title_text()
-	# A pause overlay left open by the previous game must not cover the new one
+	# A game set up here runs: one left paused (Pause → Menu) does not come back paused, and a
+	# pause overlay left open by the previous game must not cover the new one
+	game_state.is_paused = false
 	if pause_overlay != null and pause_overlay.visible:
-		_hide_pause_overlay()
+		pause_menu.close_modal()
+	_sync_pause_icon()
 	game_timer.start(game_state.elapsed_time)
 	if game_state.is_completed:
 		# A finished game (e.g. today's Daily reopened) shows its final time, without a clock
@@ -499,8 +502,7 @@ func toggle_pause() -> void:
 	game_state.is_paused = not game_state.is_paused
 	if game_state.is_paused:
 		game_timer.pause()
-		if pause_btn != null:
-			pause_btn.icon = ThemeManager.get_icon("play")
+		_sync_pause_icon()
 		pause_menu.open_for("%s • %s" % [
 			LocalizationManager.get_difficulty_name(game_state.difficulty),
 			LocalizationManager.translate("PUZZLE_NUMBER") % game_state.seed_value
@@ -510,9 +512,15 @@ func toggle_pause() -> void:
 		_hide_pause_overlay()
 
 func _hide_pause_overlay() -> void:
-	if pause_btn != null:
-		pause_btn.icon = ThemeManager.get_icon("pause")
 	pause_menu.close_modal()
+	_sync_pause_icon()
+
+## The button shows what it will do: play while the game is paused, pause while it runs. Read
+## from the game every time, so no path (leaving from the pause sheet, a new game) leaves it stale.
+func _sync_pause_icon() -> void:
+	if pause_btn != null:
+		var paused := game_state != null and game_state.is_paused
+		pause_btn.icon = ThemeManager.get_icon("play" if paused else "pause")
 
 func _show_pause_toast(msg: String) -> void:
 	pause_menu.show_toast(msg)
