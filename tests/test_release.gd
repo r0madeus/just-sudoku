@@ -69,6 +69,14 @@ func _test_web_export() -> void:
 		and cfg.get_value(base, "include_filter", "").contains("assets/puzzles/*.txt"))
 	_check("It exports to build/, which is not committed", str(cfg.get_value(base, "export_path", "")).begins_with("build/")
 		and FileAccess.get_file_as_string("res://.gitignore").contains("build/"))
+	var opts := base + ".options"
+	_check("It can be installed as an app (a web app manifest and a service worker for offline play), upright",
+		cfg.get_value(opts, "progressive_web_app/enabled", false) == true and cfg.get_value(opts, "progressive_web_app/orientation", 0) == 2)
+	var icons_ok := true
+	for px in [144, 180, 512]:
+		icons_ok = icons_ok and cfg.get_value(opts, "progressive_web_app/icon_%dx%d" % [px, px], "") == "res://assets/launcher/pwa_%dx%d.png" % [px, px] \
+			and FileAccess.file_exists("res://assets/launcher/pwa_%dx%d.png" % [px, px])
+	_check("with its three install icons", icons_ok)
 	var flow := FileAccess.get_file_as_string("res://.github/workflows/web.yml")
 	_check("A workflow builds it for every pull request", flow.contains("pull_request:") and flow.contains("--export-release Web"))
 	_check("and publishes it on GitHub Pages only from main", flow.contains("deploy-pages") and flow.contains("github.ref == 'refs/heads/main'"))
