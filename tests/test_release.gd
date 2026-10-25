@@ -34,6 +34,7 @@ func _run() -> void:
 	_test_privacy(preset)
 	_test_launcher_icon(preset)
 	_test_web_export()
+	_test_windows_export()
 	await _test_settings_label(version)
 	print("\n🏁 RESULTS: %d Passed, %d Failed" % [_passed, _failed])
 	quit(1 if _failed > 0 else 0)
@@ -71,6 +72,22 @@ func _test_web_export() -> void:
 	var flow := FileAccess.get_file_as_string("res://.github/workflows/web.yml")
 	_check("A workflow builds it for every pull request", flow.contains("pull_request:") and flow.contains("--export-release Web"))
 	_check("and publishes it on GitHub Pages only from main", flow.contains("deploy-pages") and flow.contains("github.ref == 'refs/heads/main'"))
+
+## The Windows build: one exe with the data inside, zipped onto the release by its workflow
+func _test_windows_export() -> void:
+	var cfg := ConfigFile.new()
+	cfg.load("res://export_presets.cfg")
+	var base := ""
+	for section in cfg.get_sections():
+		if cfg.get_value(section, "platform", "") == "Windows Desktop":
+			base = section
+	_check("There is a Windows export preset", base != "")
+	_check("for 64-bit, as one exe", cfg.get_value(base + ".options", "binary_format/architecture", "") == "x86_64"
+		and cfg.get_value(base + ".options", "binary_format/embed_pck", false) == true)
+	_check("leaving out the same files as the other builds", cfg.get_value(base, "exclude_filter", "").contains("tests/*"))
+	var flow := FileAccess.get_file_as_string("res://.github/workflows/windows.yml")
+	_check("Its workflow builds it for every pull request and attaches the zip to a release",
+		flow.contains("pull_request:") and flow.contains("--export-release \"Windows Desktop\"") and flow.contains("action-gh-release"))
 
 func _text(path: String) -> String:
 	return FileAccess.get_file_as_string(path).strip_edges()
