@@ -1,0 +1,1 @@
+Home screen: a new name in a serif face, and a tap on the last-game card grows its board into the game. No more stretched-off-the-edge look at start, Continue lines up with the other buttons, screens slide in, animations are easier to see, Settings rows no longer change while you scroll, and the icon fits every launcher.
