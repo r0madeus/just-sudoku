@@ -14,6 +14,7 @@ extends SceneTree
 ##    blocks, so it does not read as one big square.
 ##  - assets/launcher/main(.svg, _192x192.png): the legacy icon, for launchers without adaptive
 ##    icons: the visible 72 dp on a rounded square.
+##  - assets/launcher/pwa_{144,180,512}.png: the install icons of the browser version (full bleed).
 ##  - icon.svg: the project icon (window, editor).
 ##  - fastlane/metadata/android/*/images/icon.png: the 512 px store icon, full bleed (the stores
 ##    round the corners themselves).
@@ -51,6 +52,9 @@ func _init() -> void:
 	var store := _svg(_background(72.0, 18.0, 0.0) + _glow() + _board(false), 512, 18.0, 72.0)
 	for locale in STORE_LOCALES:
 		_render(store, "res://fastlane/metadata/android/%s/images/icon.png" % locale)
+	# The web app's install icons (the browser version can be installed like an app)
+	for px in [144, 180, 512]:
+		_render(_svg(_background(72.0, 18.0, 0.0) + _glow() + _board(false), px, 18.0, 72.0), LAUNCHER_DIR + "pwa_%dx%d.png" % [px, px])
 	print("Launcher icons written")
 	quit()
 
