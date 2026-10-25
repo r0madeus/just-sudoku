@@ -106,6 +106,12 @@ MUTATIONS = [
  ("M94", "scenes/ui/board_flight.gd", "\tsize = _from.size.lerp(_to.size, t)\n", "\tsize = _from.size\n", "The board moves but does not grow"),
  ("M95", "scenes/app_root.gd", "\tif grid != null:\n\t\ttween.tween_property(grid, \"modulate:a\", 1.0, BOARD_HAND_OVER_TIME)\n", "", "The game's board stays hidden after the flight"),
  ("M96", "scenes/app_root.gd", "\tawait _hand_over(flight)\n\tgrid.modulate.a = 1.0\n", "\tawait _hand_over(flight)\n", "The game's board is hidden the next time the game opens"),
+ ("M97", "scenes/menus/main_menu.gd", "\twordmark_dot_holder.add_theme_constant_override(\"margin_bottom\", int(roundf(font.get_descent(px))))\n", "", "The full stop floats off the baseline"),
+ ("M98", "scripts/services/theme_builder.gd", "\t\ttheme.set_font(\"font\", \"Wordmark\", wordmark_font)\n", "\t\ttheme.set_font(\"font\", \"Wordmark\", brand_font)\n", "The name is back in the old serif"),
+ ("M99", "scenes/menus/main_menu.gd", "\t\ttitle_label.text = \"Just Sudoku\"\n", "\t\ttitle_label.text = \"JUST SUDOKU\"\n", "The name is back in capitals"),
+ ("M100", "scenes/menus/main_menu.gd", "\twordmark.add_child(wordmark_dot_holder)\n", "", "The name has no full stop"),
+ ("M101", "scenes/menus/main_menu.gd", "\t\t_fit_wordmark_dot.call_deferred()\n", "\t\t_fit_wordmark_dot()\n", "The full stop is sized from a font size the label does not have yet (4 px)"),
+ ("M102", "scenes/menus/main_menu.gd", "\tsb.bg_color = ThemeManager.get_color(\"accent_blue\", ThemeManager.get_color(\"accent\"))\n\tsb.set_corner_radius_all(maxi(2, int(side * 0.28)))", "\tsb.bg_color = Color.WHITE\n\tsb.set_corner_radius_all(maxi(2, int(side * 0.28)))", "The full stop is not in the accent colour"),
 ]
 
 def main():

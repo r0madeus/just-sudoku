@@ -40,8 +40,9 @@ var bottom_spacer: Control
 # 1. Masthead
 var header_vbox: VBoxContainer
 var title_label: Label
-var subtitle_label: Label
-var masthead_separator: HSeparator
+## The full stop after the name: a rounded square, the lit cell of the app icon
+var wordmark_dot: Panel
+var wordmark_dot_holder: MarginContainer
 
 # 2. Hero & Puzzle Actions
 var resume_holder: VBoxContainer
@@ -99,6 +100,10 @@ func _exit_tree() -> void:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_RESIZED:
 		_apply_responsive_layout()
+	elif what == NOTIFICATION_THEME_CHANGED:
+		# The font and its size arrive with the theme (a new text size is one), after _ready; the
+		# label has them only once the notification has reached it, after this one
+		_fit_wordmark_dot.call_deferred()
 
 func _ready() -> void:
 	_apply_responsive_layout()
@@ -289,27 +294,23 @@ func _build_ui() -> void:
 	# --- 2. Swiss Editorial Masthead ---
 	header_vbox = VBoxContainer.new()
 	header_vbox.size_flags_horizontal = SIZE_EXPAND_FILL
-	header_vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	header_vbox.add_theme_constant_override("separation", 6)
 	root_vbox.add_child(header_vbox)
 
+	# The name, set in the display face and left-aligned with the cards below, ending in the
+	# icon's lit cell as its full stop
+	var wordmark := HBoxContainer.new()
+	wordmark.add_theme_constant_override("separation", 5)
+	header_vbox.add_child(wordmark)
+
 	title_label = Label.new()
-	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title_label.theme_type_variation = "BrandTitle"
-	header_vbox.add_child(title_label)
+	title_label.theme_type_variation = "Wordmark"
+	wordmark.add_child(title_label)
 
-	subtitle_label = Label.new()
-	subtitle_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	subtitle_label.theme_type_variation = "Subtitle"
-	ThemeManager.set_font_size(subtitle_label, 12)
-	header_vbox.add_child(subtitle_label)
-
-	var masthead_gap := Control.new()
-	masthead_gap.custom_minimum_size = Vector2(0, 8)
-	header_vbox.add_child(masthead_gap)
-
-	masthead_separator = HSeparator.new()
-	header_vbox.add_child(masthead_separator)
+	wordmark_dot_holder = MarginContainer.new()
+	wordmark_dot_holder.size_flags_vertical = SIZE_SHRINK_END
+	wordmark.add_child(wordmark_dot_holder)
+	wordmark_dot = Panel.new()
+	wordmark_dot_holder.add_child(wordmark_dot)
 
 	# --- 3. Resume card: live miniature of the unfinished game, centred in the free space ---
 	resume_holder = VBoxContainer.new()
@@ -550,11 +551,25 @@ func _build_ui() -> void:
 func _on_text_size_changed() -> void:
 	_fit_nav_buttons()
 
+## The full stop is a rounded square a little over a quarter of the type size, in the accent, its
+## foot on the baseline (the label's height is ascent plus descent, so the descent lifts it there)
+func _fit_wordmark_dot() -> void:
+	if title_label == null or wordmark_dot == null:
+		return
+	var font: Font = title_label.get_theme_font("font")
+	var px: int = title_label.get_theme_font_size("font_size")
+	var side: float = roundf(px * 0.27)
+	wordmark_dot.custom_minimum_size = Vector2(side, side)
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = ThemeManager.get_color("accent_blue", ThemeManager.get_color("accent"))
+	sb.set_corner_radius_all(maxi(2, int(side * 0.28)))
+	wordmark_dot.add_theme_stylebox_override("panel", sb)
+	wordmark_dot_holder.add_theme_constant_override("margin_bottom", int(roundf(font.get_descent(px))))
+
 func _apply_theme_polish() -> void:
 	if title_label != null:
 		title_label.add_theme_color_override("font_color", ThemeManager.get_color("text_given"))
-	if subtitle_label != null:
-		subtitle_label.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
+		_fit_wordmark_dot()
 	if continue_meta_label != null:
 		continue_meta_label.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
 	if daily_title_label != null:
@@ -579,9 +594,7 @@ func _on_theme_changed() -> void:
 func _update_locale_texts() -> void:
 	var is_tr := (LocalizationManager.get_locale() == LocalizationManager.LOCALE_TR)
 	if title_label != null:
-		title_label.text = "JUST SUDOKU"
-	if subtitle_label != null:
-		subtitle_label.text = LocalizationManager.upper(LocalizationManager.translate("SUBTITLE_CALM"))
+		title_label.text = "Just Sudoku"
 	if continue_btn != null:
 		continue_btn.text = LocalizationManager.translate("BTN_CONTINUE")
 	if new_game_btn != null:

@@ -410,11 +410,15 @@ static func build_godot_theme() -> Theme:
 
 	# Editorial / Brand Headings (Source Serif 4 Regular/Semibold - editorial excellence)
 	var brand_font: Font = font_serif_semi if font_serif_semi != null else (font_serif_reg if font_serif_reg != null else active_font)
-	theme.set_type_variation("BrandTitle", "Label")
-	theme.set_color("font_color", "BrandTitle", text_primary)
-	theme.set_font_size("font_size", "BrandTitle", ThemeManager.fs(ThemeManager.FONT_SIZE_BRAND))
-	if brand_font != null:
-		theme.set_font("font", "BrandTitle", brand_font)
+	# The wordmark on the home screen, in the display face whatever UI font is chosen
+	var wordmark_font: Font = ThemeManager.get_font_display()
+	if wordmark_font == null:
+		wordmark_font = brand_font
+	theme.set_type_variation("Wordmark", "Label")
+	theme.set_color("font_color", "Wordmark", text_primary)
+	theme.set_font_size("font_size", "Wordmark", ThemeManager.fs(ThemeManager.FONT_SIZE_BRAND))
+	if wordmark_font != null:
+		theme.set_font("font", "Wordmark", wordmark_font)
 
 	theme.set_type_variation("BrandHeader", "Label")
 	theme.set_color("font_color", "BrandHeader", text_primary)
