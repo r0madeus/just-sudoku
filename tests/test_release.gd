@@ -33,6 +33,7 @@ func _run() -> void:
 	_test_store(code)
 	_test_privacy(preset)
 	_test_launcher_icon(preset)
+	_test_web_export()
 	await _test_settings_label(version)
 	print("\n🏁 RESULTS: %d Passed, %d Failed" % [_passed, _failed])
 	quit(1 if _failed > 0 else 0)
@@ -51,6 +52,25 @@ func _android_preset() -> Dictionary:
 				out["preset/" + key] = cfg.get_value(base, key)
 			return out
 	return {}
+
+## The browser build: a Web preset that needs no special headers (single-threaded), and the
+## workflow that builds it and publishes it
+func _test_web_export() -> void:
+	var cfg := ConfigFile.new()
+	cfg.load("res://export_presets.cfg")
+	var base := ""
+	for section in cfg.get_sections():
+		if cfg.get_value(section, "platform", "") == "Web":
+			base = section
+	_check("There is a Web export preset", base != "")
+	_check("without threads, so any static host can serve it", cfg.get_value(base + ".options", "variant/thread_support", true) == false)
+	_check("leaving out the same files as the Android build", cfg.get_value(base, "exclude_filter", "").contains("tests/*")
+		and cfg.get_value(base, "include_filter", "").contains("assets/puzzles/*.txt"))
+	_check("It exports to build/, which is not committed", str(cfg.get_value(base, "export_path", "")).begins_with("build/")
+		and FileAccess.get_file_as_string("res://.gitignore").contains("build/"))
+	var flow := FileAccess.get_file_as_string("res://.github/workflows/web.yml")
+	_check("A workflow builds it for every pull request", flow.contains("pull_request:") and flow.contains("--export-release Web"))
+	_check("and publishes it on GitHub Pages only from main", flow.contains("deploy-pages") and flow.contains("github.ref == 'refs/heads/main'"))
 
 func _text(path: String) -> String:
 	return FileAccess.get_file_as_string(path).strip_edges()

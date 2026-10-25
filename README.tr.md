@@ -67,6 +67,7 @@ Just Sudoku titreşim dışında hiçbir izin istemiyor.
 Sürüm 1.0.0; Android 7.0 ve üstü (64-bit ARM).
 
 - **APK:** [Releases](https://github.com/r0madeus/just-sudoku/releases) sayfasından, SHA-256 özetiyle birlikte. Her sürümde neyin değiştiği: [CHANGELOG.md](CHANGELOG.md).
+- **Tarayıcıda:** `main`'in her sürümü GitHub Pages'te yayınlanır: <https://r0madeus.github.io/just-sudoku/> (aynı derleme, [Web](https://github.com/r0madeus/just-sudoku/actions/workflows/web.yml) çalıştırmalarının *Artifacts* bölümünde zip olarak durur; itch.io'ya HTML5 oyunu olarak yüklenebilir). İlerleme tarayıcının kendi deposunda tutulur, site verisi silinirse gider; Yedekleme (Ayarlar'da) panoya kopyalayarak çalışır.
 - **F-Droid:** yolda ([docs/fdroid.md](docs/fdroid.md)).
 - Her değişikliğin deneme sürümü [Android APK (slim engine)](https://github.com/r0madeus/just-sudoku/actions/workflows/android.yml) çalıştırmalarının *Artifacts* bölümünde (test anahtarıyla imzalı, denemek için). Telefona kurulum ve denenecekler listesi: [docs/android.md](docs/android.md). Sürüm nasıl yayınlanır: [docs/release.md](docs/release.md).
 
