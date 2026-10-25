@@ -195,33 +195,43 @@ func set_cell_data(
 	if (not was_conflict and is_conflict) or (not was_wrong and is_wrong):
 		animate_shake()
 
+## Sizes and times of the small movements. They are long enough to be seen on a phone, where a
+## change of a few frames is not: a cell used to settle in 0.05 s after being tapped.
+const POP_SCALE: float = 1.24
+const POP_TIME: float = 0.3
+const SELECT_SCALE: float = 1.09
+const SELECT_TIME: float = 0.16
+const SHAKE_PX: float = 5.0
+const WAVE_SCALE: float = 1.16
+const WAVE_TIME: float = 0.22
+
 func animate_pop() -> void:
 	if not AppSettings.animations_enabled:
 		scale = Vector2.ONE
 		return
 	pivot_offset = size * 0.5
-	scale = Vector2(1.15, 1.15)
+	scale = Vector2(POP_SCALE, POP_SCALE)
 	if not is_inside_tree():
 		return
 	if _scale_tween != null and _scale_tween.is_valid():
 		_scale_tween.kill()
 	_scale_tween = create_tween()
 	if _scale_tween != null:
-		_scale_tween.tween_property(self, "scale", Vector2.ONE, 0.12).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		_scale_tween.tween_property(self, "scale", Vector2.ONE, POP_TIME).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 func animate_select() -> void:
 	if not AppSettings.animations_enabled:
 		scale = Vector2.ONE
 		return
 	pivot_offset = size * 0.5
-	scale = Vector2(1.05, 1.05)
+	scale = Vector2(SELECT_SCALE, SELECT_SCALE)
 	if not is_inside_tree():
 		return
 	if _scale_tween != null and _scale_tween.is_valid():
 		_scale_tween.kill()
 	_scale_tween = create_tween()
 	if _scale_tween != null:
-		_scale_tween.tween_property(self, "scale", Vector2.ONE, 0.05).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+		_scale_tween.tween_property(self, "scale", Vector2.ONE, SELECT_TIME).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
 func animate_shake() -> void:
 	if not AppSettings.animations_enabled:
@@ -238,10 +248,10 @@ func animate_shake() -> void:
 		_is_shaking = false
 		return
 
-	_shake_tween.tween_property(self, "position:x", _original_pos_x + 3.0, 0.03).set_trans(Tween.TRANS_SINE)
-	_shake_tween.tween_property(self, "position:x", _original_pos_x - 3.0, 0.04).set_trans(Tween.TRANS_SINE)
-	_shake_tween.tween_property(self, "position:x", _original_pos_x + 1.5, 0.03).set_trans(Tween.TRANS_SINE)
-	_shake_tween.tween_property(self, "position:x", _original_pos_x, 0.03).set_trans(Tween.TRANS_SINE)
+	_shake_tween.tween_property(self, "position:x", _original_pos_x + SHAKE_PX, 0.04).set_trans(Tween.TRANS_SINE)
+	_shake_tween.tween_property(self, "position:x", _original_pos_x - SHAKE_PX, 0.07).set_trans(Tween.TRANS_SINE)
+	_shake_tween.tween_property(self, "position:x", _original_pos_x + SHAKE_PX * 0.5, 0.06).set_trans(Tween.TRANS_SINE)
+	_shake_tween.tween_property(self, "position:x", _original_pos_x, 0.05).set_trans(Tween.TRANS_SINE)
 	_shake_tween.tween_callback(func():
 		position.x = _original_pos_x
 		_is_shaking = false
@@ -252,7 +262,7 @@ func animate_wave(delay: float) -> void:
 		scale = Vector2.ONE
 		return
 	pivot_offset = size * 0.5
-	scale = Vector2(1.10, 1.10)
+	scale = Vector2(WAVE_SCALE, WAVE_SCALE)
 	if not is_inside_tree():
 		return
 	if _scale_tween != null and _scale_tween.is_valid():
@@ -262,7 +272,7 @@ func animate_wave(delay: float) -> void:
 		return
 	if delay > 0.0:
 		_scale_tween.tween_interval(delay)
-	_scale_tween.tween_property(self, "scale", Vector2.ONE, 0.08).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	_scale_tween.tween_property(self, "scale", Vector2.ONE, WAVE_TIME).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
 ## Accent wash that fades in and out, used when this cell's row, column or box is completed
 func animate_unit_completed(delay: float = 0.0) -> void:
@@ -283,8 +293,8 @@ func animate_unit_completed(delay: float = 0.0) -> void:
 		return
 	if delay > 0.0:
 		_flash_tween.tween_interval(delay)
-	_flash_tween.tween_property(_flash_rect, "color:a", 0.32, 0.12).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	_flash_tween.tween_property(_flash_rect, "color:a", 0.0, 0.38).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	_flash_tween.tween_property(_flash_rect, "color:a", 0.42, 0.14).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	_flash_tween.tween_property(_flash_rect, "color:a", 0.0, 0.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
 
 func animate_digit_completed(delay: float = 0.0) -> void:
 	if not AppSettings.animations_enabled:
@@ -301,8 +311,8 @@ func animate_digit_completed(delay: float = 0.0) -> void:
 		return
 	if delay > 0.0:
 		_scale_tween.tween_interval(delay)
-	_scale_tween.tween_property(self, "scale", Vector2(1.08, 1.08), 0.10).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	_scale_tween.tween_property(self, "scale", Vector2.ONE, 0.12).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	_scale_tween.tween_property(self, "scale", Vector2(1.16, 1.16), 0.14).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	_scale_tween.tween_property(self, "scale", Vector2.ONE, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 	if num_label != null:
 		var tint_tween := create_tween()

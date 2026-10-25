@@ -208,12 +208,12 @@ func open_modal() -> void:
 		modulate.a = 0.0
 		if modal_panel != null:
 			modal_panel.pivot_offset = modal_panel.size * 0.5
-			modal_panel.scale = Vector2(0.95, 0.95)
+			modal_panel.scale = Vector2(0.9, 0.9)
 		_modal_tween = create_tween().set_parallel(true)
 		if _modal_tween != null:
-			_modal_tween.tween_property(self, "modulate:a", 1.0, 0.14).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			_modal_tween.tween_property(self, "modulate:a", 1.0, 0.18).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 			if modal_panel != null:
-				_modal_tween.tween_property(modal_panel, "scale", Vector2.ONE, 0.14).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+				_modal_tween.tween_property(modal_panel, "scale", Vector2.ONE, 0.26).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	else:
 		modulate.a = 1.0
 		if modal_panel != null:

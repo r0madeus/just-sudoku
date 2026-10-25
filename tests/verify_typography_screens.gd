@@ -58,10 +58,10 @@ func _init() -> void:
 	assert_test(theme.get_font("font", "LineEdit") == font_inter, "LineEdit base font is Inter")
 
 	# Editorial & Brand Variations
-	assert_test(theme.get_font("font", "BrandTitle") == font_serif_semi, "BrandTitle font is Source Serif 4 Semibold")
+	assert_test(theme.get_font("font", "Wordmark") == ThemeManager.get_font_display(), "Wordmark font is DM Serif Display")
 	assert_test(theme.get_font("font", "BrandHeader") == font_serif_semi, "BrandHeader font is Source Serif 4 Semibold")
 	assert_test(theme.get_font("font", "EditorialRegular") == font_serif_reg, "EditorialRegular font is Source Serif 4 Regular")
-	assert_test(theme.get_font_size("font_size", "BrandTitle") == 40, "BrandTitle font_size is 40px in Theme")
+	assert_test(theme.get_font_size("font_size", "Wordmark") == 40, "Wordmark font_size is 40px in Theme")
 
 	# Technical / Mono Variations
 	assert_test(theme.get_font("font", "MonoLabel") == font_mono, "MonoLabel font is IBM Plex Mono Regular")
@@ -96,8 +96,8 @@ func _init() -> void:
 	var menu := MainMenu.new()
 	root.add_child(menu)
 	menu._ready()
-	assert_test(menu.title_label.theme_type_variation == "BrandTitle", "MainMenu title_label uses BrandTitle variation")
-	assert_test(get_resolved_font.call(menu.title_label) == font_serif_semi, "MainMenu brand title resolves to Source Serif 4 Semibold")
+	assert_test(menu.title_label.theme_type_variation == "Wordmark", "MainMenu title_label uses the Wordmark variation")
+	assert_test(get_resolved_font.call(menu.title_label) == ThemeManager.get_font_display(), "MainMenu wordmark resolves to DM Serif Display")
 	assert_test(get_resolved_font.call(menu.continue_btn) == font_inter, "MainMenu continue_btn resolves to Inter")
 	assert_test(get_resolved_font.call(menu.new_game_btn) == font_inter, "MainMenu new_game_btn resolves to Inter")
 	menu.queue_free()

@@ -74,7 +74,7 @@ func test_dimension_1_pop_animation() -> void:
 	AppSettings.animations_enabled = true
 	cell.scale = Vector2.ONE
 	cell.animate_pop()
-	assert_true(is_equal_approx(cell.scale.x, 1.15) and is_equal_approx(cell.scale.y, 1.15), "Pop: animations_enabled = true iken hücre 1.15x ölçeklendi")
+	assert_true(is_equal_approx(cell.scale.x, SudokuCell.POP_SCALE) and is_equal_approx(cell.scale.y, SudokuCell.POP_SCALE), "Pop: animations_enabled = true iken hücre %.2fx ölçeklendi" % SudokuCell.POP_SCALE)
 
 	# 2. Animations = false iken scale Vector2.ONE kalır
 	AppSettings.animations_enabled = false
@@ -86,7 +86,7 @@ func test_dimension_1_pop_animation() -> void:
 	AppSettings.animations_enabled = true
 	cell.value = 0
 	cell.set_cell_data(7, false, 0, false, false, false, false, false)
-	assert_true(is_equal_approx(cell.scale.x, 1.15), "Pop: set_cell_data ile boş hücreye sayı girildiğinde pop tetiklendi")
+	assert_true(is_equal_approx(cell.scale.x, SudokuCell.POP_SCALE), "Pop: set_cell_data ile boş hücreye sayı girildiğinde pop tetiklendi")
 
 	cell.queue_free()
 
@@ -103,7 +103,7 @@ func test_dimension_2_select_animation() -> void:
 	AppSettings.animations_enabled = true
 	cell.scale = Vector2.ONE
 	cell.animate_select()
-	assert_true(is_equal_approx(cell.scale.x, 1.05), "Select: animate_select mikro-pulse ölçeklemesi uygulandı (1.05x)")
+	assert_true(is_equal_approx(cell.scale.x, SudokuCell.SELECT_SCALE), "Select: animate_select mikro-pulse ölçeklemesi uygulandı (%.2fx)" % SudokuCell.SELECT_SCALE)
 
 	# 2. Animations = false iken seçim mikro-pulse atlanır
 	AppSettings.animations_enabled = false
@@ -116,7 +116,7 @@ func test_dimension_2_select_animation() -> void:
 	cell.value = 4
 	cell.is_selected = false
 	cell.set_cell_data(4, false, 0, true, false, false, false, false)
-	assert_true(is_equal_approx(cell.scale.x, 1.05), "Select: set_cell_data seçimi algılayarak mikro-pulse başlattı")
+	assert_true(is_equal_approx(cell.scale.x, SudokuCell.SELECT_SCALE), "Select: set_cell_data seçimi algılayarak mikro-pulse başlattı")
 
 	cell.queue_free()
 
@@ -171,11 +171,11 @@ func test_dimension_4_victory_wave() -> void:
 	var c0: SudokuCell = grid.cells[0]
 	AppSettings.animations_enabled = true
 	c0.animate_wave(0.0)
-	assert_true(is_equal_approx(c0.scale.x, 1.10), "Wave: Hücre dalga ölçeklemesi uygulandı (1.10x)")
+	assert_true(is_equal_approx(c0.scale.x, SudokuCell.WAVE_SCALE), "Wave: Hücre dalga ölçeklemesi uygulandı (%.2fx)" % SudokuCell.WAVE_SCALE)
 
 	# 2. Grid play_victory_wave (animations = true)
 	grid.play_victory_wave()
-	assert_true(is_equal_approx(grid.cells[80].scale.x, 1.10), "Wave: Son hücreye (R8C8) kadar dalga yayıldı")
+	assert_true(is_equal_approx(grid.cells[80].scale.x, SudokuCell.WAVE_SCALE), "Wave: Son hücreye (R8C8) kadar dalga yayıldı")
 
 	# 3. Grid play_victory_wave (animations = false) -> Anında callback çağrısı
 	AppSettings.animations_enabled = false

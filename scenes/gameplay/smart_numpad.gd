@@ -117,8 +117,8 @@ func _build_ui() -> void:
 				btn.pivot_offset = btn.size * 0.5
 				var bt := btn.create_tween()
 				if bt != null:
-					bt.tween_property(btn, "scale", Vector2(0.95, 0.95), 0.04).set_trans(Tween.TRANS_SINE)
-					bt.tween_property(btn, "scale", Vector2.ONE, 0.06).set_trans(Tween.TRANS_SINE)
+					bt.tween_property(btn, "scale", Vector2(0.9, 0.9), 0.07).set_trans(Tween.TRANS_SINE)
+					bt.tween_property(btn, "scale", Vector2.ONE, 0.2).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 			set_selected_digit(d)
 			number_pressed.emit(d)
 		)

@@ -13,6 +13,8 @@ const ResponsiveManager = preload("res://scripts/services/responsive_manager.gd"
 ## and quiet baseline utility navigation.
 
 signal continue_pressed()
+## The resume card was tapped: the game opens from the card, its board growing into the game's
+signal resume_card_pressed()
 signal new_game_requested()
 signal load_game_requested()
 signal daily_sudoku_requested()
@@ -38,8 +40,9 @@ var bottom_spacer: Control
 # 1. Masthead
 var header_vbox: VBoxContainer
 var title_label: Label
-var subtitle_label: Label
-var masthead_separator: HSeparator
+## The full stop after the name: a rounded square, the lit cell of the app icon
+var wordmark_dot: Panel
+var wordmark_dot_holder: MarginContainer
 
 # 2. Hero & Puzzle Actions
 var resume_holder: VBoxContainer
@@ -47,6 +50,8 @@ var resume_card: ResumeCard
 var actions_vbox: VBoxContainer
 var hero_vbox: VBoxContainer
 var continue_btn: Button
+## The play icon at the left edge of the Continue button
+var continue_icon: TextureRect
 var continue_meta_label: Label
 var new_game_btn: Button
 
@@ -95,6 +100,10 @@ func _exit_tree() -> void:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_RESIZED:
 		_apply_responsive_layout()
+	elif what == NOTIFICATION_THEME_CHANGED:
+		# The font and its size arrive with the theme (a new text size is one), after _ready; the
+		# label has them only once the notification has reached it, after this one
+		_fit_wordmark_dot.call_deferred()
 
 func _ready() -> void:
 	_apply_responsive_layout()
@@ -148,6 +157,11 @@ func _fit_nav_buttons() -> void:
 		_set_nav_look(looks[i])
 		if i >= last or nav_grid.get_combined_minimum_size().x <= room:
 			break
+	# The looks above were tried within one frame, so the grid's minimum size ends up as it was
+	# before and Godot sees no change: nothing sorts it again, and it stayed as wide as a look
+	# that did not fit, running off the right edge. Sort it and what holds it now.
+	nav_grid.queue_sort()
+	nav_glass.queue_sort()
 
 func _set_nav_look(look: Dictionary) -> void:
 	var icon_names := ["rotate-ccw", "chart-column-big", "lightbulb", "settings"]
@@ -280,27 +294,23 @@ func _build_ui() -> void:
 	# --- 2. Swiss Editorial Masthead ---
 	header_vbox = VBoxContainer.new()
 	header_vbox.size_flags_horizontal = SIZE_EXPAND_FILL
-	header_vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	header_vbox.add_theme_constant_override("separation", 6)
 	root_vbox.add_child(header_vbox)
 
+	# The name, set in the display face and left-aligned with the cards below, ending in the
+	# icon's lit cell as its full stop
+	var wordmark := HBoxContainer.new()
+	wordmark.add_theme_constant_override("separation", 5)
+	header_vbox.add_child(wordmark)
+
 	title_label = Label.new()
-	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title_label.theme_type_variation = "BrandTitle"
-	header_vbox.add_child(title_label)
+	title_label.theme_type_variation = "Wordmark"
+	wordmark.add_child(title_label)
 
-	subtitle_label = Label.new()
-	subtitle_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	subtitle_label.theme_type_variation = "Subtitle"
-	ThemeManager.set_font_size(subtitle_label, 12)
-	header_vbox.add_child(subtitle_label)
-
-	var masthead_gap := Control.new()
-	masthead_gap.custom_minimum_size = Vector2(0, 8)
-	header_vbox.add_child(masthead_gap)
-
-	masthead_separator = HSeparator.new()
-	header_vbox.add_child(masthead_separator)
+	wordmark_dot_holder = MarginContainer.new()
+	wordmark_dot_holder.size_flags_vertical = SIZE_SHRINK_END
+	wordmark.add_child(wordmark_dot_holder)
+	wordmark_dot = Panel.new()
+	wordmark_dot_holder.add_child(wordmark_dot)
 
 	# --- 3. Resume card: live miniature of the unfinished game, centred in the free space ---
 	resume_holder = VBoxContainer.new()
@@ -310,7 +320,7 @@ func _build_ui() -> void:
 	root_vbox.add_child(resume_holder)
 
 	resume_card = ResumeCard.new()
-	resume_card.pressed.connect(func(): continue_pressed.emit())
+	resume_card.pressed.connect(func(): resume_card_pressed.emit())
 	resume_holder.add_child(resume_card)
 
 	mid_spacer = Control.new()
@@ -402,8 +412,19 @@ func _build_ui() -> void:
 	continue_btn.custom_minimum_size = Vector2(0, ResponsiveManager.HEIGHT_BUTTON_HERO)
 	continue_btn.size_flags_horizontal = SIZE_EXPAND_FILL
 	continue_btn.theme_type_variation = "PrimaryButton"
-	continue_btn.icon = ThemeManager.get_icon("play")
-	continue_btn.add_theme_constant_override("icon_max_width", 20)
+	# The play icon is a child at the left edge, not the button's own icon: an icon in the button
+	# takes room from its text and pushed "Continue" off the centre the other two labels share
+	continue_icon = TextureRect.new()
+	continue_icon.texture = ThemeManager.get_icon("play")
+	continue_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	continue_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	continue_icon.mouse_filter = MOUSE_FILTER_IGNORE
+	continue_icon.set_anchors_preset(PRESET_CENTER_LEFT)
+	continue_icon.offset_left = 20.0
+	continue_icon.offset_right = 40.0
+	continue_icon.offset_top = -10.0
+	continue_icon.offset_bottom = 10.0
+	continue_btn.add_child(continue_icon)
 	ThemeManager.set_font_size(continue_btn, 17)
 	continue_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	continue_btn.pressed.connect(func(): continue_pressed.emit())
@@ -530,11 +551,25 @@ func _build_ui() -> void:
 func _on_text_size_changed() -> void:
 	_fit_nav_buttons()
 
+## The full stop is a rounded square a little over a quarter of the type size, in the accent, its
+## foot on the baseline (the label's height is ascent plus descent, so the descent lifts it there)
+func _fit_wordmark_dot() -> void:
+	if title_label == null or wordmark_dot == null:
+		return
+	var font: Font = title_label.get_theme_font("font")
+	var px: int = title_label.get_theme_font_size("font_size")
+	var side: float = roundf(px * 0.27)
+	wordmark_dot.custom_minimum_size = Vector2(side, side)
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = ThemeManager.get_color("accent_blue", ThemeManager.get_color("accent"))
+	sb.set_corner_radius_all(maxi(2, int(side * 0.28)))
+	wordmark_dot.add_theme_stylebox_override("panel", sb)
+	wordmark_dot_holder.add_theme_constant_override("margin_bottom", int(roundf(font.get_descent(px))))
+
 func _apply_theme_polish() -> void:
 	if title_label != null:
 		title_label.add_theme_color_override("font_color", ThemeManager.get_color("text_given"))
-	if subtitle_label != null:
-		subtitle_label.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
+		_fit_wordmark_dot()
 	if continue_meta_label != null:
 		continue_meta_label.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
 	if daily_title_label != null:
@@ -559,9 +594,7 @@ func _on_theme_changed() -> void:
 func _update_locale_texts() -> void:
 	var is_tr := (LocalizationManager.get_locale() == LocalizationManager.LOCALE_TR)
 	if title_label != null:
-		title_label.text = "JUST SUDOKU"
-	if subtitle_label != null:
-		subtitle_label.text = LocalizationManager.upper(LocalizationManager.translate("SUBTITLE_CALM"))
+		title_label.text = "Just Sudoku"
 	if continue_btn != null:
 		continue_btn.text = LocalizationManager.translate("BTN_CONTINUE")
 	if new_game_btn != null:

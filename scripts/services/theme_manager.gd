@@ -241,11 +241,14 @@ const FONT_PATH_INTER: String = "res://assets/fonts/Inter[opsz,wght].ttf"
 const FONT_PATH_SERIF_REGULAR: String = "res://assets/fonts/SourceSerif4-Regular.ttf"
 const FONT_PATH_SERIF_SEMIBOLD: String = "res://assets/fonts/SourceSerif4-Semibold.ttf"
 const FONT_PATH_MONO_REGULAR: String = "res://assets/fonts/IBMPlexMono-Regular.ttf"
+## The display face of the wordmark on the home screen (DM Serif Display, OFL)
+const FONT_PATH_DISPLAY: String = "res://assets/fonts/DMSerifDisplay-Regular.ttf"
 
 static var _font_inter: Font = null
 static var _font_serif_regular: Font = null
 static var _font_serif_semibold: Font = null
 static var _font_mono: Font = null
+static var _font_display: Font = null
 
 static func get_font_inter() -> Font:
 	if _font_inter == null and ResourceLoader.exists(FONT_PATH_INTER):
@@ -256,6 +259,11 @@ static func get_font_serif_regular() -> Font:
 	if _font_serif_regular == null and ResourceLoader.exists(FONT_PATH_SERIF_REGULAR):
 		_font_serif_regular = load(FONT_PATH_SERIF_REGULAR) as Font
 	return _font_serif_regular
+
+static func get_font_display() -> Font:
+	if _font_display == null and ResourceLoader.exists(FONT_PATH_DISPLAY):
+		_font_display = load(FONT_PATH_DISPLAY) as Font
+	return _font_display
 
 static func get_font_serif_semibold() -> Font:
 	if _font_serif_semibold == null and ResourceLoader.exists(FONT_PATH_SERIF_SEMIBOLD):

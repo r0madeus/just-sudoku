@@ -49,6 +49,8 @@ var backup_section: BackupSection
 var version_label: Label
 ## Display size, density and safe area, under the version
 var display_label: Label
+## How the display changed in the first moments after start, shown only when it did
+var trace_label: Label
 
 # Setting Rows
 var lang_row: SettingRow
@@ -132,6 +134,9 @@ func _apply_responsive_layout() -> void:
 		sections.columns = ResponsiveManager.content_columns(ResponsiveManager.get_viewport_size(self))
 	if display_label != null and is_inside_tree():
 		display_label.text = ResponsiveManager.describe_display(get_window())
+	if trace_label != null:
+		trace_label.visible = ResponsiveManager.start_trace.size() > 1
+		trace_label.text = "\n".join(ResponsiveManager.start_trace)
 
 func _build_ui() -> void:
 	# Soft accent glows behind the content, so glass cards have something to refract
@@ -478,6 +483,16 @@ func _build_ui() -> void:
 	AdaptiveColumns.set_column(display_label, 1)
 	list_vbox.add_child(display_label)
 
+	trace_label = Label.new()
+	trace_label.theme_type_variation = "Caption"
+	trace_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	trace_label.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
+	trace_label.visible = false
+	ThemeManager.set_font_size(trace_label, 9)
+	trace_label.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
+	AdaptiveColumns.set_column(trace_label, 1)
+	list_vbox.add_child(trace_label)
+
 func _create_divider() -> HSeparator:
 	var div := HSeparator.new()
 	div.add_theme_constant_override("separation", 2)
@@ -491,6 +506,8 @@ func _on_theme_changed() -> void:
 		version_label.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
 	if display_label != null:
 		display_label.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
+	if trace_label != null:
+		trace_label.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
 
 func _on_language_selected(idx: int) -> void:
 	AppSettings.set_language(LANG_ORDER[idx])

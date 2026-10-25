@@ -314,7 +314,6 @@ const STRINGS: Dictionary = {
 	"DAILY_SUBTITLE": "Günün özel bulmacası",
 	"DAILY_PREPARING": "Hazırlanıyor…",
 	"DAILY_STREAK_FORMAT": "Seri: %d Gün",
-	"SUBTITLE_CALM": "Sakin, odaklı Sudoku",
 	"STATS_OVERVIEW": "Genel Bakış",
 	"STATS_BY_DIFFICULTY": "Zorluğa Göre",
 	"STAT_BEST_TIME_LABEL": "En İyi Süre",

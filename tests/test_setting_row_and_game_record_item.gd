@@ -63,15 +63,22 @@ func test_setting_row_checkbox_interaction() -> void:
 
 	assert_true(cb.button_pressed == false, "Initial checkbox state is false")
 
-	# Simulate clicking the row
+	# Simulate clicking the row: pressed and let go on it
+	row.size = Vector2(300, 44)
 	var mb := InputEventMouseButton.new()
 	mb.button_index = MOUSE_BUTTON_LEFT
 	mb.pressed = true
+	mb.position = Vector2(20, 20)
 	row._gui_input(mb)
+	assert_true(cb.button_pressed == false, "A press alone does not toggle the checkbox yet")
+	var up: InputEventMouseButton = mb.duplicate()
+	up.pressed = false
+	row._gui_input(up)
 
 	assert_true(cb.button_pressed == true, "Clicking SettingRow toggled checkbox to true")
 
 	row._gui_input(mb)
+	row._gui_input(up)
 	assert_true(cb.button_pressed == false, "Clicking SettingRow toggled checkbox to false")
 
 	row.queue_free()

@@ -318,7 +318,6 @@ const STRINGS: Dictionary = {
 	"DAILY_PREPARING": "Preparing…",
 	"DAILY_STREAK_FORMAT": "Streak: %d Days",
 	"DAILY_STREAK_FORMAT_ONE": "Streak: %d Day",
-	"SUBTITLE_CALM": "Calm, focused Sudoku",
 	"STATS_OVERVIEW": "Overview",
 	"STATS_BY_DIFFICULTY": "By Difficulty",
 	"STAT_BEST_TIME_LABEL": "Best Time",

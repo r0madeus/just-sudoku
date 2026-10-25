@@ -7,9 +7,10 @@ const ThemeManager = preload("res://scripts/services/theme_manager.gd")
 
 ## Generates a high-contrast, theme-aware, anti-aliased CheckBox icon texture
 static func _create_checkbox_texture(is_checked: bool, is_disabled: bool, is_hover: bool = false) -> ImageTexture:
-	var sz := 22
+	# 18 px, the size of a standard Android check box; the whole row is the touch target
+	var sz := 18
 	var img := Image.create_empty(sz, sz, false, Image.FORMAT_RGBA8)
-	var radius := 4.0
+	var radius := 3.5
 	var border_w := 1.5
 
 	var bg_col: Color = ThemeManager.get_color("bg")
@@ -70,14 +71,14 @@ static func _create_checkbox_texture(is_checked: bool, is_disabled: bool, is_hov
 			var chk_img := check_icon.get_image()
 			if chk_img != null:
 				var chk_copy: Image = chk_img.duplicate() as Image
-				chk_copy.resize(14, 14, Image.INTERPOLATE_LANCZOS)
+				chk_copy.resize(12, 12, Image.INTERPOLATE_LANCZOS)
 				var mark_alpha: float = 0.6 if is_disabled else 1.0
-				for cy in range(14):
-					for cx in range(14):
+				for cy in range(12):
+					for cx in range(12):
 						var cp: Color = chk_copy.get_pixel(cx, cy)
 						if cp.a > 0.0:
-							var cur: Color = img.get_pixel(cx + 4, cy + 4)
-							img.set_pixel(cx + 4, cy + 4, cur.blend(Color(1.0, 1.0, 1.0, cp.a * mark_alpha)))
+							var cur: Color = img.get_pixel(cx + 3, cy + 3)
+							img.set_pixel(cx + 3, cy + 3, cur.blend(Color(1.0, 1.0, 1.0, cp.a * mark_alpha)))
 
 	return ImageTexture.create_from_image(img)
 
@@ -409,11 +410,15 @@ static func build_godot_theme() -> Theme:
 
 	# Editorial / Brand Headings (Source Serif 4 Regular/Semibold - editorial excellence)
 	var brand_font: Font = font_serif_semi if font_serif_semi != null else (font_serif_reg if font_serif_reg != null else active_font)
-	theme.set_type_variation("BrandTitle", "Label")
-	theme.set_color("font_color", "BrandTitle", text_primary)
-	theme.set_font_size("font_size", "BrandTitle", ThemeManager.fs(ThemeManager.FONT_SIZE_BRAND))
-	if brand_font != null:
-		theme.set_font("font", "BrandTitle", brand_font)
+	# The wordmark on the home screen, in the display face whatever UI font is chosen
+	var wordmark_font: Font = ThemeManager.get_font_display()
+	if wordmark_font == null:
+		wordmark_font = brand_font
+	theme.set_type_variation("Wordmark", "Label")
+	theme.set_color("font_color", "Wordmark", text_primary)
+	theme.set_font_size("font_size", "Wordmark", ThemeManager.fs(ThemeManager.FONT_SIZE_BRAND))
+	if wordmark_font != null:
+		theme.set_font("font", "Wordmark", wordmark_font)
 
 	theme.set_type_variation("BrandHeader", "Label")
 	theme.set_color("font_color", "BrandHeader", text_primary)

@@ -270,6 +270,10 @@ static func insets_from_safe_area(safe_rect: Rect2i, window_size: Vector2i, vp_s
 
 ## One line about the display, for the bottom of Settings: when a layout looks wrong on a phone,
 ## a screenshot of it says what the app was told
+## What the display looked like at start-up, each time it changed in the first moments (for
+## Settings, to report a layout that looked wrong for a second)
+static var start_trace: Array[String] = []
+
 static func describe_display(window: Window) -> String:
 	if window == null:
 		return ""
@@ -291,6 +295,11 @@ static func relayout(window: Window) -> void:
 	for node in window.find_children("*", "Control", true, false):
 		if node.has_method("_apply_responsive_layout") and node.is_inside_tree():
 			node._apply_responsive_layout()
+	# A container only sorts its children when its own size or a child's minimum size changes, and
+	# a layout tried out within one frame can leave both as they were with the children stretched
+	for node in window.find_children("*", "Container", true, false):
+		if node.is_inside_tree():
+			node.queue_sort()
 
 # =============================================================================
 # 5. SEMANTIC TOKEN SCALING HELPERS
