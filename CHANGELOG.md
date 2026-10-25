@@ -2,6 +2,29 @@
 
 All notable changes to Just Sudoku. Türkçesi aşağıda / Turkish below each version.
 
+## [1.0.2] - 2026-10-25
+
+More fixes from phones, and a new look for the home screen.
+
+- A new name on the home screen: "Just Sudoku" in DM Serif Display, ending in a small blue square like the lit cell of the icon. The tagline and the rule under it are gone.
+- Tapping the last-game card on the home screen grows its board into the game, and leaving the game shrinks it back into the card. The Continue button and the Daily Sudoku keep the slide.
+- The home screen no longer looks stretched off the right edge for a moment at start or when coming back to the app.
+- Continue lines up with New Game and Saved Games.
+- Screens slide in from the side (from the left going back); the small animations on cells, number keys and dialogs are long enough to be seen.
+- A Settings row no longer changes when a scroll starts on its text: it toggles when the finger is lifted on it. The check boxes are smaller.
+- The icon fits launchers that do not mask it: a rounded tile instead of a hard square.
+- If the display changes right after start, Settings shows what the app saw, to report a layout that looks wrong.
+
+**Türkçe**
+- Ana ekranda yeni başlık: DM Serif Display ile "Just Sudoku", sonunda simgedeki ışıklı hücre gibi küçük mavi bir kare. Slogan ve altındaki çizgi kalktı.
+- Ana ekrandaki son oyun kartına dokununca kartın tahtası oyuna büyüyor; oyundan çıkınca küçülüp karta giriyor. Devam Et ve Günün Sudokusu yandan kaymayı koruyor.
+- Ana ekran, açılışta ve uygulamaya dönünce bir an sağa taşmış görünmüyor.
+- Devam Et, Yeni Oyun ve Kayıtlı Oyunlar ile aynı hizada.
+- Ekranlar yandan kayarak geliyor (geri dönerken soldan); hücre, sayı tuşu ve pencere animasyonları görülecek kadar uzun.
+- Ayarlar'da yazısının üstünden başlayan kaydırma artık ayarı değiştirmiyor; parmak satırın üstünde kalkınca değişiyor. Onay kutuları küçüldü.
+- Simge, kesmeyen başlatıcılarda keskin kare yerine yuvarlak karo olarak görünüyor.
+- Ekran ölçüsü açılıştan hemen sonra değişirse Ayarlar bunu gösteriyor; yanlış görünen bir düzeni bildirmek için.
+
 ## [1.0.1] - 2026-10-23
 
 Fixes from the first days on phones.

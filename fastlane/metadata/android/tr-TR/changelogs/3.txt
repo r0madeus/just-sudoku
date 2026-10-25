@@ -1,0 +1,1 @@
+Ana ekran: serif yazılı yeni başlık; son oyun kartına dokununca tahta oyuna büyüyor. Açılışta bir an sağa taşma yok, Devam Et diğer düğmelerle hizalı, ekranlar kayarak geliyor, animasyonlar daha görünür, Ayarlar satırları kaydırırken değişmiyor ve simge her başlatıcıya uyuyor.
