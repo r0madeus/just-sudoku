@@ -5,12 +5,12 @@
 </defs>
 <rect x="18.0" y="18.0" width="72.0" height="72.0" rx="15.84" fill="url(#bg)"/>
 <circle cx="54.0" cy="54.0" r="32" fill="url(#glow)"/>
-<rect x="32.0" y="32.0" width="44.0" height="44.0" rx="8.0" fill="#ffffff" fill-opacity="0.09"/>
-<rect x="47.867" y="47.867" width="12.267" height="12.267" rx="3" fill="#2563eb"/>
-<line x1="46.667" y1="35.0" x2="46.667" y2="73.0" stroke="#ffffff" stroke-opacity="0.43" stroke-width="0.9"/>
-<line x1="35.0" y1="46.667" x2="73.0" y2="46.667" stroke="#ffffff" stroke-opacity="0.43" stroke-width="0.9"/>
-<line x1="61.333" y1="35.0" x2="61.333" y2="73.0" stroke="#ffffff" stroke-opacity="0.43" stroke-width="0.9"/>
-<line x1="35.0" y1="61.333" x2="73.0" y2="61.333" stroke="#ffffff" stroke-opacity="0.43" stroke-width="0.9"/>
-<rect x="33.1" y="33.1" width="41.8" height="41.8" rx="6.9" fill="none" stroke="#ffffff" stroke-opacity="0.86" stroke-width="2.2"/>
-<path d="M72 14 H34 L30 46 C38 41 46 40 54 40 C70 40 80 52 80 66 C80 82 68 92 52 92 C42 92 33 88 27 81" transform="translate(54.0 54.0) scale(0.072) translate(-53.5 -53)" fill="none" stroke="#ffffff" stroke-width="19" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="29.0" y="29.0" width="50.0" height="50.0" rx="9.0" fill="#ffffff" fill-opacity="0.09"/>
+<rect x="46.867" y="46.867" width="14.267" height="14.267" rx="3" fill="#2563eb"/>
+<line x1="45.667" y1="32.0" x2="45.667" y2="76.0" stroke="#ffffff" stroke-opacity="0.43" stroke-width="0.9"/>
+<line x1="32.0" y1="45.667" x2="76.0" y2="45.667" stroke="#ffffff" stroke-opacity="0.43" stroke-width="0.9"/>
+<line x1="62.333" y1="32.0" x2="62.333" y2="76.0" stroke="#ffffff" stroke-opacity="0.43" stroke-width="0.9"/>
+<line x1="32.0" y1="62.333" x2="76.0" y2="62.333" stroke="#ffffff" stroke-opacity="0.43" stroke-width="0.9"/>
+<rect x="30.1" y="30.1" width="47.8" height="47.8" rx="7.9" fill="none" stroke="#ffffff" stroke-opacity="0.86" stroke-width="2.2"/>
+<path d="M72 14 H34 L30 46 C38 41 46 40 54 40 C70 40 80 52 80 66 C80 82 68 92 52 92 C42 92 33 88 27 81" transform="translate(54.0 54.0) scale(0.082) translate(-53.5 -53)" fill="none" stroke="#ffffff" stroke-width="19" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

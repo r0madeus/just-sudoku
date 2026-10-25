@@ -67,7 +67,7 @@ Simge tek bir çizimden üretilir: `tools/make_launcher_icons.gd`. Rengini ya da
 godot --headless --path . -s tools/make_launcher_icons.gd
 ```
 
-`tests/test_release.gd`, simgenin Android'in 66 dp güvenli dairesinin içinde kaldığını ve tema simgesinin dolu bir blok olmadığını kontrol eder.
+`tests/test_release.gd`, simgenin Android'in 66 dp güvenli dairesinin içinde kaldığını, tema simgesinin dolu bir blok olmadığını ve arka planın kanvasın tamamını kaplayan bir kare değil, yuvarlak köşeli bir karo olduğunu kontrol eder. Bazı başlatıcılar uyarlanabilir simgeyi maskelemeden, 108 dp'lik tüm kanvası kare olarak çiziyor; tam kare bir arka plan orada keskin köşeli bir kareye ve ortasında küçük kalmış bir tahtaya dönüşüyordu.
 
 ## İmza parmak izi
 

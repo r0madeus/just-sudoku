@@ -4,7 +4,12 @@ extends SceneTree
 ##  - assets/launcher/adaptive_{background,foreground,monochrome}(.svg, _432x432.png): the
 ##    Android adaptive icon layers. 108 dp canvas; launchers show the middle 72 dp through their
 ##    own mask (circle, squircle, teardrop...) and only the 66 dp circle in the middle is sure to
-##    show, so the board stays well inside it (44 dp square, its corners on a 62 dp circle).
+##    show, so the board stays inside it (50 dp square, its rounded corners reach 32 dp from the centre).
+##    The background is a rounded tile with transparent margin, not a full-bleed square: some
+##    launchers (seen on a real phone) draw the whole 108 dp canvas without cropping or
+##    masking it, and a full-bleed background then shows as a hard-cornered square with the board
+##    lost in the middle. A masking launcher crops the tile to its own shape; the tile is larger
+##    than the visible 72 dp so no transparent edge shows.
 ##    The monochrome layer is what Android 13+ tints for themed icons: outlines, not filled
 ##    blocks, so it does not read as one big square.
 ##  - assets/launcher/main(.svg, _192x192.png): the legacy icon, for launchers without adaptive
@@ -25,14 +30,18 @@ const ACCENT: String = "#2563eb"
 
 ## Board geometry in dp, on the 108 dp canvas
 const CENTRE: float = 54.0
-const BOARD: float = 44.0
-const BOARD_RADIUS: float = 8.0
+const BOARD: float = 50.0
+const BOARD_RADIUS: float = 9.0
+## The adaptive background tile: 88 dp, centred, corners rounded to 22%. It covers the whole
+## visible 72 dp square, corners included, for every mask (a teardrop has a square corner); a
+## bigger tile also fills more of the slot on a launcher that does not mask.
+const TILE: float = 88.0
 
 ## A 5 drawn in a 100-unit box (bbox x 27..80, y 14..92), stroked with round ends
 const FIVE_PATH: String = "M72 14 H34 L30 46 C38 41 46 40 54 40 C70 40 80 52 80 66 C80 82 68 92 52 92 C42 92 33 88 27 81"
 
 func _init() -> void:
-	_write_layer("adaptive_background", _background(108.0, 0.0, 0.0), 432)
+	_write_layer("adaptive_background", _background(TILE, (108.0 - TILE) / 2.0, TILE * 0.22), 432)
 	_write_layer("adaptive_foreground", _glow() + _board(false), 432)
 	_write_layer("adaptive_monochrome", _board(true), 432)
 	var legacy := _background(72.0, 18.0, 72.0 * 0.22) + _glow() + _board(false)
@@ -83,7 +92,7 @@ func _board(mono: bool) -> String:
 	var edge := 2.2
 	out += "<rect x=\"%s\" y=\"%s\" width=\"%s\" height=\"%s\" rx=\"%s\" fill=\"none\" stroke=\"#ffffff\" stroke-opacity=\"%s\" stroke-width=\"%s\"/>\n" % [_n(x + edge / 2.0), _n(x + edge / 2.0), _n(BOARD - edge), _n(BOARD - edge), _n(BOARD_RADIUS - edge / 2.0), "1" if mono else "0.86", _n(edge)]
 	if not mono:
-		out += "<path d=\"%s\" transform=\"translate(%s %s) scale(0.072) translate(-53.5 -53)\" fill=\"none\" stroke=\"#ffffff\" stroke-width=\"19\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n" % [FIVE_PATH, _n(CENTRE), _n(CENTRE)]
+		out += "<path d=\"%s\" transform=\"translate(%s %s) scale(0.082) translate(-53.5 -53)\" fill=\"none\" stroke=\"#ffffff\" stroke-width=\"19\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n" % [FIVE_PATH, _n(CENTRE), _n(CENTRE)]
 	return out
 
 func _n(v: float) -> String:
