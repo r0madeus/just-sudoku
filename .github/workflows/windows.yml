@@ -1,0 +1,76 @@
+name: Windows
+
+# The game exported for Windows (64-bit, one .exe with the data inside), zipped. Every pull
+# request builds it to prove the export still works; a pushed version tag (v1.0.2) attaches the
+# zip, with its SHA-256 checksum, to that release next to the APK. The exe is not code-signed, so
+# Windows SmartScreen asks for a confirmation the first time ("More info" > "Run anyway").
+
+on:
+  pull_request:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+concurrency:
+  group: windows-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GODOT_VERSION: "4.7-stable"
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download the Godot editor
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/godot.zip" \
+            "https://github.com/godotengine/godot-builds/releases/download/$GODOT_VERSION/Godot_v${GODOT_VERSION}_linux.x86_64.zip"
+          unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP"
+          echo "GODOT=$RUNNER_TEMP/Godot_v${GODOT_VERSION}_linux.x86_64" >> "$GITHUB_ENV"
+
+      - name: Download the Windows export template
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/templates.tpz" \
+            "https://github.com/godotengine/godot-builds/releases/download/$GODOT_VERSION/Godot_v${GODOT_VERSION}_export_templates.tpz"
+          dir="$HOME/.local/share/godot/export_templates/${GODOT_VERSION/-/.}"
+          mkdir -p "$dir"
+          unzip -q -j "$RUNNER_TEMP/templates.tpz" templates/windows_release_x86_64.exe templates/version.txt -d "$dir"
+          rm "$RUNNER_TEMP/templates.tpz"
+
+      - name: Import the project
+        run: timeout 300 "$GODOT" --headless --path . --import > /dev/null 2>&1 || true
+
+      - name: Export for Windows
+        run: |
+          mkdir -p build/windows
+          "$GODOT" --headless --path . --export-release "Windows Desktop" build/windows/JustSudoku.exe
+          test -s build/windows/JustSudoku.exe
+
+      - name: Zip
+        run: |
+          version=$(sed -n 's/^config\/version="\(.*\)"/\1/p' project.godot)
+          mkdir -p release
+          cp LICENSE build/windows/
+          (cd build/windows && zip -q -9 "../../release/JustSudoku-$version-windows-x64.zip" JustSudoku.exe LICENSE)
+          (cd release && sha256sum JustSudoku-*.zip > "JustSudoku-$version-windows-x64.zip.sha256")
+
+      - name: Keep the zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: just-sudoku-windows
+          path: release/*
+
+      - name: Attach to the release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release/JustSudoku-*.zip
+            release/JustSudoku-*.zip.sha256

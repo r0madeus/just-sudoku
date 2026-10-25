@@ -60,6 +60,8 @@ Just Sudoku asks for no permission except vibration. It has no internet permissi
 Version 1.0.0, for Android 7.0 and up (64-bit ARM).
 
 - **APK:** from the [Releases](https://github.com/r0madeus/just-sudoku/releases) page, with its SHA-256 checksum. What changed in each version: [CHANGELOG.md](CHANGELOG.md).
+- **In the browser:** every version of `main` is published on GitHub Pages at <https://r0madeus.github.io/just-sudoku/> (the same build is a zip under *Artifacts* of the [Web](https://github.com/r0madeus/just-sudoku/actions/workflows/web.yml) runs, ready to upload to itch.io as an HTML5 game). Progress is kept in the browser's own storage, so clearing site data erases it; Back up (in Settings) works through the clipboard.
+- **Windows:** `JustSudoku-<version>-windows-x64.zip` on the Releases page (64-bit, one exe, no install). It is not code-signed, so SmartScreen asks once: *More info* → *Run anyway*.
 - **F-Droid:** on its way ([docs/fdroid.md](docs/fdroid.md)).
 - Test builds of every change are under *Artifacts* in [Android APK (slim engine)](https://github.com/r0madeus/just-sudoku/actions/workflows/android.yml) runs (signed with a test key, for trying out). Installing on a phone and a checklist of what to try: [docs/android.md](docs/android.md). How a release is made: [docs/release.md](docs/release.md).
 

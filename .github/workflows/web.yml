@@ -1,0 +1,83 @@
+name: Web
+
+# The browser version: the game exported for the web (single-threaded, so it runs on any static
+# host without special headers). Every pull request builds it to prove the export still works;
+# a push to main also publishes it on GitHub Pages. The same build is attached as a zip that can
+# be uploaded to itch.io as an HTML5 game.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: web-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GODOT_VERSION: "4.7-stable"
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download the Godot editor
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/godot.zip" \
+            "https://github.com/godotengine/godot-builds/releases/download/$GODOT_VERSION/Godot_v${GODOT_VERSION}_linux.x86_64.zip"
+          unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP"
+          echo "GODOT=$RUNNER_TEMP/Godot_v${GODOT_VERSION}_linux.x86_64" >> "$GITHUB_ENV"
+
+      - name: Download the web export template
+        # Only the single-threaded release template is taken out of the full templates archive
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/templates.tpz" \
+            "https://github.com/godotengine/godot-builds/releases/download/$GODOT_VERSION/Godot_v${GODOT_VERSION}_export_templates.tpz"
+          dir="$HOME/.local/share/godot/export_templates/${GODOT_VERSION/-/.}"
+          mkdir -p "$dir"
+          unzip -q -j "$RUNNER_TEMP/templates.tpz" templates/web_nothreads_release.zip templates/version.txt -d "$dir"
+          rm "$RUNNER_TEMP/templates.tpz"
+
+      - name: Import the project
+        run: timeout 300 "$GODOT" --headless --path . --import > /dev/null 2>&1 || true
+
+      - name: Export for the web
+        run: |
+          mkdir -p build/web
+          "$GODOT" --headless --path . --export-release Web build/web/index.html
+          test -s build/web/index.html && test -s build/web/index.wasm && test -s build/web/index.pck
+
+      - name: Zip for itch.io
+        run: cd build/web && zip -q -r ../just-sudoku-web.zip .
+
+      - name: Keep the zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: just-sudoku-web
+          path: build/just-sudoku-web.zip
+
+      - name: Prepare the Pages upload
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+
+  deploy:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publish on GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
