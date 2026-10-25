@@ -58,6 +58,7 @@ Bir sorun görürsen telefonun modelini, Android sürümünü ve ne yaptığınd
 - [ ] Hücreye dokununca seçim ve rakam anında görünüyor.
 - [ ] Geçmiş ve Kayıtlı Oyunlar listeleri akıcı kayıyor.
 - [ ] Uygulama açılırken ve uygulamaya geri dönünce ekran bir an bile sağa taşmış görünmüyor (açılışta menü bir an görünmeden sonra yumuşakça beliriyor). Taşarsa: Ayarlar'ın en altındaki küçük "start …" satırlarının ekran görüntüsü.
+- [ ] Ana menüdeki son oyun kartına dokununca kartın içindeki tahta büyüyüp oyun ekranındaki yerine oturuyor (menü solarken oyunun geri kalanı beliriyor); oyundan menüye dönünce tahta küçülüp karta geri giriyor. Devam Et düğmesinde açılış yandan kayıyor.
 - [ ] Ana menüde Devam Et, Yeni Oyun ve Kayıtlı Oyunlar yazıları aynı eksende, ortada.
 - [ ] Ekranlar arasında geçerken yeni ekran yandan kayarak geliyor (geri dönerken soldan); hücreye dokununca, rakam girince, yanlış rakamda ve satır tamamlanınca küçük animasyonlar rahatça görülüyor.
 - [ ] Ayarlar'da onay kutuları küçük; bir satırın yazısının üstünden başlayıp kaydırınca ayar değişmiyor, yazıya hafifçe dokununca değişiyor.

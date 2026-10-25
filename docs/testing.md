@@ -37,7 +37,8 @@ Yeni bir özellik ya da hata düzeltmesi testiyle gelir. Testi yazdıktan sonra,
 | Dokunarak kaydırmayla | 61 / 61 | 0 |
 | Hızlı açılışla | 67 / 67 | 0 |
 | Sistem dili/teması ve seçicilerle | 77 / 77 | 0 |
-| Hareket ve açılışla | **87 / 87** | 0 |
+| Hareket ve açılışla | 87 / 87 | 0 |
+| Kartın tahtası oyuna uçarken | **96 / 96** | 0 |
 
 Kaçanlar: hataların ve hatasız çözümün puana etkisi, duraklatılmış oyunda hamle yapılabilmesi, istatistiklerde en iyi süre, Günün Sudokusu'nun çözülünce işaretlenmesi, ipucunun doğru rakamı koyması. Hepsi `tests/test_rules_and_records.gd` ile korunuyor. Ayrıca:
 

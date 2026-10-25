@@ -4,6 +4,7 @@ extends Control
 const SoundManager = preload("res://scripts/services/sound_manager.gd")
 const AsyncPuzzleGenerator = preload("res://scripts/services/async_puzzle_generator.gd")
 const AppModal = preload("res://scenes/ui/app_modal.gd")
+const BoardFlight = preload("res://scenes/ui/board_flight.gd")
 const PuzzlePrefetcher = preload("res://scripts/services/puzzle_prefetcher.gd")
 
 ## Main Application Root Controller
@@ -66,6 +67,14 @@ const RELAYOUT_DELAYS: Array[float] = [0.25, 1.0]
 const TRANSITION_TIME: float = 0.26
 const TRANSITION_SLIDE: float = 40.0
 
+## The game opens from the resume card with its board growing into the game's own, the menu
+## dissolving and the rest of the game coming in; leaving the game, the board shrinks back into
+## the card. The flying board hands over to the real one (or the card's) in HAND_OVER seconds.
+const BOARD_FLIGHT_TIME: float = 0.42
+const BOARD_HAND_OVER_TIME: float = 0.14
+## A board smaller than this was not laid out yet: no flight to it
+const BOARD_MIN_SIDE: float = 60.0
+
 ## The display (size, density, safe area) can still be settling in the first moments, and a
 ## layout made from the first values looked stretched off the right edge for about a second on a
 ## phone. It is read every WATCH_STEP for WATCH_TIME after start and after coming back, and the
@@ -91,6 +100,8 @@ var _changed_ms: int = 0
 var _started_ms: int = 0
 var _veiled: bool = false
 var _relayout_pending: bool = false
+## A board is flying between the menu and the game
+var _board_flying: bool = false
 
 ## Puzzle being made for an archive day, so a second tap does not start another
 var _archive_request: int = 0
@@ -240,6 +251,8 @@ func _reveal() -> void:
 
 ## One step "back": closes the topmost modal, else leaves the current screen, else quits from the menu
 func handle_back() -> void:
+	if _board_flying:
+		return
 	var open_modals: Array = []
 	for m in get_tree().get_nodes_in_group(AppModal.GROUP):
 		if is_instance_valid(m) and m.visible:
@@ -315,6 +328,7 @@ func _instantiate_screens() -> void:
 
 func _connect_signals() -> void:
 	main_menu.continue_pressed.connect(_on_continue_pressed)
+	main_menu.resume_card_pressed.connect(_on_resume_card_pressed)
 	main_menu.new_game_requested.connect(func(): new_game_dialog.open_dialog())
 	main_menu.load_game_requested.connect(func(): load_game_screen.refresh_list(); _show_screen(load_game_screen))
 	main_menu.daily_sudoku_requested.connect(_on_daily_sudoku_requested)
@@ -335,7 +349,7 @@ func _connect_signals() -> void:
 func _connect_node(key: String, node: Control) -> void:
 	match key:
 		"game_screen":
-			node.back_to_menu_requested.connect(func(): main_menu.refresh_buttons(); _show_screen(main_menu))
+			node.back_to_menu_requested.connect(_close_game_to_menu)
 			node.settings_requested.connect(func():
 				_previous_screen_before_settings = game_screen
 				_show_screen(settings_screen)
@@ -378,10 +392,7 @@ func _show_screen(target: Control, back: bool = false) -> void:
 	if target == null:
 		return
 
-	var screens: Array = [main_menu]
-	for key in _made:
-		if not DIALOGS.has(key):
-			screens.append(_made[key])
+	var screens: Array = _all_screens()
 
 	if _transition_tween != null and _transition_tween.is_valid():
 		_transition_tween.kill()
@@ -424,12 +435,129 @@ func _show_screen(target: Control, back: bool = false) -> void:
 			_rest(target)
 		)
 	else:
-		target.visible = true
-		_rest(target)
-		for s in screens:
-			if s != target:
-				s.visible = false
-				_rest(s)
+		_show_now(target)
+
+## Every screen made so far, the menu first
+func _all_screens() -> Array:
+	var screens: Array = [main_menu]
+	for key in _made:
+		if not DIALOGS.has(key):
+			screens.append(_made[key])
+	return screens
+
+## `target` on show and in its place, every other screen hidden
+func _show_now(target: Control) -> void:
+	target.visible = true
+	_rest(target)
+	for s in _all_screens():
+		if s != target:
+			s.visible = false
+			_rest(s)
+
+## The largest square in `rect`, centred (a board is square)
+static func _square(rect: Rect2) -> Rect2:
+	var side := minf(rect.size.x, rect.size.y)
+	return Rect2(rect.position + (rect.size - Vector2(side, side)) * 0.5, Vector2(side, side))
+
+func _can_fly() -> bool:
+	return AppSettings.animations_enabled and is_inside_tree() and not _veiled and not _board_flying
+
+## The game opens from the resume card: the card's board grows into the game's board
+func _open_game_from_card(state: GameState) -> void:
+	var card = main_menu.resume_card
+	if not _can_fly() or card == null or not card.is_visible_in_tree():
+		_start_game_session(state)
+		return
+	_board_flying = true
+	var from: Rect2 = _square(card.mini_board.get_global_rect())
+	# The game is set up behind the menu, invisible, to learn where its board will be
+	game_screen.setup_game(state)
+	current_screen = game_screen
+	game_screen.visible = true
+	game_screen.modulate.a = 0.0
+	move_child(game_screen, get_child_count() - 1)
+	_keep_dialogs_on_top()
+	await get_tree().process_frame
+	await get_tree().process_frame
+	if not is_inside_tree():
+		return
+	var grid: Control = game_screen.sudoku_grid
+	var to: Rect2 = _square(grid.get_global_rect())
+	if to.size.x < BOARD_MIN_SIDE:
+		_show_now(game_screen)
+		_board_flying = false
+		return
+	var flight := BoardFlight.new()
+	flight.set_board(state.current_board, state.initial_puzzle)
+	add_child(flight)
+	_keep_dialogs_on_top()
+	card.mini_board.modulate.a = 0.0
+	# The game's own board waits for the flying one, so two boards never show at once
+	grid.modulate.a = 0.0
+	var fade := create_tween().set_parallel(true)
+	fade.tween_property(main_menu, "modulate:a", 0.0, BOARD_FLIGHT_TIME * 0.6)
+	fade.tween_property(game_screen, "modulate:a", 1.0, BOARD_FLIGHT_TIME * 0.7).set_delay(BOARD_FLIGHT_TIME * 0.3)
+	await flight.fly(from, to, BOARD_FLIGHT_TIME).finished
+	if not is_inside_tree():
+		return
+	await _hand_over(flight, grid)
+	card.mini_board.modulate.a = 1.0
+	_show_now(game_screen)
+	_board_flying = false
+
+## Leaving the game: its board shrinks back into the resume card (the card shows this game)
+func _close_game_to_menu() -> void:
+	main_menu.refresh_buttons()
+	var card = main_menu.resume_card
+	var grid: Control = game_screen.sudoku_grid
+	if not _can_fly() or card == null or not card.has_game or grid == null or not grid.is_visible_in_tree():
+		_show_screen(main_menu)
+		return
+	_board_flying = true
+	var from: Rect2 = _square(grid.get_global_rect())
+	var state: GameState = game_screen.game_state
+	# The menu is made ready beneath the game, to learn where the card's board is
+	current_screen = main_menu
+	main_menu.visible = true
+	_rest(main_menu)
+	move_child(game_screen, get_child_count() - 1)
+	_keep_dialogs_on_top()
+	await get_tree().process_frame
+	await get_tree().process_frame
+	if not is_inside_tree():
+		return
+	var to: Rect2 = _square(card.mini_board.get_global_rect())
+	if to.size.x < BOARD_MIN_SIDE:
+		_show_now(main_menu)
+		_board_flying = false
+		return
+	var flight := BoardFlight.new()
+	flight.set_board(state.current_board, state.initial_puzzle)
+	flight.modulate.a = 0.0
+	add_child(flight)
+	_keep_dialogs_on_top()
+	card.mini_board.modulate.a = 0.0
+	var fade := create_tween().set_parallel(true)
+	fade.tween_property(flight, "modulate:a", 1.0, BOARD_HAND_OVER_TIME)
+	fade.tween_property(grid, "modulate:a", 0.0, BOARD_HAND_OVER_TIME)
+	fade.tween_property(game_screen, "modulate:a", 0.0, BOARD_FLIGHT_TIME * 0.7)
+	await flight.fly(from, to, BOARD_FLIGHT_TIME).finished
+	if not is_inside_tree():
+		return
+	card.mini_board.modulate.a = 1.0
+	await _hand_over(flight)
+	grid.modulate.a = 1.0
+	_show_now(main_menu)
+	_board_flying = false
+
+## The flying board fades out, and is freed; with `grid`, the real board fades in beneath it
+func _hand_over(flight: BoardFlight, grid: Control = null) -> void:
+	var tween := create_tween().set_parallel(true)
+	tween.tween_property(flight, "modulate:a", 0.0, BOARD_HAND_OVER_TIME)
+	if grid != null:
+		tween.tween_property(grid, "modulate:a", 1.0, BOARD_HAND_OVER_TIME)
+	await tween.finished
+	flight.queue_free()
 
 ## What a screen's left and right offsets are at rest (the slide moves both by the same amount).
 ## Not `position`: setting that rewrites the offsets from the screen's size at that moment, and a
@@ -462,6 +590,13 @@ func _on_data_restored() -> void:
 func _start_game_session(state: GameState) -> void:
 	game_screen.setup_game(state)
 	_show_screen(game_screen)
+
+func _on_resume_card_pressed() -> void:
+	var state := SaveManager.load_active_game()
+	if state == null:
+		main_menu.refresh_buttons()
+		return
+	_open_game_from_card(state)
 
 func _on_continue_pressed() -> void:
 	var state := SaveManager.load_active_game()

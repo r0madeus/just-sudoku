@@ -13,6 +13,8 @@ const ResponsiveManager = preload("res://scripts/services/responsive_manager.gd"
 ## and quiet baseline utility navigation.
 
 signal continue_pressed()
+## The resume card was tapped: the game opens from the card, its board growing into the game's
+signal resume_card_pressed()
 signal new_game_requested()
 signal load_game_requested()
 signal daily_sudoku_requested()
@@ -317,7 +319,7 @@ func _build_ui() -> void:
 	root_vbox.add_child(resume_holder)
 
 	resume_card = ResumeCard.new()
-	resume_card.pressed.connect(func(): continue_pressed.emit())
+	resume_card.pressed.connect(func(): resume_card_pressed.emit())
 	resume_holder.add_child(resume_card)
 
 	mid_spacer = Control.new()

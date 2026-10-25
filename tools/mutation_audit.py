@@ -72,7 +72,7 @@ MUTATIONS = [
  ("M61", "scenes/menus/resume_card.gd", "\t\t\t_press_inside = true\n", "\t\t\t_press_inside = true\n\t\t\tpressed.emit()\n", "The game card opens as the finger lands, so a scroll from it opens the game"),
  ("M62", "scripts/gameplay/game_state.gd", "const AppSettings = preload(\"res://scripts/services/app_settings.gd\")\n", "const AppSettings = preload(\"res://scripts/services/app_settings.gd\")\nconst SettingsScreen = preload(\"res://scenes/menus/settings_screen.gd\")\n", "Start-up loads the Settings screen again, through the game's state"),
  ("M63", "scenes/app_root.gd", "\t_start_warm_up()\n", "", "The screens behind the menu are only made when first opened, so the first tap waits"),
- ("M64", "scenes/app_root.gd", "\tadd_child(node)\n\t_keep_dialogs_on_top()\n", "\tadd_child(node)\n", "A screen made after a dialog covers it"),
+ ("M64", "scenes/app_root.gd", "\t_keep_dialogs_on_top()\n\t_connect_node(key, node)\n", "\t_connect_node(key, node)\n", "A screen made after a dialog covers it"),
  ("M65", "scenes/app_root.gd", "\t\tnode.visible = false\n", "\t\tpass\n", "A screen made in the background shows over the menu"),
  ("M66", "scenes/app_root.gd", "\tif not _made.has(\"game_screen\"):\n\t\tmain_menu.refresh_buttons()\n\t\treturn\n", "", "Restoring a backup makes the game screen for nothing"),
  ("M67", "scenes/app_root.gd", "\t_connect_node(key, node)\n", "", "A screen made on demand does not answer its buttons"),
@@ -97,6 +97,15 @@ MUTATIONS = [
  ("M85", "scenes/app_root.gd", "\tif _veiled:\n\t\tmodulate.a = 0.0\n", "\tif _veiled:\n\t\tpass\n", "The app shows its first, still settling layout"),
  ("M86", "scenes/app_root.gd", "\t\tif not first:\n\t\t\t_relayout_when_settled()\n", "\t\tif not first:\n\t\t\tpass\n", "A display that changes at start is not laid out again until the late timers"),
  ("M87", "scenes/gameplay/sudoku_cell.gd", "const SELECT_TIME: float = 0.16", "const SELECT_TIME: float = 0.05", "A tapped cell settles in 0.05 s, too fast to see"),
+ ("M88", "scenes/app_root.gd", "\tcard.mini_board.modulate.a = 0.0\n\t# The game's own board waits", "\t# The game's own board waits", "The card's board shows beside the one that flies out of it"),
+ ("M89", "scenes/app_root.gd", "\tgrid.modulate.a = 0.0\n\tvar fade := create_tween().set_parallel(true)\n\tfade.tween_property(main_menu, \"modulate:a\"", "\tvar fade := create_tween().set_parallel(true)\n\tfade.tween_property(main_menu, \"modulate:a\"", "Two boards show at once while the board lands"),
+ ("M90", "scenes/app_root.gd", "if not _can_fly() or card == null or not card.has_game or grid == null", "if not _can_fly() or card == null or grid == null", "A board flies back to a card that has no game"),
+ ("M91", "scenes/app_root.gd", "\tif _board_flying:\n\t\treturn\n", "", "Back during the flight breaks it"),
+ ("M92", "scenes/app_root.gd", "is_inside_tree() and not _veiled and not _board_flying", "is_inside_tree() and not _veiled", "A second tap starts a second flight"),
+ ("M93", "scenes/app_root.gd", "\tvar state := SaveManager.load_active_game()\n\tif state != null:\n\t\t_start_game_session(state)\n\telse:\n\t\tmain_menu.refresh_buttons()\n\nfunc _on_new_puzzle_generated", "\tvar state := SaveManager.load_active_game()\n\tif state != null:\n\t\t_open_game_from_card(state)\n\telse:\n\t\tmain_menu.refresh_buttons()\n\nfunc _on_new_puzzle_generated", "The Continue button flies the board too"),
+ ("M94", "scenes/ui/board_flight.gd", "\tsize = _from.size.lerp(_to.size, t)\n", "\tsize = _from.size\n", "The board moves but does not grow"),
+ ("M95", "scenes/app_root.gd", "\tif grid != null:\n\t\ttween.tween_property(grid, \"modulate:a\", 1.0, BOARD_HAND_OVER_TIME)\n", "", "The game's board stays hidden after the flight"),
+ ("M96", "scenes/app_root.gd", "\tawait _hand_over(flight)\n\tgrid.modulate.a = 1.0\n", "\tawait _hand_over(flight)\n", "The game's board is hidden the next time the game opens"),
 ]
 
 def main():
