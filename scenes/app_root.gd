@@ -61,6 +61,37 @@ var _previous_screen_before_settings: Control = null
 ## Seconds after coming back from the background to lay the screens out again
 const RELAYOUT_DELAYS: Array[float] = [0.25, 1.0]
 
+## A screen slides in from the side as it fades in: from the right going forward, from the left
+## going back. The one it covers moves a little the other way and stays opaque beneath.
+const TRANSITION_TIME: float = 0.26
+const TRANSITION_SLIDE: float = 40.0
+
+## The display (size, density, safe area) can still be settling in the first moments, and a
+## layout made from the first values looked stretched off the right edge for about a second on a
+## phone. It is read every WATCH_STEP for WATCH_TIME after start and after coming back, and the
+## screens are laid out again whenever it changed. At start the app stays invisible until the
+## display has not changed for REVEAL_AFTER_STABLE (at most REVEAL_LATEST), then fades in.
+const WATCH_STEP: float = 0.05
+const WATCH_TIME: float = 2.0
+const RESUME_WATCH_TIME: float = 1.5
+const REVEAL_AFTER_STABLE: float = 0.15
+const REVEAL_LATEST: float = 0.6
+const REVEAL_TIME: float = 0.24
+## Entries kept in ResponsiveManager.start_trace
+const TRACE_LIMIT: int = 8
+
+## Tells what the display looks like now; tests replace it to change the display
+var display_probe: Callable = _read_display
+var _watch_timer: Timer
+var _watch_until_ms: int = 0
+var _watch_tag: String = "start"
+var _watch_origin_ms: int = 0
+var _display_state: String = ""
+var _changed_ms: int = 0
+var _started_ms: int = 0
+var _veiled: bool = false
+var _relayout_pending: bool = false
+
 ## Puzzle being made for an archive day, so a second tap does not start another
 var _archive_request: int = 0
 
@@ -84,6 +115,7 @@ func _ready() -> void:
 	SoundManager.init_audio(self)
 
 	_connect_signals()
+	_begin_start_up()
 
 	# Prepare puzzles in the background (no window, e.g. headless tests: nothing to wait for)
 	if DisplayServer.get_name() != "headless":
@@ -135,11 +167,76 @@ func _relayout_after_resume() -> void:
 		return
 	AppSettings.follow_system_changes()
 	ResponsiveManager.relayout(get_window())
+	_watch_display("resume", RESUME_WATCH_TIME)
 	for delay in RELAYOUT_DELAYS:
 		get_tree().create_timer(delay).timeout.connect(func():
 			if is_inside_tree():
 				ResponsiveManager.relayout(get_window())
 		)
+
+func _read_display() -> String:
+	return ResponsiveManager.describe_display(get_window())
+
+func _begin_start_up() -> void:
+	_started_ms = Time.get_ticks_msec()
+	ResponsiveManager.start_trace.clear()
+	_veiled = AppSettings.animations_enabled and DisplayServer.get_name() != "headless"
+	if _veiled:
+		modulate.a = 0.0
+	_watch_display("start", WATCH_TIME)
+
+## Starts (or extends) watching the display for changes; `tag` names it in the trace
+func _watch_display(tag: String, seconds: float) -> void:
+	var now := Time.get_ticks_msec()
+	_watch_tag = tag
+	_watch_origin_ms = now if tag != "start" else _started_ms
+	_watch_until_ms = maxi(_watch_until_ms, now + int(seconds * 1000.0))
+	if _watch_timer == null:
+		_watch_timer = Timer.new()
+		_watch_timer.wait_time = WATCH_STEP
+		_watch_timer.timeout.connect(_on_watch_step)
+		add_child(_watch_timer, false, INTERNAL_MODE_BACK)
+	if _watch_timer.is_stopped():
+		_watch_timer.start()
+	_on_watch_step()
+
+func _on_watch_step() -> void:
+	var now := Time.get_ticks_msec()
+	var state: String = display_probe.call()
+	if state != _display_state:
+		# The first reading is what the screens were just laid out with: nothing to redo
+		var first := _display_state.is_empty()
+		_display_state = state
+		_changed_ms = now
+		if not first:
+			_relayout_when_settled()
+		ResponsiveManager.start_trace.append("%s %d ms  %s" % [_watch_tag, now - _watch_origin_ms, state])
+		while ResponsiveManager.start_trace.size() > TRACE_LIMIT:
+			ResponsiveManager.start_trace.pop_front()
+	if _veiled and (now - _changed_ms >= int(REVEAL_AFTER_STABLE * 1000.0) or now - _started_ms >= int(REVEAL_LATEST * 1000.0)):
+		_reveal()
+	if now >= _watch_until_ms and not _veiled and _watch_timer != null:
+		_watch_timer.stop()
+
+## Lays the screens out again once the window's new size has reached them: a layout made in the
+## very frame the display changed would still measure with the old size
+func _relayout_when_settled() -> void:
+	if _relayout_pending:
+		return
+	_relayout_pending = true
+	await get_tree().process_frame
+	await get_tree().process_frame
+	_relayout_pending = false
+	if is_inside_tree():
+		ResponsiveManager.relayout(get_window())
+
+func _reveal() -> void:
+	_veiled = false
+	if not is_inside_tree():
+		modulate.a = 1.0
+		return
+	var tween := create_tween()
+	tween.tween_property(self, "modulate:a", 1.0, REVEAL_TIME).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
 ## One step "back": closes the topmost modal, else leaves the current screen, else quits from the menu
 func handle_back() -> void:
@@ -177,6 +274,8 @@ func _node(key: String) -> Control:
 		# show builds its lists (when the language is set during start-up, for one)
 		node.visible = false
 	add_child(node)
+	if not DIALOGS.has(key):
+		_remember_rest(node)
 	_keep_dialogs_on_top()
 	_connect_node(key, node)
 	return node
@@ -212,6 +311,7 @@ func _instantiate_screens() -> void:
 	main_menu = MainMenu.new()
 	main_menu.visible = false
 	add_child(main_menu)
+	_remember_rest(main_menu)
 
 func _connect_signals() -> void:
 	main_menu.continue_pressed.connect(_on_continue_pressed)
@@ -252,7 +352,7 @@ func _connect_node(key: String, node: Control) -> void:
 				if _previous_screen_before_settings != null:
 					var prev: Control = _previous_screen_before_settings
 					_previous_screen_before_settings = null
-					_show_screen(prev)
+					_show_screen(prev, true)
 				else:
 					_show_screen(main_menu)
 			)
@@ -272,7 +372,9 @@ func _connect_node(key: String, node: Control) -> void:
 			node.back_requested.connect(func(): _show_screen(main_menu))
 			node.practice_requested.connect(_on_new_puzzle_generated)
 
-func _show_screen(target: Control) -> void:
+## Shows `target`, sliding it in from the right, or from the left when `back` (going to the menu
+## is always back)
+func _show_screen(target: Control, back: bool = false) -> void:
 	if target == null:
 		return
 
@@ -288,46 +390,63 @@ func _show_screen(target: Control) -> void:
 	var prev: Control = current_screen
 	current_screen = target
 
-	if prev == target or prev == null:
-		target.visible = true
-		target.modulate.a = 1.0
-		for s in screens:
-			if s != target:
-				s.visible = false
-				s.modulate.a = 1.0
-		return
-
-	if AppSettings.animations_enabled and is_inside_tree():
-		# Keep previous screen fully visible underneath while target fades in over 0.12s
+	if AppSettings.animations_enabled and is_inside_tree() and prev != null and prev != target:
+		var side := -1.0 if (back or target == main_menu) else 1.0
+		# Keep previous screen fully visible underneath while the target slides and fades in
 		prev.visible = true
+		_rest(prev)
 		target.visible = true
 		target.modulate.a = 0.0
+		_shift(target, TRANSITION_SLIDE * side)
 
 		# Ensure target renders above previous screen during transition
 		move_child(target, get_child_count() - 1)
-
 		_keep_dialogs_on_top()
 
 		for s in screens:
 			if s != target and s != prev:
 				s.visible = false
-				s.modulate.a = 1.0
+				_rest(s)
 
-		_transition_tween = create_tween()
-		_transition_tween.tween_property(target, "modulate:a", 1.0, 0.12).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-		_transition_tween.tween_callback(func():
-			if prev != null and prev != target:
+		_transition_tween = create_tween().set_parallel(true)
+		_transition_tween.tween_property(target, "modulate:a", 1.0, TRANSITION_TIME).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		var rest_target: Vector2 = target.get_meta(&"rest_offsets", Vector2.ZERO)
+		var rest_prev: Vector2 = prev.get_meta(&"rest_offsets", Vector2.ZERO)
+		var slide_prev: float = -TRANSITION_SLIDE * 0.4 * side
+		for property in ["offset_left", "offset_right"]:
+			var i: int = 0 if property == "offset_left" else 1
+			_transition_tween.tween_property(target, property, rest_target[i], TRANSITION_TIME).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+			_transition_tween.tween_property(prev, property, rest_prev[i] + slide_prev, TRANSITION_TIME).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		_transition_tween.chain().tween_callback(func():
+			if prev != target:
 				prev.visible = false
-				prev.modulate.a = 1.0
-			target.modulate.a = 1.0
+			_rest(prev)
+			_rest(target)
 		)
 	else:
 		target.visible = true
-		target.modulate.a = 1.0
+		_rest(target)
 		for s in screens:
 			if s != target:
 				s.visible = false
-				s.modulate.a = 1.0
+				_rest(s)
+
+## What a screen's left and right offsets are at rest (the slide moves both by the same amount).
+## Not `position`: setting that rewrites the offsets from the screen's size at that moment, and a
+## size that was momentarily too wide stays in them for good.
+func _remember_rest(screen: Control) -> void:
+	screen.set_meta(&"rest_offsets", Vector2(screen.offset_left, screen.offset_right))
+
+## Moves a screen `dx` to the right of its place, keeping its size
+func _shift(screen: Control, dx: float) -> void:
+	var rest: Vector2 = screen.get_meta(&"rest_offsets", Vector2.ZERO)
+	screen.offset_left = rest.x + dx
+	screen.offset_right = rest.y + dx
+
+## A screen at rest: opaque and in its place
+func _rest(screen: Control) -> void:
+	screen.modulate.a = 1.0
+	_shift(screen, 0.0)
 
 ## A backup replaced the saved data: the game left open behind Settings is not in it any more
 ## and must not save itself over it, so Back from Settings leads to the menu

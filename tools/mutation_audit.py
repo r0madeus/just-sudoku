@@ -87,6 +87,16 @@ MUTATIONS = [
  ("M75", "scripts/services/app_settings.gd", "int(json.data.get(\"version\", 1)) < CONFIG_VERSION \\\n\t\t\t\tor ", "", "Players of 1.0.0 keep the language found on their first start"),
  ("M76", "scenes/app_root.gd", "\tAppSettings.follow_system_changes()\n", "", "A language or light/dark change on the phone is missed until the app restarts"),
  ("M77", "scenes/menus/settings_screen.gd", "lang_option.selected = 0 if AppSettings.locale_follows_system else ", "lang_option.selected = ", "Settings shows the phone's language as picked, not System"),
+ ("M78", "scenes/ui/setting_row.gd", "\t\tif event.pressed:\n\t\t\t_press_inside = true\n\t\telif _press_inside:\n", "\t\tif event.pressed:\n\t\t\t_press_inside = true\n\t\t\t(control_node as CheckBox).button_pressed = not (control_node as CheckBox).button_pressed\n\t\telif _press_inside:\n", "A Settings row toggles as the finger lands, so a scroll that starts on its text changes the setting"),
+ ("M79", "scripts/services/theme_builder.gd", "\tvar sz := 18\n", "\tvar sz := 22\n", "Check boxes are large again"),
+ ("M80", "scenes/menus/main_menu.gd", "\tcontinue_btn.add_child(continue_icon)\n", "\tcontinue_btn.add_child(continue_icon)\n\tcontinue_btn.icon = ThemeManager.get_icon(\"play\")\n", "Continue's icon pushes its label off the centre the other two share"),
+ ("M81", "scenes/menus/main_menu.gd", "\tnav_grid.queue_sort()\n\tnav_glass.queue_sort()\n", "", "The navigation buttons stay as wide as a look that did not fit and run off the right edge"),
+ ("M82", "scripts/services/responsive_manager.gd", "\t\tif node.is_inside_tree():\n\t\t\tnode.queue_sort()\n", "\t\tpass\n", "Laying everything out again leaves stretched containers as they were"),
+ ("M83", "scenes/app_root.gd", "\t\tvar side := -1.0 if (back or target == main_menu) else 1.0\n", "\t\tvar side := 1.0\n", "Screens going back slide in from the right too"),
+ ("M84", "scenes/app_root.gd", "\t\t_shift(target, TRANSITION_SLIDE * side)\n", "", "Screens do not slide in"),
+ ("M85", "scenes/app_root.gd", "\tif _veiled:\n\t\tmodulate.a = 0.0\n", "\tif _veiled:\n\t\tpass\n", "The app shows its first, still settling layout"),
+ ("M86", "scenes/app_root.gd", "\t\tif not first:\n\t\t\t_relayout_when_settled()\n", "\t\tif not first:\n\t\t\tpass\n", "A display that changes at start is not laid out again until the late timers"),
+ ("M87", "scenes/gameplay/sudoku_cell.gd", "const SELECT_TIME: float = 0.16", "const SELECT_TIME: float = 0.05", "A tapped cell settles in 0.05 s, too fast to see"),
 ]
 
 def main():

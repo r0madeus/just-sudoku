@@ -47,6 +47,8 @@ var resume_card: ResumeCard
 var actions_vbox: VBoxContainer
 var hero_vbox: VBoxContainer
 var continue_btn: Button
+## The play icon at the left edge of the Continue button
+var continue_icon: TextureRect
 var continue_meta_label: Label
 var new_game_btn: Button
 
@@ -148,6 +150,11 @@ func _fit_nav_buttons() -> void:
 		_set_nav_look(looks[i])
 		if i >= last or nav_grid.get_combined_minimum_size().x <= room:
 			break
+	# The looks above were tried within one frame, so the grid's minimum size ends up as it was
+	# before and Godot sees no change: nothing sorts it again, and it stayed as wide as a look
+	# that did not fit, running off the right edge. Sort it and what holds it now.
+	nav_grid.queue_sort()
+	nav_glass.queue_sort()
 
 func _set_nav_look(look: Dictionary) -> void:
 	var icon_names := ["rotate-ccw", "chart-column-big", "lightbulb", "settings"]
@@ -402,8 +409,19 @@ func _build_ui() -> void:
 	continue_btn.custom_minimum_size = Vector2(0, ResponsiveManager.HEIGHT_BUTTON_HERO)
 	continue_btn.size_flags_horizontal = SIZE_EXPAND_FILL
 	continue_btn.theme_type_variation = "PrimaryButton"
-	continue_btn.icon = ThemeManager.get_icon("play")
-	continue_btn.add_theme_constant_override("icon_max_width", 20)
+	# The play icon is a child at the left edge, not the button's own icon: an icon in the button
+	# takes room from its text and pushed "Continue" off the centre the other two labels share
+	continue_icon = TextureRect.new()
+	continue_icon.texture = ThemeManager.get_icon("play")
+	continue_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	continue_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	continue_icon.mouse_filter = MOUSE_FILTER_IGNORE
+	continue_icon.set_anchors_preset(PRESET_CENTER_LEFT)
+	continue_icon.offset_left = 20.0
+	continue_icon.offset_right = 40.0
+	continue_icon.offset_top = -10.0
+	continue_icon.offset_bottom = 10.0
+	continue_btn.add_child(continue_icon)
 	ThemeManager.set_font_size(continue_btn, 17)
 	continue_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	continue_btn.pressed.connect(func(): continue_pressed.emit())

@@ -57,6 +57,10 @@ Bir sorun görürsen telefonun modelini, Android sürümünü ve ne yaptığınd
 **Akıcılık ve pil**
 - [ ] Hücreye dokununca seçim ve rakam anında görünüyor.
 - [ ] Geçmiş ve Kayıtlı Oyunlar listeleri akıcı kayıyor.
+- [ ] Uygulama açılırken ve uygulamaya geri dönünce ekran bir an bile sağa taşmış görünmüyor (açılışta menü bir an görünmeden sonra yumuşakça beliriyor). Taşarsa: Ayarlar'ın en altındaki küçük "start …" satırlarının ekran görüntüsü.
+- [ ] Ana menüde Devam Et, Yeni Oyun ve Kayıtlı Oyunlar yazıları aynı eksende, ortada.
+- [ ] Ekranlar arasında geçerken yeni ekran yandan kayarak geliyor (geri dönerken soldan); hücreye dokununca, rakam girince, yanlış rakamda ve satır tamamlanınca küçük animasyonlar rahatça görülüyor.
+- [ ] Ayarlar'da onay kutuları küçük; bir satırın yazısının üstünden başlayıp kaydırınca ayar değişmiyor, yazıya hafifçe dokununca değişiyor.
 - [ ] Ayarlar'da Dil ve Tema "Sistem" iken telefonun dili ya da koyu/açık modu değiştirilip uygulamaya dönülünce uygulama da değişiyor; açılır listeler uygulamanın kendi penceresinde açılıyor.
 - [ ] Ayarlar'da bir onay kutusunun ya da açılır listenin üstünden başlayan kaydırma onu işaretlemiyor/açmıyor; hızlıca fırlatılan liste yavaşlayarak duruyor.
 - [ ] Uygulama açık bekletildiğinde telefon ısınmıyor, pil hızlı düşmüyor.

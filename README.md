@@ -77,7 +77,7 @@ The Android build uses a Godot export template built with only what the game nee
 GODOT=/path/to/godot tools/run_tests.sh
 ```
 
-Runs all 55 test suites, four at a time, each with its own empty save folder (under a minute). They also run on every pull request. [docs/testing.md](docs/testing.md) explains them, and how `tools/mutation_audit.py` checks that the tests really catch mistakes: it breaks 77 behaviours one at a time and all 77 are caught.
+Runs all 56 test suites, four at a time, each with its own empty save folder (under a minute). They also run on every pull request. [docs/testing.md](docs/testing.md) explains them, and how `tools/mutation_audit.py` checks that the tests really catch mistakes: it breaks 87 behaviours one at a time and all 87 are caught.
 
 ## Project layout
 

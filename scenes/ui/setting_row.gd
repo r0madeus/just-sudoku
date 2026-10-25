@@ -125,13 +125,24 @@ func _on_text_size_changed() -> void:
 func get_control() -> Control:
 	return control_node
 
-## Allow clicking row to toggle checkbox for superior mobile touch ergonomics
+## A press began on the row and has not been let go yet
+var _press_inside: bool = false
+
+## The whole row toggles its check box, so the box itself can stay small. It toggles when the
+## finger is lifted on the row, not as it lands: a press that turns into a scroll (the list
+## takes the finger over once it moves) or slides off the row must not change a setting.
 func _gui_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		if control_node is CheckBox:
-			var cb := control_node as CheckBox
-			cb.button_pressed = not cb.button_pressed
-			accept_event()
+	if not control_node is CheckBox:
+		return
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			_press_inside = true
+		elif _press_inside:
+			_press_inside = false
+			if Rect2(Vector2.ZERO, size).has_point(event.position):
+				var cb := control_node as CheckBox
+				cb.button_pressed = not cb.button_pressed
+		accept_event()
 
 func _apply_theme() -> void:
 	if desc_label != null:
