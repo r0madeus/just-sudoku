@@ -1,0 +1,1 @@
+Linux indirmeleri (AppImage, tar.gz, Flatpak), kayan aç/kapa anahtarları, Cam efektleri ayarı ve tarayıcıda yedeği dosyaya alma.

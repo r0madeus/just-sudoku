@@ -1,0 +1,1 @@
+Linux downloads (AppImage, tar.gz, Flatpak), on/off switches that slide, a Glass effects setting, and backup to a file in the browser.
