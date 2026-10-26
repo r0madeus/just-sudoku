@@ -41,3 +41,8 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+github.svg is the GitHub mark from Simple Icons (CC0 1.0 Universal, public domain dedication);
+GitHub and its logo are trademarks of GitHub, Inc., used here only to link to the project's page.

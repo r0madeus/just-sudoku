@@ -13,6 +13,7 @@ const STRINGS: Dictionary = {
 	"BTN_STATS": "İstatistikler",
 	"BTN_SETTINGS": "Ayarlar",
 	"BTN_BACK": "Geri",
+	"BTN_GITHUB": "GitHub'daki kaynak kodu",
 	"BTN_MENU": "Menü",
 	"BTN_START": "Başla",
 	"BTN_CANCEL": "İptal",

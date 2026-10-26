@@ -84,6 +84,9 @@ var menu_card_panel: Control
 ## the actions and navigation on the right, under the masthead
 var wide_row: HBoxContainer
 var wide_right: VBoxContainer
+## Under the resume card in the wide layout, as tall as the navigation and its gap are on the right,
+## so both columns are as tall and start at the same height
+var wide_left_filler: Control
 var is_wide: bool = false
 
 func _init() -> void:
@@ -204,6 +207,25 @@ func _set_wide(wide: bool) -> void:
 			root_vbox.move_child(n, at)
 			at += 1
 	wide_row.visible = wide
+	if wide:
+		resume_holder.add_child(wide_left_filler)
+	elif wide_left_filler.get_parent() == resume_holder:
+		resume_holder.remove_child(wide_left_filler)
+		resume_card.custom_minimum_size.y = 0.0
+	_match_wide_columns.call_deferred()
+
+## Wide layout: the resume card is as tall as the actions beside it, and what is under them (the
+## gap and the navigation) is matched by an empty space under the card, so the two columns are the
+## same height and their tops are level
+func _match_wide_columns() -> void:
+	if not is_wide or wide_left_filler == null or wide_left_filler.get_parent() != resume_holder:
+		return
+	var actions_h: float = actions_vbox.size.y
+	var below: float = maxf(0.0, wide_right.get_combined_minimum_size().y - actions_h)
+	resume_card.custom_minimum_size.y = actions_h
+	wide_left_filler.custom_minimum_size.y = below
+	resume_holder.add_theme_constant_override("separation", 0)
+	wide_right.add_theme_constant_override("separation", 0)
 
 func refresh_buttons() -> void:
 	var has_active := SaveManager.has_active_game()
@@ -544,6 +566,10 @@ func _build_ui() -> void:
 	wide_right.size_flags_horizontal = SIZE_EXPAND_FILL
 	wide_right.alignment = BoxContainer.ALIGNMENT_CENTER
 	wide_row.add_child(wide_right)
+	# The card is as tall as the Daily Sudoku and the buttons beside it, top and bottom edges level
+	wide_left_filler = Control.new()
+	actions_vbox.resized.connect(_match_wide_columns)
+	nav_section_vbox.resized.connect(_match_wide_columns)
 
 	_apply_theme_polish()
 

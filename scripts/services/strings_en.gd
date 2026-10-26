@@ -13,6 +13,7 @@ const STRINGS: Dictionary = {
 	"BTN_STATS": "Statistics",
 	"BTN_SETTINGS": "Settings",
 	"BTN_BACK": "Back",
+	"BTN_GITHUB": "Source code on GitHub",
 	"BTN_MENU": "Menu",
 	"BTN_START": "Start",
 	"BTN_CANCEL": "Cancel",
