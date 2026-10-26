@@ -1,0 +1,182 @@
+name: Linux
+
+# The game for Linux (64-bit): exported once, then packed three ways: a tar.gz, an AppImage and a
+# Flatpak bundle (packaging/linux). Every pull request builds and starts all of them, so a change
+# that breaks a package is seen before it is merged; a pushed version tag (v1.1.0) attaches the
+# files, each with its SHA-256, to that release.
+
+on:
+  pull_request:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+concurrency:
+  group: linux-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GODOT_VERSION: "4.7-stable"
+  APP_ID: io.github.r0madeus.JustSudoku
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read the version
+        id: version
+        run: echo "version=$(sed -n 's/^config\/version="\(.*\)"/\1/p' project.godot)" >> "$GITHUB_OUTPUT"
+
+      - name: Install a virtual display, software OpenGL and the packaging checkers
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb xauth libgl1-mesa-dri libglx-mesa0 squashfs-tools appstream desktop-file-utils > /dev/null
+
+      - name: Check the menu entry and the store description
+        run: |
+          desktop-file-validate packaging/linux/$APP_ID.desktop
+          appstreamcli validate --no-net packaging/linux/$APP_ID.metainfo.xml
+
+      - name: Download the Godot editor
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/godot.zip" \
+            "https://github.com/godotengine/godot-builds/releases/download/$GODOT_VERSION/Godot_v${GODOT_VERSION}_linux.x86_64.zip"
+          unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP"
+          echo "GODOT=$RUNNER_TEMP/Godot_v${GODOT_VERSION}_linux.x86_64" >> "$GITHUB_ENV"
+
+      - name: Download the Linux export template
+        # Only the 64-bit release template is taken out of the full templates archive
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/templates.tpz" \
+            "https://github.com/godotengine/godot-builds/releases/download/$GODOT_VERSION/Godot_v${GODOT_VERSION}_export_templates.tpz"
+          dir="$HOME/.local/share/godot/export_templates/${GODOT_VERSION/-/.}"
+          mkdir -p "$dir"
+          unzip -q -j "$RUNNER_TEMP/templates.tpz" templates/linux_release.x86_64 templates/version.txt -d "$dir"
+          rm "$RUNNER_TEMP/templates.tpz"
+
+      - name: Import the project
+        run: timeout 300 "$GODOT" --headless --path . --import > /dev/null 2>&1 || true
+
+      - name: Export for Linux
+        run: |
+          mkdir -p build/linux
+          "$GODOT" --headless --path . --export-release Linux build/linux/JustSudoku.x86_64
+          test -s build/linux/JustSudoku.x86_64
+
+      - name: Start the exported game
+        # A few hundred frames on the virtual display, then it quits by itself: a script error or a
+        # crash on the way shows here. (No sound card on the runner: the audio driver falls back.)
+        run: |
+          set -o pipefail
+          xvfb-run -a build/linux/JustSudoku.x86_64 --rendering-driver opengl3 --quit-after 300 2>&1 | tee "$RUNNER_TEMP/run.log"
+          ! grep -E "SCRIPT ERROR|Parse Error" "$RUNNER_TEMP/run.log"
+
+      - name: Make the tar.gz and the AppImage
+        run: tools/build_linux_packages.sh build/linux/JustSudoku.x86_64 "${{ steps.version.outputs.version }}" build/linux-dist
+
+      - name: Start the AppImage
+        run: |
+          set -o pipefail
+          chmod +x build/linux-dist/*.AppImage
+          APPIMAGE_EXTRACT_AND_RUN=1 xvfb-run -a build/linux-dist/JustSudoku-${{ steps.version.outputs.version }}-x86_64.AppImage \
+            --rendering-driver opengl3 --quit-after 300 2>&1 | tee "$RUNNER_TEMP/appimage.log"
+          ! grep -E "SCRIPT ERROR|Parse Error" "$RUNNER_TEMP/appimage.log"
+
+      - name: Start the game from the tar.gz
+        run: |
+          set -o pipefail
+          mkdir "$RUNNER_TEMP/unpacked"
+          tar -xzf build/linux-dist/JustSudoku-${{ steps.version.outputs.version }}-linux-x86_64.tar.gz -C "$RUNNER_TEMP/unpacked"
+          xvfb-run -a "$RUNNER_TEMP"/unpacked/*/JustSudoku --rendering-driver opengl3 --quit-after 300 2>&1 | tee "$RUNNER_TEMP/tar.log"
+          ! grep -E "SCRIPT ERROR|Parse Error" "$RUNNER_TEMP/tar.log"
+
+      - name: Keep the packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: just-sudoku-linux
+          path: build/linux-dist/*
+
+      - name: Keep the exported game for the Flatpak
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-binary
+          path: build/linux/JustSudoku.x86_64
+          retention-days: 1
+
+      - name: Attach to the release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            build/linux-dist/*.tar.gz
+            build/linux-dist/*.tar.gz.sha256
+            build/linux-dist/*.AppImage
+            build/linux-dist/*.AppImage.sha256
+
+  flatpak:
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Fetch the exported game
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-binary
+          path: build/linux
+
+      - name: Install Flatpak and a virtual display
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq flatpak flatpak-builder xvfb xauth libgl1-mesa-dri libglx-mesa0 > /dev/null
+          flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+
+      - name: Build the Flatpak
+        run: |
+          chmod +x build/linux/JustSudoku.x86_64
+          flatpak-builder --user --force-clean --disable-rofiles-fuse --install-deps-from=flathub \
+            --repo=build/flatpak-repo build/flatpak-build packaging/linux/flatpak/$APP_ID.yml
+
+      - name: Make the bundle
+        run: |
+          version="${{ needs.build.outputs.version }}"
+          mkdir -p build/flatpak-dist
+          flatpak build-bundle build/flatpak-repo "build/flatpak-dist/JustSudoku-$version.flatpak" "$APP_ID"
+          (cd build/flatpak-dist && sha256sum "JustSudoku-$version.flatpak" > "JustSudoku-$version.flatpak.sha256")
+          ls -la build/flatpak-dist
+
+      - name: Install the bundle and start it
+        # Informational: a Flatpak sandbox inside a CI container does not always get a display
+        # and graphics; the build and the bundle above are what must work here.
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          flatpak install --user -y --noninteractive "build/flatpak-dist/JustSudoku-${{ needs.build.outputs.version }}.flatpak"
+          xvfb-run -a flatpak run --user $APP_ID --rendering-driver opengl3 --quit-after 300 2>&1 | tee "$RUNNER_TEMP/flatpak.log"
+          ! grep -E "SCRIPT ERROR|Parse Error" "$RUNNER_TEMP/flatpak.log"
+
+      - name: Keep the bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: just-sudoku-flatpak
+          path: build/flatpak-dist/*
+
+      - name: Attach to the release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            build/flatpak-dist/*.flatpak
+            build/flatpak-dist/*.flatpak.sha256

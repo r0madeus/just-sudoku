@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.r0madeus.JustSudoku</id>
+  <name>Just Sudoku</name>
+  <summary>A calm, focused Sudoku</summary>
+  <summary xml:lang="tr">Sakin, odaklı bir Sudoku</summary>
+  <developer id="io.github.r0madeus">
+    <name>r0madeus</name>
+  </developer>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-only</project_license>
+  <launchable type="desktop-id">io.github.r0madeus.JustSudoku.desktop</launchable>
+
+  <description>
+    <p>A calm, focused Sudoku: no ads, no account, no internet, nothing collected. Four levels rated by the techniques a person needs to solve them, and every puzzle can be solved by logic alone.</p>
+    <p xml:lang="tr">Sakin, odaklı bir Sudoku: reklam yok, hesap yok, internet yok, hiçbir şey toplanmıyor. Çözmek için gereken tekniklere göre derecelendirilmiş dört seviye ve her bulmaca yalnızca mantıkla çözülebilir.</p>
+    <p>Hints come in three steps, every technique has a guide with practice puzzles, and there are notes, colours for marking cells, a Daily Sudoku with a streak, history, statistics and quiet sounds made in code.</p>
+    <p xml:lang="tr">İpuçları üç adımlı, her tekniğin alıştırma bulmacalı bir rehberi var; ayrıca notlar, hücreleri işaretlemek için renkler, seriyle Günün Sudokusu, geçmiş, istatistikler ve kodla üretilen sakin sesler var.</p>
+    <ul>
+      <li>Puzzles rated from Easy to Expert, from Naked Singles to X-Wing and XY-Chain</li>
+      <li xml:lang="tr">Kolaydan Uzmana derecelendirilmiş bulmacalar, Açık Tekli'den X-Wing ve XY-Zinciri'ne</li>
+      <li>Hints that explain the next step, and a Techniques guide</li>
+      <li xml:lang="tr">Sonraki adımı açıklayan ipuçları ve Teknikler rehberi</li>
+      <li>Five themes, including a truly black one, and your own colours</li>
+      <li xml:lang="tr">Gerçekten siyah olanı da içeren beş tema ve kendi renklerin</li>
+      <li>English and Turkish</li>
+      <li xml:lang="tr">Türkçe ve İngilizce</li>
+    </ul>
+  </description>
+
+  <categories>
+    <category>Game</category>
+    <category>LogicGame</category>
+  </categories>
+  <keywords>
+    <keyword>sudoku</keyword>
+    <keyword>puzzle</keyword>
+    <keyword>logic</keyword>
+    <keyword>numbers</keyword>
+  </keywords>
+
+  <url type="homepage">https://github.com/r0madeus/just-sudoku</url>
+  <url type="bugtracker">https://github.com/r0madeus/just-sudoku/issues</url>
+  <url type="vcs-browser">https://github.com/r0madeus/just-sudoku</url>
+  <url type="faq">https://github.com/r0madeus/just-sudoku/blob/main/README.md</url>
+
+  <screenshots>
+    <screenshot type="default">
+      <image type="source">https://raw.githubusercontent.com/r0madeus/just-sudoku/main/fastlane/metadata/android/en-US/images/tenInchScreenshots/2_game.jpg</image>
+      <caption>A game in progress</caption>
+    </screenshot>
+    <screenshot>
+      <image type="source">https://raw.githubusercontent.com/r0madeus/just-sudoku/main/fastlane/metadata/android/en-US/images/tenInchScreenshots/1_statistics.jpg</image>
+      <caption>Statistics</caption>
+    </screenshot>
+  </screenshots>
+
+  <content_rating type="oars-1.1"/>
+
+  <branding>
+    <color type="primary" scheme_preference="light">#c7d8f6</color>
+    <color type="primary" scheme_preference="dark">#17294a</color>
+  </branding>
+
+  <supports>
+    <control>pointing</control>
+    <control>keyboard</control>
+    <control>touch</control>
+  </supports>
+  <requires>
+    <display_length compare="ge">360</display_length>
+  </requires>
+
+  <provides>
+    <binary>JustSudoku</binary>
+  </provides>
+
+  <releases>
+    <release version="1.1.0" date="2026-10-26">
+      <description>
+        <p>Plainer wording, and polish for the browser and wide windows.</p>
+      </description>
+      <url type="details">https://github.com/r0madeus/just-sudoku/releases/tag/v1.1.0</url>
+    </release>
+  </releases>
+</component>
