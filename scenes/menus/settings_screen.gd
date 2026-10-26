@@ -24,6 +24,8 @@ const PICKER_WIDTH: float = 168.0
 ## The Text size choices, in the order the dropdown lists them
 const TEXT_SIZE_ORDER: Array[String] = ["normal", "large", "xlarge"]
 ## The language choices in the picker's order, the phone's own first
+## The project's page on GitHub
+const REPO_URL: String = "https://github.com/r0madeus/just-sudoku"
 const LANG_ORDER: Array[String] = [AppSettings.LOCALE_SYSTEM, LocalizationManager.LOCALE_TR, LocalizationManager.LOCALE_EN]
 ## The theme choices in the picker's order, with the string key of each one's name
 const THEME_ORDER: Array[String] = [ThemeManager.THEME_SYSTEM, ThemeManager.THEME_DARK, ThemeManager.THEME_AMOLED,
@@ -32,6 +34,8 @@ const THEME_KEYS: Array[String] = ["OPTION_SYSTEM", "THEME_DARK", "THEME_AMOLED"
 var bg: ColorRect
 var margin: MarginContainer
 var back_btn: Button
+## The link in the header's far corner, level with the Back button
+var github_btn: Button
 var title_label: Label
 ## The sections; on a wide screen Appearance on the left, Gameplay and Feedback on the right
 var sections: AdaptiveColumns
@@ -177,9 +181,19 @@ func _build_ui() -> void:
 	title_label.theme_type_variation = "Header"
 	header.add_child(title_label)
 
-	var spacer := Control.new()
-	spacer.custom_minimum_size = Vector2(44, 0)
-	header.add_child(spacer)
+	# The project's page, in the corner opposite Back and the same size, which also keeps the title
+	# in the middle
+	github_btn = Button.new()
+	github_btn.text = ""
+	github_btn.tooltip_text = LocalizationManager.translate("BTN_GITHUB")
+	github_btn.theme_type_variation = "IconButton"
+	github_btn.icon = ThemeManager.get_icon("github")
+	github_btn.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	github_btn.add_theme_constant_override("icon_max_width", 18)
+	github_btn.custom_minimum_size = Vector2(44, 44)
+	github_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	github_btn.pressed.connect(func(): OS.shell_open(REPO_URL))
+	header.add_child(github_btn)
 
 	var header_sep := HSeparator.new()
 	root_vbox.add_child(header_sep)
@@ -566,6 +580,8 @@ func _update_locale_texts() -> void:
 		back_btn.text = ""
 		back_btn.tooltip_text = LocalizationManager.translate("BTN_BACK")
 		back_btn.icon = ThemeManager.get_icon("chevron-left")
+	if github_btn != null:
+		github_btn.tooltip_text = LocalizationManager.translate("BTN_GITHUB")
 	if title_label != null:
 		title_label.text = LocalizationManager.translate("SETTINGS_TITLE")
 

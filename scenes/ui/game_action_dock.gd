@@ -92,7 +92,8 @@ func _build_ui() -> void:
 
 	# 3. Notes Button
 	notes_btn = Button.new()
-	notes_btn.size_flags_vertical = SIZE_EXPAND_FILL
+	# Square, so the filled look is a circle
+	notes_btn.size_flags_vertical = SIZE_SHRINK_CENTER
 	notes_btn.size_flags_horizontal = SIZE_FILL
 	notes_btn.custom_minimum_size = Vector2(ResponsiveManager.TOUCH_TARGET_MIN, ResponsiveManager.TOUCH_TARGET_MIN)
 	notes_btn.theme_type_variation = "GhostButton"
@@ -123,7 +124,7 @@ func _build_ui() -> void:
 
 	# 3c. Colours
 	colors_btn = Button.new()
-	colors_btn.size_flags_vertical = SIZE_EXPAND_FILL
+	colors_btn.size_flags_vertical = SIZE_SHRINK_CENTER
 	colors_btn.custom_minimum_size = Vector2(ResponsiveManager.TOUCH_TARGET_MIN, ResponsiveManager.TOUCH_TARGET_MIN)
 	colors_btn.theme_type_variation = "GhostButton"
 	colors_btn.icon = ThemeManager.get_icon("palette")
@@ -223,21 +224,7 @@ func set_color_active(active: bool) -> void:
 func _update_colors_visuals() -> void:
 	if colors_btn == null:
 		return
-	if is_color_mode:
-		var sb_act := ThemeManager.create_flat_stylebox(
-			ThemeManager.get_color("accent_blue", ThemeManager.get_color("accent")),
-			ThemeManager.RADIUS_PILL_SM, 0, Color.TRANSPARENT, 4, 4
-		)
-		for state in ["normal", "hover", "pressed"]:
-			colors_btn.add_theme_stylebox_override(state, sb_act)
-		colors_btn.add_theme_color_override("icon_normal_color", Color.WHITE)
-		colors_btn.add_theme_color_override("icon_hover_color", Color.WHITE)
-		colors_btn.add_theme_color_override("icon_pressed_color", Color.WHITE)
-	else:
-		for state in ["normal", "hover", "pressed"]:
-			colors_btn.remove_theme_stylebox_override(state)
-		for c in ["icon_normal_color", "icon_hover_color", "icon_pressed_color"]:
-			colors_btn.remove_theme_color_override(c)
+	_set_toggled_look(colors_btn, is_color_mode)
 
 func set_hint_enabled(enabled: bool) -> void:
 	if hint_btn != null:
@@ -248,36 +235,28 @@ func _update_notes_visuals() -> void:
 		return
 	notes_btn.tooltip_text = LocalizationManager.translate("BTN_NOTES_ON") if is_notes_mode else LocalizationManager.translate("BTN_NOTES")
 	if is_notes_mode:
-		var is_dark := ThemeManager.get_color("bg").get_luminance() < 0.5
-		var highlight_border := Color(1.0, 1.0, 1.0, 0.22 if is_dark else 0.40)
-		var sb_act := ThemeManager.create_flat_stylebox(
-			ThemeManager.get_color("accent_blue", ThemeManager.get_color("accent")),
-			ThemeManager.RADIUS_PILL_SM,
-			ThemeManager.BORDER_HAIRLINE,
-			highlight_border,
-			10, 4,
-			ThemeManager.get_shadow_color(0.12),
-			3, Vector2(0, 1)
-		)
-		notes_btn.add_theme_stylebox_override("normal", sb_act)
-		notes_btn.add_theme_stylebox_override("hover", sb_act)
-		notes_btn.add_theme_stylebox_override("pressed", sb_act)
-		for c in ["icon_normal_color", "icon_hover_color", "icon_pressed_color"]:
-			notes_btn.add_theme_color_override(c, Color.WHITE)
+		_set_toggled_look(notes_btn, true)
 	else:
-		# Off state: outlined pill, so it reads as a toggle next to the plain action buttons
-		var sb_off := ThemeManager.create_flat_stylebox(
-			Color.TRANSPARENT,
-			ThemeManager.RADIUS_PILL_SM,
-			ThemeManager.BORDER_HAIRLINE,
-			ThemeManager.get_color("border_subtle"),
-			10, 4
+		# Off: the same plain button as the others, no outline (the outline was the odd one out)
+		_set_toggled_look(notes_btn, false)
+
+## A toggle that is on is a filled circle in the accent colour with a white icon; off, it is the
+## plain button. No border: a border over the anti-aliased edge of the fill shows as a ring.
+func _set_toggled_look(btn: Button, on: bool) -> void:
+	if on:
+		var sb := ThemeManager.create_flat_stylebox(
+			ThemeManager.get_color("accent_blue", ThemeManager.get_color("accent")),
+			ThemeManager.RADIUS_CAPSULE, ThemeManager.BORDER_NONE, Color.TRANSPARENT, 4, 4
 		)
-		notes_btn.add_theme_stylebox_override("normal", sb_off)
-		notes_btn.remove_theme_stylebox_override("hover")
-		notes_btn.remove_theme_stylebox_override("pressed")
+		for state in ["normal", "hover", "pressed"]:
+			btn.add_theme_stylebox_override(state, sb)
 		for c in ["icon_normal_color", "icon_hover_color", "icon_pressed_color"]:
-			notes_btn.remove_theme_color_override(c)
+			btn.add_theme_color_override(c, Color.WHITE)
+	else:
+		for state in ["normal", "hover", "pressed"]:
+			btn.remove_theme_stylebox_override(state)
+		for c in ["icon_normal_color", "icon_hover_color", "icon_pressed_color"]:
+			btn.remove_theme_color_override(c)
 
 func _update_locale_texts() -> void:
 	if undo_btn != null:

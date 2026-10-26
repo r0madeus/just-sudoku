@@ -129,6 +129,10 @@ MUTATIONS = [
  ("M117", "scenes/gameplay/dialogs/solution_dialog.gd", "\tprimary_btn.visible = false\n", "\tprimary_btn.visible = true\n", "The solution viewer has two Close buttons"),
  ("M118", "scenes/menus/history_screen.gd", "\t_row_total = records.size()\n", "", "History is one column however many entries there are"),
  ("M119", "scenes/menus/load_game_screen.gd", "\t_row_total = games.size()\n", "", "Saved games are one column however many there are"),
+ ("M120", "scenes/menus/settings_screen.gd", "\theader.add_child(github_btn)\n", "", "Settings has no GitHub link"),
+ ("M121", "scenes/ui/game_action_dock.gd", "\t\t\tThemeManager.RADIUS_CAPSULE, ThemeManager.BORDER_NONE, Color.TRANSPARENT, 4, 4\n", "\t\t\tThemeManager.RADIUS_PILL_SM, ThemeManager.BORDER_NONE, Color.TRANSPARENT, 4, 4\n", "The Notes and Colours buttons are rounded squares when on, not circles"),
+ ("M122", "scenes/menus/main_menu.gd", "\tresume_card.custom_minimum_size.y = actions_h\n", "", "On a wide window the resume card is shorter than the actions beside it and sits lower"),
+ ("M123", "scenes/ui/game_action_dock.gd", "\t\tfor state in [\"normal\", \"hover\", \"pressed\"]:\n\t\t\tbtn.remove_theme_stylebox_override(state)\n", "\t\tbtn.add_theme_stylebox_override(\"normal\", ThemeManager.create_flat_stylebox(Color.TRANSPARENT, ThemeManager.RADIUS_PILL_SM, ThemeManager.BORDER_HAIRLINE, ThemeManager.get_color(\"border_subtle\"), 10, 4))\n", "The Notes button has an outline when off"),
 ]
 
 def main():
