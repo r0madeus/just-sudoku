@@ -2,6 +2,25 @@
 
 All notable changes to Just Sudoku. Türkçesi aşağıda / Turkish below each version.
 
+## [1.1.0] - 2026-10-26
+
+Plainer wording, and polish for the browser and wide windows.
+
+- Wording: a saved game says how much of it is "complete" (not "filled"), in the resume card and the saved games list. In Turkish "tamamlandı" instead of "dolu" and "İlerleme".
+- The Daily Sudoku card is its name alone; the line under it shows only when there is a streak.
+- The browser version's loading screen shows the game's name in its own typeface, with the blue square, above a thin progress line, instead of a bare progress bar.
+- The solution viewer has one Close button (the X), not two.
+- On a wide window a single saved game or history entry spans the width, its buttons at the far edge, instead of sitting in half of it.
+- Screenshots in the README and the stores show the new look, including the black AMOLED theme.
+
+**Türkçe**
+- Metin: kayıtlı oyun, ne kadarının "tamamlandığını" söylüyor (son oyun kartında ve kayıtlı oyunlar listesinde); "dolu" ve "İlerleme" yerine "tamamlandı".
+- Günün Sudokusu kartında yalnızca isim var; altındaki satır sadece seri varken görünüyor.
+- Tarayıcı sürümünün yükleme ekranı, çıplak ilerleme çubuğu yerine oyunun adını kendi yazı tipiyle, mavi kareyle ve altında ince bir ilerleme çizgisiyle gösteriyor.
+- Çözüm penceresinde iki yerine tek Kapat düğmesi (X) var.
+- Geniş pencerede tek başına kalan kayıtlı oyun ya da geçmiş satırı, yarısına sıkışmak yerine tüm genişliği kaplıyor, düğmeleri kartın ucunda.
+- README ve mağaza ekran görüntüleri yeni görünümü, siyah AMOLED temasını da, gösteriyor.
+
 ## [1.0.3] - 2026-10-26
 
 Digit entry fixed, a truly black AMOLED theme, and the game outside the phone.
