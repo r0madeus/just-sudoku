@@ -57,7 +57,7 @@ Just Sudoku asks for no permission except vibration. It has no internet permissi
 
 ## Download
 
-Version 1.0.0, for Android 7.0 and up (64-bit ARM).
+Version 1.0.3, for Android 7.0 and up (64-bit ARM).
 
 - **APK:** from the [Releases](https://github.com/r0madeus/just-sudoku/releases) page, with its SHA-256 checksum. What changed in each version: [CHANGELOG.md](CHANGELOG.md).
 - **In the browser:** every version of `main` is published on GitHub Pages at <https://r0madeus.github.io/just-sudoku/> (the same build is a zip under *Artifacts* of the [Web](https://github.com/r0madeus/just-sudoku/actions/workflows/web.yml) runs, ready to upload to itch.io as an HTML5 game). On a phone or in Chrome/Edge you can install it as an app (browser menu → *Install app* / *Add to Home screen*); it then also works offline. Progress is kept in the browser's own storage, so clearing site data erases it; Back up (in Settings) works through the clipboard.
