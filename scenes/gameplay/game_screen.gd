@@ -657,6 +657,21 @@ func _on_action_dock_notes_toggled(active: bool) -> void:
 
 func _on_colors_toggled(active: bool) -> void:
 	_set_color_mode(active)
+	# The palette does not say what it is for: the first time, a few words
+	if active and not AppSettings.colors_hint_seen:
+		AppSettings.colors_hint_seen = true
+		AppSettings.save_config()
+		var info := AppModal.new()
+		info.title = LocalizationManager.translate("COLORS_HINT_TITLE")
+		info.dialog_text = LocalizationManager.translate("COLORS_HINT_BODY")
+		info.ok_button_text = LocalizationManager.translate("COLORS_HINT_OK")
+		info.cancel_btn.visible = false
+		add_child(info)
+		info.visibility_changed.connect(func():
+			if not info.visible:
+				info.queue_free()
+		)
+		info.open_modal()
 
 ## Colour mode turns the keys into colours; it and notes mode exclude each other
 func _set_color_mode(active: bool) -> void:
@@ -679,7 +694,6 @@ func _on_notes_toggle_pressed() -> void:
 		_on_action_dock_notes_toggled(action_dock.is_notes_mode)
 	else:
 		numpad.toggle_notes_mode()
-		notes_btn.text = LocalizationManager.translate("BTN_NOTES_ON") if numpad.is_notes_mode else LocalizationManager.translate("BTN_NOTES")
 		_update_numpad_states()
 
 func _on_fill_notes_pressed() -> void:
@@ -821,8 +835,6 @@ func _update_locale_texts() -> void:
 		redo_btn.text = LocalizationManager.translate("BTN_REDO")
 	if erase_btn != null:
 		erase_btn.text = LocalizationManager.translate("BTN_ERASE")
-	if notes_btn != null:
-		notes_btn.text = LocalizationManager.translate("BTN_NOTES_ON") if (numpad != null and numpad.is_notes_mode) else LocalizationManager.translate("BTN_NOTES")
 	if hint_btn != null:
 		hint_btn.text = LocalizationManager.translate("BTN_HINT")
 	if hint_dialog != null:

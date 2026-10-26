@@ -22,6 +22,8 @@ static var auto_open_last_game: bool = true
 static var smart_numpad_enabled: bool = true
 ## Pick a digit first, then tap the cells it goes in
 static var digit_first: bool = false
+## Whether the one-time note on what the Colours button is for has been shown
+static var colors_hint_seen: bool = false
 static var auto_remove_notes: bool = true
 static var smart_candidates_enabled: bool = false
 static var show_conflicts: bool = true
@@ -58,6 +60,7 @@ static func save_config() -> void:
 		"auto_open": auto_open_last_game,
 		"smart_numpad": smart_numpad_enabled,
 		"digit_first": digit_first,
+		"colors_hint_seen": colors_hint_seen,
 		"auto_notes": auto_remove_notes,
 		"smart_candidates": smart_candidates_enabled,
 		"show_conflicts": show_conflicts,
@@ -94,6 +97,7 @@ static func load_config() -> void:
 		auto_open_last_game = json.data.get("auto_open", true)
 		smart_numpad_enabled = json.data.get("smart_numpad", true)
 		digit_first = json.data.get("digit_first", false)
+		colors_hint_seen = bool(json.data.get("colors_hint_seen", false))
 		auto_remove_notes = json.data.get("auto_notes", true)
 		smart_candidates_enabled = json.data.get("smart_candidates", false)
 		show_conflicts = json.data.get("show_conflicts", true)

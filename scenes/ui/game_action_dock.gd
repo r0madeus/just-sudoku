@@ -92,11 +92,15 @@ func _build_ui() -> void:
 
 	# 3. Notes Button
 	notes_btn = Button.new()
-	notes_btn.size_flags_horizontal = SIZE_EXPAND_FILL
 	notes_btn.size_flags_vertical = SIZE_EXPAND_FILL
-	notes_btn.custom_minimum_size = Vector2(68, ResponsiveManager.TOUCH_TARGET_MIN)
+	notes_btn.size_flags_horizontal = SIZE_FILL
+	notes_btn.custom_minimum_size = Vector2(ResponsiveManager.TOUCH_TARGET_MIN, ResponsiveManager.TOUCH_TARGET_MIN)
 	notes_btn.theme_type_variation = "GhostButton"
-	ThemeManager.set_font_size(notes_btn, 14)
+	# An icon, like Colours next to it: the pencil is what players know notes by, and the state
+	# shows as the filled button
+	notes_btn.icon = ThemeManager.get_icon("pencil")
+	notes_btn.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	notes_btn.add_theme_constant_override("icon_max_width", 18)
 	notes_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	notes_btn.pressed.connect(func():
 		set_notes_active(not is_notes_mode)
@@ -178,7 +182,7 @@ func set_size_scale(scale: float) -> void:
 		btn.custom_minimum_size.y = h
 		ThemeManager.set_font_size(btn, 14.0 * scale)
 		btn.add_theme_constant_override("icon_max_width", roundi(18.0 * scale))
-	notes_btn.custom_minimum_size.x = 68.0 * scale
+	notes_btn.custom_minimum_size.x = h
 	fill_notes_btn.custom_minimum_size.x = h
 	colors_btn.custom_minimum_size.x = h
 	if _available_width > 0.0:
@@ -242,7 +246,7 @@ func set_hint_enabled(enabled: bool) -> void:
 func _update_notes_visuals() -> void:
 	if notes_btn == null:
 		return
-	notes_btn.text = LocalizationManager.translate("BTN_NOTES_ON") if is_notes_mode else LocalizationManager.translate("BTN_NOTES")
+	notes_btn.tooltip_text = LocalizationManager.translate("BTN_NOTES_ON") if is_notes_mode else LocalizationManager.translate("BTN_NOTES")
 	if is_notes_mode:
 		var is_dark := ThemeManager.get_color("bg").get_luminance() < 0.5
 		var highlight_border := Color(1.0, 1.0, 1.0, 0.22 if is_dark else 0.40)
@@ -258,7 +262,8 @@ func _update_notes_visuals() -> void:
 		notes_btn.add_theme_stylebox_override("normal", sb_act)
 		notes_btn.add_theme_stylebox_override("hover", sb_act)
 		notes_btn.add_theme_stylebox_override("pressed", sb_act)
-		notes_btn.add_theme_color_override("font_color", Color.WHITE)
+		for c in ["icon_normal_color", "icon_hover_color", "icon_pressed_color"]:
+			notes_btn.add_theme_color_override(c, Color.WHITE)
 	else:
 		# Off state: outlined pill, so it reads as a toggle next to the plain action buttons
 		var sb_off := ThemeManager.create_flat_stylebox(
@@ -271,7 +276,8 @@ func _update_notes_visuals() -> void:
 		notes_btn.add_theme_stylebox_override("normal", sb_off)
 		notes_btn.remove_theme_stylebox_override("hover")
 		notes_btn.remove_theme_stylebox_override("pressed")
-		notes_btn.remove_theme_color_override("font_color")
+		for c in ["icon_normal_color", "icon_hover_color", "icon_pressed_color"]:
+			notes_btn.remove_theme_color_override(c)
 
 func _update_locale_texts() -> void:
 	if undo_btn != null:
@@ -286,7 +292,7 @@ func _update_locale_texts() -> void:
 	if fill_notes_btn != null:
 		fill_notes_btn.tooltip_text = LocalizationManager.translate("BTN_FILL_NOTES")
 	if colors_btn != null:
-		colors_btn.tooltip_text = LocalizationManager.translate("BTN_COLORS")
+		colors_btn.tooltip_text = LocalizationManager.translate("BTN_COLORS_TIP")
 	_update_notes_visuals()
 	# Other languages have other label lengths, so re-check the fit
 	if _available_width > 0.0:

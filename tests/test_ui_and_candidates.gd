@@ -141,7 +141,7 @@ func _init() -> void:
 		return is_visible
 	)
 
-	run_test.call("Action Bar shows 4 expanding buttons and one icon toggle in and outside notes mode", func() -> bool:
+	run_test.call("Action Bar shows Undo, Redo and Hint, and the Notes and Colours icon toggles, in and outside notes mode", func() -> bool:
 		var screen := GameScreen.new()
 		root.add_child(screen)
 
@@ -158,7 +158,8 @@ func _init() -> void:
 			return false
 
 		for b in buttons:
-			if b == screen.action_dock.colors_btn:
+			# The icon toggles keep their square size; the labelled buttons share the rest
+			if b == screen.action_dock.colors_btn or b == screen.action_dock.notes_btn:
 				continue
 			if b is Button:
 				if b.size_flags_horizontal != Control.SIZE_EXPAND_FILL:

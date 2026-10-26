@@ -116,6 +116,10 @@ MUTATIONS = [
  ("M104", "scenes/ui/ambient_backdrop.gd", "\tif amoled:\n\t\tbase_strength = 0.0\n", "\tif amoled:\n\t\tbase_strength = 0.12\n", "AMOLED has glows again: not black"),
  ("M105", "scenes/ui/ambient_backdrop.gd", "0.0 if amoled else 1.0", "1.0", "AMOLED's noise lights pixels of the black page"),
  ("M106", "scenes/ui/glass_panel.gd", "\t_material.shader = _flat_shader if flat else _shader\n", "\t_material.shader = _shader\n", "AMOLED glass copies and blurs the screen again"),
+ ("M107", "scenes/ui/game_action_dock.gd", "\tnotes_btn.icon = ThemeManager.get_icon(\"pencil\")\n", "\tnotes_btn.text = \"Notes\"\n", "The Notes button is a word again"),
+ ("M108", "scenes/gameplay/game_screen.gd", "\tif active and not AppSettings.colors_hint_seen:\n", "\tif active:\n", "The Colours note opens every time"),
+ ("M109", "scenes/gameplay/game_screen.gd", "\t\tAppSettings.colors_hint_seen = true\n\t\tAppSettings.save_config()\n", "", "The Colours note is never remembered as seen"),
+ ("M110", "scripts/services/app_settings.gd", "\t\t\"colors_hint_seen\": colors_hint_seen,\n", "", "The Colours note is shown again on every start"),
 ]
 
 def main():
