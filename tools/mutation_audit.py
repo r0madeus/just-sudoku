@@ -133,6 +133,12 @@ MUTATIONS = [
  ("M121", "scenes/ui/game_action_dock.gd", "\t\t\tThemeManager.RADIUS_CAPSULE, ThemeManager.BORDER_NONE, Color.TRANSPARENT, 4, 4\n", "\t\t\tThemeManager.RADIUS_PILL_SM, ThemeManager.BORDER_NONE, Color.TRANSPARENT, 4, 4\n", "The Notes and Colours buttons are rounded squares when on, not circles"),
  ("M122", "scenes/menus/main_menu.gd", "\tresume_card.custom_minimum_size.y = actions_h\n", "", "On a wide window the resume card is shorter than the actions beside it and sits lower"),
  ("M123", "scenes/ui/game_action_dock.gd", "\t\tfor state in [\"normal\", \"hover\", \"pressed\"]:\n\t\t\tbtn.remove_theme_stylebox_override(state)\n", "\t\tbtn.add_theme_stylebox_override(\"normal\", ThemeManager.create_flat_stylebox(Color.TRANSPARENT, ThemeManager.RADIUS_PILL_SM, ThemeManager.BORDER_HAIRLINE, ThemeManager.get_color(\"border_subtle\"), 10, 4))\n", "The Notes button has an outline when off"),
+ ("M124", "scenes/ui/toggle_switch.gd", "or not AppSettings.animations_enabled:\n\t\tposition_t = target", ":\n\t\tposition_t = target", "The switch slides even with animations off"),
+ ("M125", "scenes/menus/settings_screen.gd", "	glass_check = ToggleSwitch.new()\n", "	glass_check = CheckBox.new()\n", "A Settings row is a check box again, not a switch"),
+ ("M126", "scenes/ui/glass_panel.gd", " or not AppSettings.glass_effects\n", "\n", "Glass effects off still draws the blurred glass"),
+ ("M127", "scenes/ui/app_modal.gd", "	if blur_background and AppSettings.glass_effects:\n", "	if blur_background:\n", "Glass effects off still blurs the backdrop behind dialogs"),
+ ("M128", "scenes/app_root.gd", "	AppSettings.web_notice_seen = true\n	AppSettings.save_config()\n	var note := AppModal.new()", "	var note := AppModal.new()", "The browser's note about saved progress is shown on every start"),
+ ("M129", "scenes/menus/backup_section.gd", "	_modal_host().add_child(_choice)\n", "	get_tree().root.add_child(_choice)\n", "The backup dialog comes out in Godot's grey default look"),
 ]
 
 def main():

@@ -8,6 +8,7 @@ const SettingRow = preload("res://scenes/ui/setting_row.gd")
 const ResponsiveManager = preload("res://scripts/services/responsive_manager.gd")
 const AmbientBackdrop = preload("res://scenes/ui/ambient_backdrop.gd")
 const GlassPanel = preload("res://scenes/ui/glass_panel.gd")
+const ToggleSwitch = preload("res://scenes/ui/toggle_switch.gd")
 const AdaptiveColumns = preload("res://scenes/ui/adaptive_columns.gd")
 const BackupSection = preload("res://scenes/menus/backup_section.gd")
 
@@ -62,6 +63,8 @@ var theme_row: SettingRow
 var custom_theme_row: SettingRow
 var font_row: SettingRow
 var text_size_row: SettingRow
+var glass_row: SettingRow
+var glass_check: CheckBox
 
 var auto_open_row: SettingRow
 var smart_numpad_row: SettingRow
@@ -320,6 +323,19 @@ func _build_ui() -> void:
 	text_size_option.title_source = text_size_row.title_label
 	app_vbox.add_child(text_size_row)
 
+	app_vbox.add_child(_create_divider())
+
+	# Glass effects: the frosted, blurred cards, which cost the most to draw
+	glass_check = ToggleSwitch.new()
+	glass_check.button_pressed = AppSettings.glass_effects
+	glass_check.toggled.connect(func(v):
+		AppSettings.glass_effects = v
+		AppSettings.save_config()
+		ThemeManager.notify_changed()
+	)
+	glass_row = SettingRow.new("", "", glass_check)
+	app_vbox.add_child(glass_row)
+
 	# =========================================================================
 	# 2. Gameplay Section (Oynanış)
 	# =========================================================================
@@ -345,7 +361,7 @@ func _build_ui() -> void:
 	card_gameplay.add_child(game_vbox)
 
 	# Auto open last game
-	auto_open_check = CheckBox.new()
+	auto_open_check = ToggleSwitch.new()
 	auto_open_check.button_pressed = AppSettings.auto_open_last_game
 	auto_open_check.toggled.connect(func(v): AppSettings.auto_open_last_game = v; AppSettings.save_config())
 
@@ -356,7 +372,7 @@ func _build_ui() -> void:
 	game_vbox.add_child(_create_divider())
 
 	# Smart numpad
-	smart_numpad_check = CheckBox.new()
+	smart_numpad_check = ToggleSwitch.new()
 	smart_numpad_check.button_pressed = AppSettings.smart_numpad_enabled
 	smart_numpad_check.toggled.connect(func(v): AppSettings.smart_numpad_enabled = v; AppSettings.save_config())
 
@@ -367,7 +383,7 @@ func _build_ui() -> void:
 	game_vbox.add_child(_create_divider())
 
 	# Digit first
-	digit_first_check = CheckBox.new()
+	digit_first_check = ToggleSwitch.new()
 	digit_first_check.button_pressed = AppSettings.digit_first
 	digit_first_check.toggled.connect(func(v): AppSettings.digit_first = v; AppSettings.save_config())
 
@@ -377,7 +393,7 @@ func _build_ui() -> void:
 	game_vbox.add_child(_create_divider())
 
 	# Auto notes
-	auto_notes_check = CheckBox.new()
+	auto_notes_check = ToggleSwitch.new()
 	auto_notes_check.button_pressed = AppSettings.auto_remove_notes
 	auto_notes_check.toggled.connect(func(v): AppSettings.auto_remove_notes = v; AppSettings.save_config())
 
@@ -388,7 +404,7 @@ func _build_ui() -> void:
 	game_vbox.add_child(_create_divider())
 
 	# Smart candidates
-	smart_candidates_check = CheckBox.new()
+	smart_candidates_check = ToggleSwitch.new()
 	smart_candidates_check.button_pressed = AppSettings.smart_candidates_enabled
 	smart_candidates_check.toggled.connect(func(v): AppSettings.smart_candidates_enabled = v; AppSettings.save_config())
 
@@ -421,7 +437,7 @@ func _build_ui() -> void:
 	card_feedback.add_child(feed_vbox)
 
 	# Show conflicts
-	conflict_check = CheckBox.new()
+	conflict_check = ToggleSwitch.new()
 	conflict_check.button_pressed = AppSettings.show_conflicts
 	conflict_check.toggled.connect(func(v): AppSettings.show_conflicts = v; AppSettings.save_config())
 
@@ -432,7 +448,7 @@ func _build_ui() -> void:
 	feed_vbox.add_child(_create_divider())
 
 	# Show wrong digits right away (off by default: GDD §18 reveals them with Check)
-	var wrong_check := CheckBox.new()
+	var wrong_check := ToggleSwitch.new()
 	wrong_check.button_pressed = AppSettings.show_wrong_immediately
 	wrong_check.toggled.connect(func(v): AppSettings.show_wrong_immediately = v; AppSettings.save_config())
 	wrong_row = SettingRow.new("", "", wrong_check)
@@ -441,7 +457,7 @@ func _build_ui() -> void:
 	feed_vbox.add_child(_create_divider())
 
 	# UI Animations
-	anim_check = CheckBox.new()
+	anim_check = ToggleSwitch.new()
 	anim_check.button_pressed = AppSettings.animations_enabled
 	anim_check.toggled.connect(func(v): AppSettings.animations_enabled = v; AppSettings.save_config())
 
@@ -452,7 +468,7 @@ func _build_ui() -> void:
 	feed_vbox.add_child(_create_divider())
 
 	# UI Sounds
-	sound_check = CheckBox.new()
+	sound_check = ToggleSwitch.new()
 	sound_check.button_pressed = AppSettings.sounds_enabled
 	sound_check.toggled.connect(func(v): AppSettings.sounds_enabled = v; AppSettings.save_config())
 
@@ -463,7 +479,7 @@ func _build_ui() -> void:
 	# Vibration (phones only)
 	if Haptics.is_available():
 		feed_vbox.add_child(_create_divider())
-		var haptics_check := CheckBox.new()
+		var haptics_check := ToggleSwitch.new()
 		haptics_check.button_pressed = AppSettings.haptics_enabled
 		haptics_check.toggled.connect(func(v): AppSettings.haptics_enabled = v; AppSettings.save_config())
 		haptics_row = SettingRow.new("", "", haptics_check)
@@ -641,6 +657,9 @@ func _update_locale_texts() -> void:
 	if text_size_row != null:
 		text_size_row.set_title(LocalizationManager.translate("SETTING_TEXT_SIZE"))
 		text_size_row.set_description(LocalizationManager.translate("SETTING_DESC_TEXT_SIZE"))
+	if glass_row != null:
+		glass_row.set_title(LocalizationManager.translate("SETTING_GLASS"))
+		glass_row.set_description(LocalizationManager.translate("SETTING_DESC_GLASS"))
 	if text_size_option != null:
 		for i in range(TEXT_SIZE_ORDER.size()):
 			text_size_option.set_item_text(i, LocalizationManager.translate("TEXT_SIZE_" + TEXT_SIZE_ORDER[i].to_upper()))
