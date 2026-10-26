@@ -29,8 +29,6 @@ Builds:
       # F-Droid signs the APK itself: export it unsigned, with the template built below
       - sed -i -e 's/^package\/signed=true/package\/signed=false/' -e "s|^custom_template/release=.*|custom_template/release=\"$$godot$$/bin/android_release.apk\"|"
         export_presets.cfg
-    scanignore:
-      - addons/godot_mcp
     build:
       # 1. The Android export template with only what the game uses
       - pushd $$godot$$

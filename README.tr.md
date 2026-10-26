@@ -138,7 +138,7 @@ Ayrıntılar [docs/testing.md](docs/testing.md) dosyasında. Orada `tools/mutati
 | `docs/` | Android, Linux, testler, sürüm yayınlama, F-Droid ve bu README'deki resimler |
 | `fastlane/` | Mağaza metinleri, simge ve ekran görüntüleri (bu README de onları kullanıyor) |
 
-`Just Sudoku GDD.md` ilk tasarım belgesi; eski, oyunun bugünkü hâlini anlatmıyor. `addons/godot_mcp/` geliştirme sırasında kullanılan bir editör eklentisi, oyunun parçası değil.
+`Just Sudoku GDD.md` ilk tasarım belgesi; eski, oyunun bugünkü hâlini anlatmıyor.
 
 ## Katkı
 

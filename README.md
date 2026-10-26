@@ -126,7 +126,7 @@ Runs all 68 test suites, four at a time, each with its own empty save folder (un
 | `docs/` | Android, Linux, testing, releases, F-Droid, and the pictures in this README |
 | `fastlane/` | Store texts, icon and screenshots (also used by this README) |
 
-`Just Sudoku GDD.md` is the first design document (in Turkish); it is out of date and does not describe the game as it is now. `addons/godot_mcp/` is an editor add-on used during development; it is not part of the game.
+`Just Sudoku GDD.md` is the first design document (in Turkish); it is out of date and does not describe the game as it is now.
 
 ## Contributing
 
