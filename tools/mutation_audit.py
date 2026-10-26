@@ -112,6 +112,7 @@ MUTATIONS = [
  ("M100", "scenes/menus/main_menu.gd", "\twordmark.add_child(wordmark_dot_holder)\n", "", "The name has no full stop"),
  ("M101", "scenes/menus/main_menu.gd", "\t\t_fit_wordmark_dot.call_deferred()\n", "\t\t_fit_wordmark_dot()\n", "The full stop is sized from a font size the label does not have yet (4 px)"),
  ("M102", "scenes/menus/main_menu.gd", "\tsb.bg_color = ThemeManager.get_color(\"accent_blue\", ThemeManager.get_color(\"accent\"))\n\tsb.set_corner_radius_all(maxi(2, int(side * 0.28)))", "\tsb.bg_color = Color.WHITE\n\tsb.set_corner_radius_all(maxi(2, int(side * 0.28)))", "The full stop is not in the accent colour"),
+ ("M103", "scenes/app_root.gd", "\tif event is InputEventScreenTouch or event is InputEventScreenDrag:\n\t\tget_viewport().set_input_as_handled()\n", "\tif false:\n\t\tget_viewport().set_input_as_handled()\n", "A tap on a touch screen presses a key twice: the digit goes in and comes straight out"),
 ]
 
 def main():

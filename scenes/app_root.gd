@@ -164,6 +164,14 @@ func _on_theme_changed() -> void:
 func _rebuild_theme() -> void:
 	theme = ThemeManager.build_godot_theme()
 
+## A touch reaches the screen twice, as a touch and as the mouse event Godot makes from it, and a
+## Button counts both as a press: a digit key put the digit down and took it out again, a check box
+## switched twice. The mouse event does everything, so the touch itself goes no further (the
+## scrolling lists have already seen it by now: they are below this node and take it first).
+func _input(event: InputEvent) -> void:
+	if event is InputEventScreenTouch or event is InputEventScreenDrag:
+		get_viewport().set_input_as_handled()
+
 func _notification(what: int) -> void:
 	# Android back button (quit_on_go_back is off): modal -> screen -> menu -> quit
 	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
