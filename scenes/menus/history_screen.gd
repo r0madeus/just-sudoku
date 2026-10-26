@@ -28,6 +28,8 @@ var sort_lbl: Label
 var sort_opt: PickerButton
 ## The rows: one column on a phone, two on a wide screen
 var list_vbox: GridContainer
+## How many rows the list holds (they arrive a few at a time)
+var _row_total: int = 0
 var list_card: PanelContainer
 
 const STATUS_KEYS: Array[String] = [
@@ -351,6 +353,7 @@ func refresh_history() -> void:
 		return
 
 	_pending_records = records
+	_row_total = records.size()
 	_pending_best_map = HistoryManager.get_best_records_map()
 	_pager.start(records.size(), _add_record_row)
 	_update_list_columns()
@@ -364,12 +367,13 @@ func _add_record_row(i: int) -> void:
 	item.replay_pressed.connect(func(s, d): replay_requested.emit(s, d))
 	list_vbox.add_child(item)
 
-## Two columns of rows on a wide screen; the empty-list message keeps the full width
+## Two columns of rows on a wide screen (one row alone keeps the full width); the empty-list
+## message keeps the full width
 func _update_list_columns() -> void:
 	if list_vbox == null:
 		return
 	var has_rows: bool = list_vbox.get_child_count() > 0 and list_vbox.get_child(0) is GameRecordItem
-	var cols: int = ResponsiveManager.content_columns(ResponsiveManager.get_viewport_size(self)) if has_rows else 1
+	var cols: int = ResponsiveManager.list_columns(ResponsiveManager.get_viewport_size(self), _row_total) if has_rows else 1
 	if list_vbox.columns != cols:
 		list_vbox.columns = cols
 		# Each row draws the hairline above it, except on the first line

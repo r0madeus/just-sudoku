@@ -121,6 +121,14 @@ MUTATIONS = [
  ("M109", "scenes/gameplay/game_screen.gd", "\t\tAppSettings.colors_hint_seen = true\n\t\tAppSettings.save_config()\n", "", "The Colours note is never remembered as seen"),
  ("M110", "scripts/services/app_settings.gd", "\t\t\"colors_hint_seen\": colors_hint_seen,\n", "", "The Colours note is shown again on every start"),
  ("M111", "scripts/services/theme_builder.gd", "ThemeManager.RADIUS_CAPSULE, ThemeManager.BORDER_NONE, Color.TRANSPARENT, 20, 10, ThemeManager.get_shadow_color(0.14)", "ThemeManager.RADIUS_CAPSULE, ThemeManager.BORDER_HAIRLINE, highlight_border, 20, 10, ThemeManager.get_shadow_color(0.14)", "The filled capsule buttons have a ring around their edge again"),
+ ("M112", "scripts/services/strings_en.gd", "\"RESUME_PROGRESS\": \"%d%% complete\"", "\"RESUME_PROGRESS\": \"%d%% filled\"", "The resume card says filled again"),
+ ("M113", "scripts/services/strings_tr.gd", "\"PROGRESS_LABEL\": \"%s tamamlandı\"", "\"PROGRESS_LABEL\": \"İlerleme: %s\"", "The saved games list says İlerleme again"),
+ ("M114", "scenes/menus/main_menu.gd", "\t\tdaily_meta_label.visible = streak > 0\n", "\t\tdaily_meta_label.visible = true\n", "The Daily card has an empty line under its name when there is no streak"),
+ ("M115", "web/shell.html", "Just Sudoku<i></i>", "Just Sudoku", "The browser's loading screen lost the blue full stop"),
+ ("M116", "scripts/services/responsive_manager.gd", "\treturn clampi(mini(content_columns(viewport_size), row_count), 1, 2)", "\treturn content_columns(viewport_size)", "A lone row sits in half of a wide window with its buttons mid-screen"),
+ ("M117", "scenes/gameplay/dialogs/solution_dialog.gd", "\tprimary_btn.visible = false\n", "\tprimary_btn.visible = true\n", "The solution viewer has two Close buttons"),
+ ("M118", "scenes/menus/history_screen.gd", "\t_row_total = records.size()\n", "", "History is one column however many entries there are"),
+ ("M119", "scenes/menus/load_game_screen.gd", "\t_row_total = games.size()\n", "", "Saved games are one column however many there are"),
 ]
 
 def main():

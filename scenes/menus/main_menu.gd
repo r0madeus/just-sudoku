@@ -242,10 +242,10 @@ func refresh_buttons() -> void:
 
 	var streak := DailyManager.get_current_streak()
 	if daily_meta_label != null:
+		# The name says what it is; the line under it is only there when there is a streak to show
+		daily_meta_label.visible = streak > 0
 		if streak > 0:
 			daily_meta_label.text = LocalizationManager.format_streak(streak)
-		else:
-			daily_meta_label.text = LocalizationManager.translate("DAILY_SUBTITLE")
 
 func _build_ui() -> void:
 	bg = AmbientBackdrop.new()

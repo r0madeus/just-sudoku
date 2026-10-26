@@ -23,6 +23,8 @@ var title: Label
 var import_btn: Button
 ## The rows: one column on a phone, two on a wide screen
 var list_vbox: GridContainer
+## How many rows the list holds (they arrive a few at a time); a lone row spans the whole width
+var _row_total: int = 0
 var list_card: PanelContainer
 var _list_dirty: bool = true
 
@@ -208,6 +210,7 @@ func refresh_list() -> void:
 		_update_list_columns()
 		return
 
+	_row_total = games.size()
 	_pager.start(games.size(), func(i: int): _add_game_item(games[i]))
 	_update_list_columns()
 
@@ -241,12 +244,13 @@ func _add_game_item(g: Dictionary) -> void:
 	)
 	list_vbox.add_child(item)
 
-## Two columns of rows on a wide screen; the empty-list message keeps the full width
+## Two columns of rows on a wide screen (one row alone keeps the full width, with its buttons at
+## the far edge instead of mid-screen); the empty-list message keeps the full width
 func _update_list_columns() -> void:
 	if list_vbox == null:
 		return
 	var has_rows: bool = list_vbox.get_child_count() > 0 and list_vbox.get_child(0) is GameRecordItem
-	var cols: int = ResponsiveManager.content_columns(ResponsiveManager.get_viewport_size(self)) if has_rows else 1
+	var cols: int = ResponsiveManager.list_columns(ResponsiveManager.get_viewport_size(self), _row_total) if has_rows else 1
 	if list_vbox.columns != cols:
 		list_vbox.columns = cols
 		# Each row draws the hairline above it, except on the first line

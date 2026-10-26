@@ -190,6 +190,11 @@ static func content_columns(viewport_size: Vector2) -> int:
 		return 1
 	return 2 if viewport_size.x >= TWO_COLUMN_MIN_WIDTH else 1
 
+## Columns for a list of `row_count` rows: the screen's columns, but never more than there are rows,
+## so a lone row spans the width (its buttons at the far edge) instead of sitting in half of it
+static func list_columns(viewport_size: Vector2, row_count: int) -> int:
+	return clampi(mini(content_columns(viewport_size), row_count), 1, 2)
+
 ## Shorter side, in dp, from which a device counts as a tablet
 const TABLET_MIN_SHORT_SIDE: float = 600.0
 

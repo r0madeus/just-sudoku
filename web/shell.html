@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
+		<title>$GODOT_PROJECT_NAME</title>
+		<style>
+html, body, #canvas {
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+body {
+	color: white;
+	background-color: black;
+	overflow: hidden;
+	touch-action: none;
+}
+
+#canvas {
+	display: block;
+}
+
+#canvas:focus {
+	outline: none;
+}
+
+#status, #status-splash, #status-progress {
+	position: absolute;
+	left: 0;
+	right: 0;
+}
+
+#status, #status-splash {
+	top: 0;
+	bottom: 0;
+}
+
+#status {
+	background-color: $GODOT_SPLASH_COLOR;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	visibility: hidden;
+}
+
+#status-splash {
+	max-height: 100%;
+	max-width: 100%;
+	margin: auto;
+}
+
+#status-splash.show-image--false {
+	display: none;
+}
+
+#status-splash.fullsize--true {
+	height: 100%;
+	width: 100%;
+	object-fit: contain;
+}
+
+#status-splash.use-filter--false {
+	image-rendering: pixelated;
+}
+
+#status-progress, #status-notice {
+	display: none;
+}
+
+#status-progress {
+	bottom: 10%;
+	width: 50%;
+	margin: 0 auto;
+}
+
+#status-notice {
+	background-color: #5b3943;
+	border-radius: 0.5rem;
+	border: 1px solid #9b3943;
+	color: #e0e0e0;
+	font-family: 'Noto Sans', 'Droid Sans', Arial, sans-serif;
+	line-height: 1.3;
+	margin: 0 2rem;
+	overflow: hidden;
+	padding: 1rem;
+	text-align: center;
+	z-index: 1;
+}
+
+@font-face {
+	font-family: 'DM Serif Display';
+	src: url(data:font/woff2;base64,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) format('woff2');
+	font-display: block;
+}
+
+#status {
+	background-color: #11141a;
+	gap: 1.4rem;
+}
+
+#status-name {
+	margin: 0;
+	font: 400 clamp(2.6rem, 11vw, 4.2rem)/1 'DM Serif Display', Georgia, serif;
+	color: #f8fafc;
+	letter-spacing: 0;
+	white-space: nowrap;
+}
+
+/* The full stop: a rounded square a little over a quarter of the type size, its foot on the baseline */
+#status-name i {
+	display: inline-block;
+	width: 0.27em;
+	height: 0.27em;
+	margin-left: 0.05em;
+	border-radius: 0.075em;
+	background: #2563eb;
+}
+
+#status-progress {
+	position: static;
+	display: none;
+	width: min(40vw, 11rem);
+	height: 3px;
+	margin: 0;
+	border: 0;
+	border-radius: 2px;
+	overflow: hidden;
+	appearance: none;
+	-webkit-appearance: none;
+	background: rgba(148, 163, 184, 0.25);
+	color: #2563eb;
+}
+#status-progress::-webkit-progress-bar { background: transparent; }
+#status-progress::-webkit-progress-value { background: #2563eb; border-radius: 2px; }
+#status-progress::-moz-progress-bar { background: #2563eb; border-radius: 2px; }
+
+@media (prefers-color-scheme: light) {
+	#status { background-color: #f8f9fa; }
+	#status-name { color: #0f172a; }
+	#status-progress { background: rgba(15, 23, 42, 0.12); }
+}
+		</style>
+		$GODOT_HEAD_INCLUDE
+	</head>
+	<body>
+		<canvas id="canvas">
+			Your browser does not support the canvas tag.
+		</canvas>
+
+		<noscript>
+			Your browser does not support JavaScript.
+		</noscript>
+
+		<div id="status">
+			<h1 id="status-name">Just Sudoku<i></i></h1>
+			<progress id="status-progress"></progress>
+			<div id="status-notice"></div>
+		</div>
+
+		<script src="$GODOT_URL"></script>
+		<script>
+const GODOT_CONFIG = $GODOT_CONFIG;
+const GODOT_THREADS_ENABLED = $GODOT_THREADS_ENABLED;
+const engine = new Engine(GODOT_CONFIG);
+
+(function () {
+	const statusOverlay = document.getElementById('status');
+	const statusProgress = document.getElementById('status-progress');
+	const statusNotice = document.getElementById('status-notice');
+
+	let initializing = true;
+	let statusMode = '';
+
+	function setStatusMode(mode) {
+		if (statusMode === mode || !initializing) {
+			return;
+		}
+		if (mode === 'hidden') {
+			statusOverlay.remove();
+			initializing = false;
+			return;
+		}
+		statusOverlay.style.visibility = 'visible';
+		statusProgress.style.display = mode === 'progress' ? 'block' : 'none';
+		statusNotice.style.display = mode === 'notice' ? 'block' : 'none';
+		statusMode = mode;
+	}
+
+	function setStatusNotice(text) {
+		while (statusNotice.lastChild) {
+			statusNotice.removeChild(statusNotice.lastChild);
+		}
+		const lines = text.split('\n');
+		lines.forEach((line) => {
+			statusNotice.appendChild(document.createTextNode(line));
+			statusNotice.appendChild(document.createElement('br'));
+		});
+	}
+
+	function displayFailureNotice(err) {
+		console.error(err);
+		if (err instanceof Error) {
+			setStatusNotice(err.message);
+		} else if (typeof err === 'string') {
+			setStatusNotice(err);
+		} else {
+			setStatusNotice('An unknown error occurred.');
+		}
+		setStatusMode('notice');
+		initializing = false;
+	}
+
+	const missing = Engine.getMissingFeatures({
+		threads: GODOT_THREADS_ENABLED,
+	});
+
+	if (missing.length !== 0) {
+		if (GODOT_CONFIG['serviceWorker'] && GODOT_CONFIG['ensureCrossOriginIsolationHeaders'] && 'serviceWorker' in navigator) {
+			let serviceWorkerRegistrationPromise;
+			try {
+				serviceWorkerRegistrationPromise = navigator.serviceWorker.getRegistration();
+			} catch (err) {
+				serviceWorkerRegistrationPromise = Promise.reject(new Error('Service worker registration failed.'));
+			}
+			// There's a chance that installing the service worker would fix the issue
+			Promise.race([
+				serviceWorkerRegistrationPromise.then((registration) => {
+					if (registration != null) {
+						return Promise.reject(new Error('Service worker already exists.'));
+					}
+					return registration;
+				}).then(() => engine.installServiceWorker()),
+				// For some reason, `getRegistration()` can stall
+				new Promise((resolve) => {
+					setTimeout(() => resolve(), 2000);
+				}),
+			]).then(() => {
+				// Reload if there was no error.
+				window.location.reload();
+			}).catch((err) => {
+				console.error('Error while registering service worker:', err);
+			});
+		} else {
+			// Display the message as usual
+			const missingMsg = 'Error\nThe following features required to run Godot projects on the Web are missing:\n';
+			displayFailureNotice(missingMsg + missing.join('\n'));
+		}
+	} else {
+		setStatusMode('progress');
+		engine.startGame({
+			'onProgress': function (current, total) {
+				if (current > 0 && total > 0) {
+					statusProgress.value = current;
+					statusProgress.max = total;
+				} else {
+					statusProgress.removeAttribute('value');
+					statusProgress.removeAttribute('max');
+				}
+			},
+		}).then(() => {
+			setStatusMode('hidden');
+		}, displayFailureNotice);
+	}
+}());
+		</script>
+	</body>
+</html>

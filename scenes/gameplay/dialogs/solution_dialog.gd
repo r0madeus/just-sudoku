@@ -77,7 +77,8 @@ func _exit_tree() -> void:
 
 func _build_ui() -> void:
 	cancel_btn.visible = false
-	primary_btn.custom_minimum_size = Vector2(0, ResponsiveManager.HEIGHT_BUTTON_PRIMARY)
+	# The X in the corner closes it; a second Close button at the bottom said the same thing
+	primary_btn.visible = false
 
 	# 1. Mode Selector Tabs
 	mode_tabs = HBoxContainer.new()
