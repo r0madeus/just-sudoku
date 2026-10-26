@@ -1,0 +1,1 @@
+Daha sade metinler ("dolu" yerine "tamamlandı", Günün Sudokusu kartında yalnızca isim), tarayıcıda oyunun adını gösteren yükleme ekranı, çözüm penceresinde tek Kapat düğmesi; geniş pencerede tek başına kalan kayıtlı oyun veya geçmiş satırı artık tüm genişliği kullanıyor.

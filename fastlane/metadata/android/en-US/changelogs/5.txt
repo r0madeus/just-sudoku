@@ -1,0 +1,1 @@
+Plainer wording ("complete" instead of "filled", the Daily card says just its name), a loading screen in the browser with the game's name, one Close button on the solution viewer, and lone saved games or history entries now use the full width on a wide window.
