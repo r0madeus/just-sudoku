@@ -43,7 +43,7 @@ func _run() -> void:
 		_check("%s: the number of test suites is right (%d)" % [pair[0], suites], suites_quoted != null and int(suites_quoted.get_string(1)) == suites)
 		var mutations_quoted := RegEx.create_from_string(pair[2]).search(text)
 		_check("%s: and the number of behaviours the audit breaks (%d)" % [pair[0], mutations], mutations_quoted != null and int(mutations_quoted.get_string(1)) == mutations)
-		_check("%s: it tells about the Linux downloads" % pair[0], text.contains("docs/linux.md") and text.contains("AppImage") and text.contains("Flatpak"))
+		_check("%s: it tells about the Linux downloads" % pair[0], text.contains("docs/linux.md") and text.contains("AppImage"))
 		_check("%s: and about the browser version" % pair[0], text.contains("https://r0madeus.github.io/just-sudoku/"))
 	var en := FileAccess.get_file_as_string("res://README.md")
 	var tr := FileAccess.get_file_as_string("res://README.tr.md")

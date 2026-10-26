@@ -8,7 +8,7 @@ Bir sürüm, `v` ile başlayan bir etiketle (ör. `v1.0.0`) yayınlanır. Etiket
 
 Yayın anahtarı yoksa iş akışı imzasız bir şey yayınlamaz, durur.
 
-Aynı etiket [Windows](../.github/workflows/windows.yml) zip'ini ve [Linux](../.github/workflows/linux.yml) paketlerini (tar.gz, AppImage, Flatpak; bkz. [linux.md](linux.md)) de sürüme ekler. Linux için sürüm başına tek ek iş: `packaging/linux/*.metainfo.xml` içindeki `<releases>` listesine yeni sürümü yazmak (test, eksikse hatırlatır).
+Aynı etiket [Windows](../.github/workflows/windows.yml) zip'ini ve [Linux](../.github/workflows/linux.yml) paketlerini (tar.gz ve AppImage; bkz. [linux.md](linux.md)) de sürüme ekler. Linux için sürüm başına tek ek iş: `packaging/linux/*.metainfo.xml` içindeki `<releases>` listesine yeni sürümü yazmak (test, eksikse hatırlatır).
 
 ## Bir kez yapılacaklar
 
