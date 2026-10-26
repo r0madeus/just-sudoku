@@ -97,7 +97,8 @@ func _run() -> void:
 	await _frames(5)
 	AppSettings.animations_enabled = false
 	AppSettings.auto_open_last_game = false
-	LocalizationManager.set_locale(loc)
+	# Pinned, not just set: the app follows the phone's language until a language is chosen
+	AppSettings.set_language(loc)
 	ThemeManager.set_theme(ThemeManager.THEME_DARK)
 	await _frames(3)
 

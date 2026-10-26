@@ -22,10 +22,6 @@ boot_splash/use_filter=false
 config/icon="res://icon.svg"
 config/quit_on_go_back=false
 
-[autoload]
-
-DevTools="*res://scripts/dev/dev_tools.gd"
-
 [display]
 
 window/size/viewport_width=390
@@ -35,10 +31,6 @@ window/size/window_height_override=960
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 window/handheld/orientation=1
-
-[editor_plugins]
-
-enabled=PackedStringArray("res://addons/godot_mcp/plugin.cfg")
 
 [physics]
 

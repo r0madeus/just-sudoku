@@ -36,8 +36,8 @@ func _init() -> void:
 	var presets := ConfigFile.new()
 	assert_true(presets.load("res://export_presets.cfg") == OK, "Export presets load")
 	var exclude: String = presets.get_value("preset.0", "exclude_filter", "")
-	assert_true(presets.get_value("preset.0", "platform", "") == "Android" and exclude.contains("tests/*") and exclude.contains("addons/godot_mcp/*"),
-		"Android export leaves out tests and the editor add-on")
+	assert_true(presets.get_value("preset.0", "platform", "") == "Android" and exclude.contains("tests/*"),
+		"Android export leaves out tests")
 	var perms: Array = []
 	for key in presets.get_section_keys("preset.0.options"):
 		if key.begins_with("permissions/") and key != "permissions/custom_permissions" and presets.get_value("preset.0.options", key) == true:
