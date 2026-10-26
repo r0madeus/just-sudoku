@@ -12,7 +12,7 @@ from PIL import Image
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LOCALES = {"en": "en-US", "tr": "tr-TR"}
 # Store order: the first one is the one stores show first
-PHONE = ["menu", "game", "game_light", "result", "statistics", "settings"]
+PHONE = ["menu", "game", "game_light", "game_amoled", "result", "statistics", "settings"]
 TABLET = ["statistics", "game"]
 
 
