@@ -125,6 +125,10 @@ MUTATIONS = [
  ("M113", "scripts/services/strings_tr.gd", "\"PROGRESS_LABEL\": \"%s tamamlandı\"", "\"PROGRESS_LABEL\": \"İlerleme: %s\"", "The saved games list says İlerleme again"),
  ("M114", "scenes/menus/main_menu.gd", "\t\tdaily_meta_label.visible = streak > 0\n", "\t\tdaily_meta_label.visible = true\n", "The Daily card has an empty line under its name when there is no streak"),
  ("M115", "web/shell.html", "Just Sudoku<i></i>", "Just Sudoku", "The browser's loading screen lost the blue full stop"),
+ ("M116", "scripts/services/responsive_manager.gd", "\treturn clampi(mini(content_columns(viewport_size), row_count), 1, 2)", "\treturn content_columns(viewport_size)", "A lone row sits in half of a wide window with its buttons mid-screen"),
+ ("M117", "scenes/gameplay/dialogs/solution_dialog.gd", "\tprimary_btn.visible = false\n", "\tprimary_btn.visible = true\n", "The solution viewer has two Close buttons"),
+ ("M118", "scenes/menus/history_screen.gd", "\t_row_total = records.size()\n", "", "History is one column however many entries there are"),
+ ("M119", "scenes/menus/load_game_screen.gd", "\t_row_total = games.size()\n", "", "Saved games are one column however many there are"),
 ]
 
 def main():
