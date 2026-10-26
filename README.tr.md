@@ -11,8 +11,8 @@
 <p>
   <img src="fastlane/metadata/android/tr-TR/images/phoneScreenshots/1_menu.jpg" width="200" alt="Ana menü">
   <img src="fastlane/metadata/android/tr-TR/images/phoneScreenshots/2_game.jpg" width="200" alt="Notlar ve işaretlenmiş yanlış rakamla süren bir oyun">
-  <img src="fastlane/metadata/android/tr-TR/images/phoneScreenshots/4_result.jpg" width="200" alt="Bulmaca çözüldü, yeni başarımlar">
-  <img src="fastlane/metadata/android/tr-TR/images/phoneScreenshots/5_statistics.jpg" width="200" alt="İstatistikler">
+  <img src="fastlane/metadata/android/tr-TR/images/phoneScreenshots/5_result.jpg" width="200" alt="Bulmaca çözüldü, yeni başarımlar">
+  <img src="fastlane/metadata/android/tr-TR/images/phoneScreenshots/6_statistics.jpg" width="200" alt="İstatistikler">
 </p>
 
 ## Özellikler
@@ -38,7 +38,8 @@
 - Her şeyi (geçmiş, istatistikler, başarımlar, kayıtlı oyunlar, ayarlar) bir dosyaya ya da panoya yedekleyip yeni telefonunda geri yükleyebilirsin.
 
 **Herkes için**
-- Beş tema (Koyu, AMOLED, Açık, Sepya, Orman) ve kendi renklerin; üç yazı tipi.
+- Beş tema (Koyu, AMOLED, Açık, Sepya, Orman) ve kendi renklerin; üç yazı tipi. AMOLED gerçekten siyah, yani pikselleri kapalı kalıyor.
+- Android'de, tarayıcıda (uygulama olarak yüklenebilir, çevrimdışı çalışır) ve Windows'ta oynanıyor.
 - Kodla üretilen sakin sesler (ses dosyası yok): her rakama 1'den 9'a yükselen yumuşak bir marimba notası, notlar için daha hafif dokunuşlar, bir satır, sütun ya da kutu tamamlanınca çan sesi. İstersen kapatabilirsin.
 - **Erişilebilirlik:**
   - Yazı boyutu ayarı.
@@ -50,7 +51,8 @@
 
 <p>
   <img src="fastlane/metadata/android/tr-TR/images/phoneScreenshots/3_game_light.jpg" width="200" alt="Açık tema">
-  <img src="fastlane/metadata/android/tr-TR/images/phoneScreenshots/6_settings.jpg" width="200" alt="Ayarlar">
+  <img src="fastlane/metadata/android/tr-TR/images/phoneScreenshots/4_game_amoled.jpg" width="200" alt="AMOLED teması: baştan sona siyah">
+  <img src="fastlane/metadata/android/tr-TR/images/phoneScreenshots/7_settings.jpg" width="200" alt="Ayarlar">
 </p>
 <img src="fastlane/metadata/android/tr-TR/images/tenInchScreenshots/1_statistics.jpg" width="620" alt="Yatay tablette istatistikler">
 

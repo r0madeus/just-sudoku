@@ -11,8 +11,8 @@
 <p>
   <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/1_menu.jpg" width="200" alt="Main menu">
   <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2_game.jpg" width="200" alt="A game in progress, with notes and a wrong digit marked">
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/4_result.jpg" width="200" alt="Puzzle solved, with new achievements">
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/5_statistics.jpg" width="200" alt="Statistics">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/5_result.jpg" width="200" alt="Puzzle solved, with new achievements">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/6_statistics.jpg" width="200" alt="Statistics">
 </p>
 
 ## Features
@@ -38,7 +38,8 @@
 - Back up everything (history, statistics, achievements, saved games, settings) to a file or the clipboard, and restore it on a new phone.
 
 **For everyone**
-- Five themes (Dark, AMOLED, Light, Sepia, Forest) plus your own colours; three typefaces.
+- Five themes (Dark, AMOLED, Light, Sepia, Forest) plus your own colours; three typefaces. AMOLED is truly black, so its pixels stay off.
+- Plays on Android, in a browser (installable as an app, works offline) and on Windows.
 - Quiet sounds made in code (no audio files): a soft marimba note for each digit, rising from 1 to 9, lighter taps for notes, bells when a row, column or box is done. They can be turned off.
 - Text size setting; wrong digits are marked by shape as well as colour, for colour-blind players; the text in every built-in theme meets WCAG AA contrast.
 - Not yet for screen readers: Godot, the engine the game is made with, does not expose its screens to TalkBack on Android yet.
@@ -47,7 +48,8 @@
 
 <p>
   <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3_game_light.jpg" width="200" alt="Light theme">
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/6_settings.jpg" width="200" alt="Settings">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/4_game_amoled.jpg" width="200" alt="AMOLED theme: black all over">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/7_settings.jpg" width="200" alt="Settings">
 </p>
 <img src="fastlane/metadata/android/en-US/images/tenInchScreenshots/1_statistics.jpg" width="620" alt="Statistics on a tablet in landscape">
 

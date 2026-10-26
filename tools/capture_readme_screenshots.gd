@@ -168,4 +168,19 @@ func _run() -> void:
 	await _shot("game_light")
 	app._show_screen(app.settings_screen)
 	await _shot("settings")
+
+	# The same kind of game on AMOLED, which is black all over
+	var black := GameState.new()
+	black.init_from_puzzle(SudokuGenerator.generate(20261023, DifficultyAnalyzer.LEVEL_MEDIUM))
+	ThemeManager.set_theme(ThemeManager.THEME_AMOLED)
+	app._start_game_session(black)
+	await _frames(4)
+	var black_filled := _play(black, 18)
+	_set_clock(412.0)
+	for i in range(81):
+		if black.current_board.get_cell(i) == 0:
+			app.game_screen.sudoku_grid.select_cell(i)
+			break
+	app.game_screen.sudoku_grid.refresh_all_cells()
+	await _shot("game_amoled")
 	quit()
