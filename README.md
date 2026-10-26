@@ -36,13 +36,13 @@
 | **Browser** | Play now at **<https://r0madeus.github.io/just-sudoku/>**. On a phone or in Chrome/Edge it can be installed as an app (browser menu → *Install app* / *Add to Home screen*) and then works offline. Progress stays in the browser; back up in Settings to a file or the clipboard. |
 | **Android** | `JustSudoku-<version>.apk` on the [Releases](https://github.com/r0madeus/just-sudoku/releases) page, with its SHA-256 (Android 7.0 and up, 64-bit ARM). F-Droid is on its way ([docs/fdroid.md](docs/fdroid.md)). |
 | **Windows** | `JustSudoku-<version>-windows-x64.zip` on Releases: one exe, no install. It is not code-signed, so SmartScreen asks once: *More info* → *Run anyway*. |
-| **Linux** | On Releases: an **AppImage** (one file; `chmod +x` and run), a **tar.gz** (unpack, `./JustSudoku`) and a **Flatpak** bundle (`flatpak install --user JustSudoku-<version>.flatpak`). All 64-bit; how they are made: [docs/linux.md](docs/linux.md). |
+| **Linux** | On Releases: an **AppImage** (one file; `chmod +x` and run) and a **tar.gz** (unpack, `./JustSudoku`). Both 64-bit; how they are made: [docs/linux.md](docs/linux.md). |
 
 What changed in each version: [CHANGELOG.md](CHANGELOG.md). Test builds of every change are under *Artifacts* in the [Android](https://github.com/r0madeus/just-sudoku/actions/workflows/android.yml) runs (signed with a test key); installing on a phone and a checklist of what to try: [docs/android.md](docs/android.md). How a release is made: [docs/release.md](docs/release.md).
 
 ## Latest changes
 
-- **Linux:** AppImage, tar.gz and Flatpak, built and started by CI on every change.
+- **Linux:** AppImage and tar.gz, built and started by CI on every change.
 - **Settings:** on/off switches that slide, instead of check boxes; a *Glass effects* setting (off draws the cards flat, lighter on an older phone); a link to this page in the corner.
 - **Browser:** back up to a file and restore from one, a loading screen with the game's name, and a note that progress stays in the browser.
 - **Look:** a truly black AMOLED theme, round on/off buttons for notes and colours, a pencil for notes, clean edges on the blue buttons, plainer wording ("complete" instead of "filled").
@@ -106,7 +106,7 @@ The Android build uses a Godot export template built with only what the game nee
 GODOT=/path/to/godot tools/run_tests.sh
 ```
 
-Runs all 68 test suites, four at a time, each with its own empty save folder (under a minute). They also run on every pull request. [docs/testing.md](docs/testing.md) explains them, and how `tools/mutation_audit.py` checks that the tests really catch mistakes: it breaks 135 behaviours one at a time and all 135 are caught.
+Runs all 68 test suites, four at a time, each with its own empty save folder (under a minute). They also run on every pull request. [docs/testing.md](docs/testing.md) explains them, and how `tools/mutation_audit.py` checks that the tests really catch mistakes: it breaks 133 behaviours one at a time and all 133 are caught.
 
 ## Project layout
 
@@ -118,7 +118,7 @@ Runs all 68 test suites, four at a time, each with its own empty save folder (un
 | `scripts/services/` | Theme, fonts, translations, layout, sound, sharing |
 | `scenes/` | Screens and UI components (built in code) |
 | `assets/` | Fonts, icons, app icon |
-| `packaging/` | Linux menu entry, store description and Flatpak recipe |
+| `packaging/` | Linux menu entry, store description and icons |
 | `web/` | The browser version's page (its loading screen) |
 | `tests/` | The test suites |
 | `engine/` | The slimmed Godot build profile for Android |

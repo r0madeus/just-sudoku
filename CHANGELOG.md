@@ -6,7 +6,7 @@ All notable changes to Just Sudoku. Türkçesi aşağıda / Turkish below each v
 
 Linux, switches that slide, and a safer browser version.
 
-- New: Just Sudoku for Linux, as an AppImage, a tar.gz and a Flatpak bundle, built and started by CI on every change.
+- New: Just Sudoku for Linux, as an AppImage and a tar.gz, built and started by CI on every change.
 - Settings: on/off switches that slide instead of check boxes; a *Glass effects* setting (off draws the cards flat, lighter on an older phone); a link to the project page in the corner.
 - Browser: back up to a file and restore from one, and a note on first visit that progress stays in the browser.
 - Look: round on/off buttons for notes and colours in the game's toolbar, with no stray outline around the pencil; the two cards under the Daily Sudoku line up on a wide window.
@@ -14,7 +14,7 @@ Linux, switches that slide, and a safer browser version.
 - The development add-on and some old capture scripts are gone from the project; the game itself is unchanged by that.
 
 **Türkçe**
-- Yeni: Linux için Just Sudoku; AppImage, tar.gz ve Flatpak paketi olarak, her değişiklikte CI tarafından derlenip başlatılarak denenir.
+- Yeni: Linux için Just Sudoku; AppImage ve tar.gz olarak, her değişiklikte CI tarafından derlenip başlatılarak denenir.
 - Ayarlar: onay kutuları yerine kayan aç/kapa anahtarları; *Cam efektleri* ayarı (kapalıyken kartlar düz çizilir, eski telefonda daha hafif); köşede proje sayfasına bağlantı.
 - Tarayıcı: yedeği dosyaya alma ve dosyadan geri yükleme; ilk açılışta ilerlemenin tarayıcıda saklandığını söyleyen bir not.
 - Görünüm: oyun araç çubuğunda notlar ve renkler için yuvarlak aç/kapa düğmeleri, kalemin çevresinde artık kötü çizgi yok; geniş pencerede Günün Sudokusu satırındaki iki kart hizalı.

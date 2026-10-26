@@ -1,7 +1,7 @@
 extends SceneTree
 
 ## The Linux downloads: the export preset, the menu entry, the store description (AppStream), the
-## Flatpak recipe, the packaging script and the workflow that builds and attaches them. The
+## packaging script and the workflow that builds and attaches them. The
 ## packages themselves are built and started by CI (.github/workflows/linux.yml); what is checked
 ## here is that every file they are made from is there, agrees with the others and is current.
 
@@ -28,7 +28,6 @@ func _run() -> void:
 	_test_preset()
 	_test_desktop_entry()
 	_test_metainfo()
-	_test_flatpak()
 	_test_script_and_workflow()
 	print("\n🏁 RESULTS: %d Passed, %d Failed" % [_passed, _failed])
 	quit(1 if _failed > 0 else 0)
@@ -108,18 +107,6 @@ func _test_metainfo() -> void:
 		all_there = all_there and rel != url and FileAccess.file_exists("res://" + rel)
 	_check("Its screenshots are files of this repository (%d)" % shots.size(), all_there)
 
-func _test_flatpak() -> void:
-	var recipe := _text(PKG + "flatpak/" + APP_ID + ".yml")
-	_check("The Flatpak recipe is for this app, started by the game's binary", recipe.contains("app-id: " + APP_ID) and recipe.contains("command: JustSudoku"))
-	_check("It opens a window and sound, and nothing else", recipe.contains("--socket=wayland") and recipe.contains("--socket=fallback-x11")
-		and recipe.contains("--socket=pulseaudio") and recipe.contains("--device=dri"))
-	_check("no network, no access to the home folder", not recipe.contains("--share=network") and not recipe.contains("--filesystem"))
-	var missing := ""
-	for f in [APP_ID + ".desktop", APP_ID + ".metainfo.xml", APP_ID + ".svg", APP_ID + ".png"]:
-		if not recipe.contains("path: ../" + f) or not FileAccess.file_exists(PKG + f):
-			missing += f + " "
-	_check("It installs the menu entry, description and icons that are there (%s)" % missing, missing.is_empty())
-
 func _test_script_and_workflow() -> void:
 	var script := _text("res://tools/build_linux_packages.sh")
 	_check("The packaging script makes a tar.gz and an AppImage, with checksums", script.contains(".tar.gz") and script.contains(".AppImage") and script.contains("sha256sum"))
@@ -132,5 +119,4 @@ func _test_script_and_workflow() -> void:
 	_check("exporting with the Linux preset", flow.contains("--export-release Linux"))
 	_check("checking the menu entry and the store description", flow.contains("desktop-file-validate") and flow.contains("appstreamcli validate"))
 	_check("starting the game, the AppImage and the tar.gz", flow.contains("Start the exported game") and flow.contains("Start the AppImage") and flow.contains("Start the game from the tar.gz"))
-	_check("building the Flatpak bundle", flow.contains("flatpak-builder") and flow.contains("flatpak build-bundle"))
-	_check("and attaching all of it to the release", flow.contains("action-gh-release") and flow.contains("*.AppImage") and flow.contains("*.tar.gz") and flow.contains("*.flatpak"))
+	_check("and attaching all of it to the release", flow.contains("action-gh-release") and flow.contains("*.AppImage") and flow.contains("*.tar.gz"))

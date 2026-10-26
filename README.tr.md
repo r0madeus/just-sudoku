@@ -38,13 +38,13 @@
 | **Tarayıcı** | Hemen oyna: **<https://r0madeus.github.io/just-sudoku/>**. Telefonda veya Chrome/Edge'de uygulama olarak yüklenebilir (tarayıcı menüsü → *Uygulamayı yükle* / *Ana ekrana ekle*), yüklenince çevrimdışı da çalışır. İlerleme tarayıcıda kalır; Ayarlar'dan dosyaya ya da panoya yedekle. |
 | **Android** | [Releases](https://github.com/r0madeus/just-sudoku/releases) sayfasında `JustSudoku-<sürüm>.apk`, SHA-256 özetiyle (Android 7.0 ve üstü, 64-bit ARM). F-Droid yolda ([docs/fdroid.md](docs/fdroid.md)). |
 | **Windows** | Releases'ta `JustSudoku-<sürüm>-windows-x64.zip`: tek exe, kurulum yok. İmzalı değil; SmartScreen bir kez sorar: *Ek bilgi* → *Yine de çalıştır*. |
-| **Linux** | Releases'ta: bir **AppImage** (tek dosya; `chmod +x` yapıp çalıştır), bir **tar.gz** (aç, `./JustSudoku`) ve bir **Flatpak** paketi (`flatpak install --user JustSudoku-<sürüm>.flatpak`). Hepsi 64-bit; nasıl yapıldıkları: [docs/linux.md](docs/linux.md). |
+| **Linux** | Releases'ta: bir **AppImage** (tek dosya; `chmod +x` yapıp çalıştır) ve bir **tar.gz** (aç, `./JustSudoku`). İkisi de 64-bit; nasıl yapıldıkları: [docs/linux.md](docs/linux.md). |
 
 Her sürümde neyin değiştiği: [CHANGELOG.md](CHANGELOG.md). Her değişikliğin deneme sürümü [Android](https://github.com/r0madeus/just-sudoku/actions/workflows/android.yml) çalıştırmalarının *Artifacts* bölümünde (test anahtarıyla imzalı); telefona kurulum ve denenecekler listesi: [docs/android.md](docs/android.md). Sürüm nasıl yayınlanır: [docs/release.md](docs/release.md).
 
 ## Son değişiklikler
 
-- **Linux:** AppImage, tar.gz ve Flatpak; CI her değişiklikte derleyip başlatıp deniyor.
+- **Linux:** AppImage ve tar.gz; CI her değişiklikte derleyip başlatıp deniyor.
 - **Ayarlar:** onay kutuları yerine kayan açma/kapama anahtarları; *Cam efektleri* ayarı (kapalıyken kartlar düz çizilir, eski telefonda daha hafif); köşede bu sayfaya bir bağlantı.
 - **Tarayıcı:** dosyaya yedekleme ve dosyadan geri yükleme, oyunun adını gösteren yükleme ekranı ve ilerlemenin tarayıcıda kaldığını söyleyen bir not.
 - **Görünüm:** gerçekten siyah AMOLED teması, Notlar ve Renkler için yuvarlak açma/kapama düğmeleri, not için kalem, mavi düğmelerde temiz kenarlar, daha sade metinler ("dolu" yerine "tamamlandı").
@@ -118,7 +118,7 @@ GODOT=/godot/yolu tools/run_tests.sh
 
 68 test dosyasının hepsini dörder dörder, her birini kendi boş kayıt klasöründe çalıştırıyor (bir dakikadan kısa). Testler her PR'da da çalışıyor.
 
-Ayrıntılar [docs/testing.md](docs/testing.md) dosyasında. Orada `tools/mutation_audit.py` aracı da anlatılıyor: oyunun 135 davranışını tek tek bilerek bozup testlerin bunu yakalayıp yakalamadığını kontrol ediyor. Şu an 135'inin 135'i yakalanıyor.
+Ayrıntılar [docs/testing.md](docs/testing.md) dosyasında. Orada `tools/mutation_audit.py` aracı da anlatılıyor: oyunun 133 davranışını tek tek bilerek bozup testlerin bunu yakalayıp yakalamadığını kontrol ediyor. Şu an 133'inin 133'i yakalanıyor.
 
 ## Proje yapısı
 
@@ -130,7 +130,7 @@ Ayrıntılar [docs/testing.md](docs/testing.md) dosyasında. Orada `tools/mutati
 | `scripts/services/` | Tema, yazı tipleri, çeviriler, yerleşim, ses, paylaşım |
 | `scenes/` | Ekranlar ve arayüz bileşenleri (kodla kuruluyor) |
 | `assets/` | Yazı tipleri, simgeler, uygulama simgesi |
-| `packaging/` | Linux menü girdisi, mağaza açıklaması ve Flatpak tarifi |
+| `packaging/` | Linux menü girdisi, mağaza açıklaması ve simgeler |
 | `web/` | Tarayıcı sürümünün sayfası (yükleme ekranı) |
 | `tests/` | Test dosyaları |
 | `engine/` | Android için küçültülmüş Godot derleme profili |
