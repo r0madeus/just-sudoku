@@ -2,6 +2,25 @@
 
 All notable changes to Just Sudoku. Türkçesi aşağıda / Turkish below each version.
 
+## [1.0.3] - 2026-10-26
+
+Digit entry fixed, a truly black AMOLED theme, and the game outside the phone.
+
+- Fixed: on a touch screen a tap on a digit key put the digit in and took it out again, so nothing seemed to happen. A tap is now one press.
+- AMOLED is black now: no glow over the page, and the glass cards over it are plain dark surfaces (which also costs less to draw).
+- Notes is a pencil icon instead of a word; the filled button shows that notes are on.
+- The Colours button says what it is for the first time it is used: cells can be marked with colours, only for you, without changing the puzzle.
+- The filled blue buttons no longer have a ring with a speckled fringe around their edge.
+- New: the game runs in a browser (it can be installed as an app and works offline), and a Windows version comes with each release.
+
+**Türkçe**
+- Düzeltildi: dokunmatik ekranda sayı tuşuna basınca sayı girilip hemen siliniyordu, yani hiçbir şey olmuyor gibiydi. Bir dokunuş artık tek basış.
+- AMOLED artık siyah: sayfanın üstünde parıltı yok, üzerindeki cam kartlar düz koyu yüzey (çizmesi de daha ucuz).
+- Notlar yazı yerine kalem ikonu; dolu düğme notların açık olduğunu gösteriyor.
+- Renkler düğmesi ilk kullanımda ne işe yaradığını anlatıyor: hücreler renklerle işaretlenebilir, sadece senin için, bulmacayı değiştirmez.
+- Dolgulu mavi düğmelerin kenarında artık benekli saçaklı halka yok.
+- Yeni: oyun tarayıcıda çalışıyor (uygulama olarak yüklenebilir, çevrimdışı da çalışır) ve her sürümle bir Windows sürümü geliyor.
+
 ## [1.0.2] - 2026-10-25
 
 More fixes from phones, and a new look for the home screen.

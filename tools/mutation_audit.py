@@ -113,6 +113,14 @@ MUTATIONS = [
  ("M101", "scenes/menus/main_menu.gd", "\t\t_fit_wordmark_dot.call_deferred()\n", "\t\t_fit_wordmark_dot()\n", "The full stop is sized from a font size the label does not have yet (4 px)"),
  ("M102", "scenes/menus/main_menu.gd", "\tsb.bg_color = ThemeManager.get_color(\"accent_blue\", ThemeManager.get_color(\"accent\"))\n\tsb.set_corner_radius_all(maxi(2, int(side * 0.28)))", "\tsb.bg_color = Color.WHITE\n\tsb.set_corner_radius_all(maxi(2, int(side * 0.28)))", "The full stop is not in the accent colour"),
  ("M103", "scenes/app_root.gd", "\tif event is InputEventScreenTouch or event is InputEventScreenDrag:\n\t\tget_viewport().set_input_as_handled()\n", "\tif false:\n\t\tget_viewport().set_input_as_handled()\n", "A tap on a touch screen presses a key twice: the digit goes in and comes straight out"),
+ ("M104", "scenes/ui/ambient_backdrop.gd", "\tif amoled:\n\t\tbase_strength = 0.0\n", "\tif amoled:\n\t\tbase_strength = 0.12\n", "AMOLED has glows again: not black"),
+ ("M105", "scenes/ui/ambient_backdrop.gd", "0.0 if amoled else 1.0", "1.0", "AMOLED's noise lights pixels of the black page"),
+ ("M106", "scenes/ui/glass_panel.gd", "\t_material.shader = _flat_shader if flat else _shader\n", "\t_material.shader = _shader\n", "AMOLED glass copies and blurs the screen again"),
+ ("M107", "scenes/ui/game_action_dock.gd", "\tnotes_btn.icon = ThemeManager.get_icon(\"pencil\")\n", "\tnotes_btn.text = \"Notes\"\n", "The Notes button is a word again"),
+ ("M108", "scenes/gameplay/game_screen.gd", "\tif active and not AppSettings.colors_hint_seen:\n", "\tif active:\n", "The Colours note opens every time"),
+ ("M109", "scenes/gameplay/game_screen.gd", "\t\tAppSettings.colors_hint_seen = true\n\t\tAppSettings.save_config()\n", "", "The Colours note is never remembered as seen"),
+ ("M110", "scripts/services/app_settings.gd", "\t\t\"colors_hint_seen\": colors_hint_seen,\n", "", "The Colours note is shown again on every start"),
+ ("M111", "scripts/services/theme_builder.gd", "ThemeManager.RADIUS_CAPSULE, ThemeManager.BORDER_NONE, Color.TRANSPARENT, 20, 10, ThemeManager.get_shadow_color(0.14)", "ThemeManager.RADIUS_CAPSULE, ThemeManager.BORDER_HAIRLINE, highlight_border, 20, 10, ThemeManager.get_shadow_color(0.14)", "The filled capsule buttons have a ring around their edge again"),
 ]
 
 def main():

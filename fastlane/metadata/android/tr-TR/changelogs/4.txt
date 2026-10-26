@@ -1,0 +1,1 @@
+Dokunmatik ekranda hiçbir şey yapmayan sayı tuşları düzeldi; AMOLED teması artık gerçekten siyah. Notlar kalem ikonu oldu, Renkler düğmesi ne işe yaradığını anlatıyor, dolgulu düğmelerin kenarları temiz. Oyun artık tarayıcıda ve Windows'ta da çalışıyor.

@@ -15,6 +15,7 @@ uniform vec3 glow_b : source_color = vec3(0.10, 0.60, 0.85);
 uniform vec3 glow_c : source_color = vec3(0.55, 0.30, 0.90);
 uniform float strength = 0.25;
 uniform float aspect = 0.5625;
+uniform float dither = 1.0;
 
 float glow(vec2 uv, vec2 center, float radius) {
 	vec2 d = (uv - center) / radius;
@@ -35,7 +36,7 @@ void fragment() {
 	col = mix(col, glow_a, clamp(a * strength, 0.0, 1.0));
 	col = mix(col, glow_b, clamp(b * strength * 0.85, 0.0, 1.0));
 	col = mix(col, glow_c, clamp(c * strength * 0.75, 0.0, 1.0));
-	col += (hash(FRAGCOORD.xy) - 0.5) * (2.0 / 255.0);
+	col += (hash(FRAGCOORD.xy) - 0.5) * (2.0 / 255.0) * dither;
 	COLOR = vec4(col, 1.0);
 }
 """
@@ -89,6 +90,9 @@ func _refresh() -> void:
 	_material.set_shader_parameter("glow_b", Color.from_hsv(fposmod(hue - 0.08, 1.0), sat * 0.9, val))
 	_material.set_shader_parameter("glow_c", Color.from_hsv(fposmod(hue + 0.10, 1.0), sat * 0.85, val))
 	var base_strength: float = 0.20 if is_dark else 0.26
+	# AMOLED is black, all of it: a lit pixel is a pixel that is on (and the theme would look like
+	# Dark with the glows). The noise that hides banding would light a few pixels too.
 	if amoled:
-		base_strength = 0.12
+		base_strength = 0.0
 	_material.set_shader_parameter("strength", base_strength * intensity)
+	_material.set_shader_parameter("dither", 0.0 if amoled else 1.0)

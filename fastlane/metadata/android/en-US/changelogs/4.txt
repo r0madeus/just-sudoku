@@ -1,0 +1,1 @@
+Fixes the digit keys, which did nothing on a touch screen, and an AMOLED theme that is now really black. Notes is a pencil icon, the Colours button explains itself, and the filled buttons have clean edges. The game also runs in a browser and on Windows.
