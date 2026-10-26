@@ -139,6 +139,11 @@ MUTATIONS = [
  ("M127", "scenes/ui/app_modal.gd", "	if blur_background and AppSettings.glass_effects:\n", "	if blur_background:\n", "Glass effects off still blurs the backdrop behind dialogs"),
  ("M128", "scenes/app_root.gd", "	AppSettings.web_notice_seen = true\n	AppSettings.save_config()\n	var note := AppModal.new()", "	var note := AppModal.new()", "The browser's note about saved progress is shown on every start"),
  ("M129", "scenes/menus/backup_section.gd", "	_modal_host().add_child(_choice)\n", "	get_tree().root.add_child(_choice)\n", "The backup dialog comes out in Godot's grey default look"),
+ ("M130", "export_presets.cfg", "binary_format/embed_pck=true\ntexture_format/s3tc_bptc=true\ntexture_format/etc2_astc=false\nbinary_format/architecture=\"x86_64\"\nssh_remote_deploy", "binary_format/embed_pck=false\ntexture_format/s3tc_bptc=true\ntexture_format/etc2_astc=false\nbinary_format/architecture=\"x86_64\"\nssh_remote_deploy", "The Linux export leaves the game's data in a separate file"),
+ ("M131", "packaging/linux/flatpak/io.github.r0madeus.JustSudoku.yml", "  - --device=dri\n", "  - --device=dri\n  - --share=network\n", "The Flatpak may use the network"),
+ ("M132", "packaging/linux/io.github.r0madeus.JustSudoku.metainfo.xml", "<project_license>GPL-3.0-only</project_license>", "<project_license>MIT</project_license>", "The store description names another licence than the project's"),
+ ("M133", "packaging/linux/io.github.r0madeus.JustSudoku.desktop", "Exec=JustSudoku\n", "Exec=just-sudoku\n", "The menu entry starts a program that is not there"),
+ ("M134", ".github/workflows/linux.yml", "flatpak build-bundle", "flatpak build-repo", "The Flatpak bundle is not made"),
 ]
 
 def main():

@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Just Sudoku
+Comment=A calm, focused Sudoku
+Comment[tr]=Sakin, odaklı bir Sudoku
+Exec=JustSudoku
+Icon=io.github.r0madeus.JustSudoku
+Terminal=false
+Categories=Game;LogicGame;
+Keywords=sudoku;puzzle;logic;numbers;
+Keywords[tr]=sudoku;bulmaca;mantık;sayı;
+StartupNotify=true
