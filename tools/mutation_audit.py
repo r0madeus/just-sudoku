@@ -113,6 +113,9 @@ MUTATIONS = [
  ("M101", "scenes/menus/main_menu.gd", "\t\t_fit_wordmark_dot.call_deferred()\n", "\t\t_fit_wordmark_dot()\n", "The full stop is sized from a font size the label does not have yet (4 px)"),
  ("M102", "scenes/menus/main_menu.gd", "\tsb.bg_color = ThemeManager.get_color(\"accent_blue\", ThemeManager.get_color(\"accent\"))\n\tsb.set_corner_radius_all(maxi(2, int(side * 0.28)))", "\tsb.bg_color = Color.WHITE\n\tsb.set_corner_radius_all(maxi(2, int(side * 0.28)))", "The full stop is not in the accent colour"),
  ("M103", "scenes/app_root.gd", "\tif event is InputEventScreenTouch or event is InputEventScreenDrag:\n\t\tget_viewport().set_input_as_handled()\n", "\tif false:\n\t\tget_viewport().set_input_as_handled()\n", "A tap on a touch screen presses a key twice: the digit goes in and comes straight out"),
+ ("M104", "scenes/ui/ambient_backdrop.gd", "\tif amoled:\n\t\tbase_strength = 0.0\n", "\tif amoled:\n\t\tbase_strength = 0.12\n", "AMOLED has glows again: not black"),
+ ("M105", "scenes/ui/ambient_backdrop.gd", "0.0 if amoled else 1.0", "1.0", "AMOLED's noise lights pixels of the black page"),
+ ("M106", "scenes/ui/glass_panel.gd", "\t_material.shader = _flat_shader if flat else _shader\n", "\t_material.shader = _shader\n", "AMOLED glass copies and blurs the screen again"),
 ]
 
 def main():

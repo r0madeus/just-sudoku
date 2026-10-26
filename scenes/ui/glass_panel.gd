@@ -100,6 +100,9 @@ void fragment() {
 """
 
 static var _shader: Shader = null
+## The same glass over a flat black page: nothing to blur, so it is a plain dark surface and the
+## screen is not copied for it (the copy is what makes the glass cost)
+static var _flat_shader: Shader = null
 
 ## Corner radius in pixels
 var corner_radius: float = 22.0 :
@@ -135,6 +138,11 @@ func _init() -> void:
 	if _shader == null:
 		_shader = Shader.new()
 		_shader.code = SHADER_CODE
+	if _flat_shader == null:
+		_flat_shader = Shader.new()
+		_flat_shader.code = SHADER_CODE \
+			.replace("uniform sampler2D screen_tex : hint_screen_texture, filter_linear_mipmap;\n", "") \
+			.replace("vec3 col = textureLod(screen_tex, uv, lod).rgb;", "vec3 col = tint_color;")
 	_material = ShaderMaterial.new()
 	_material.shader = _shader
 
@@ -195,6 +203,8 @@ func _refresh() -> void:
 		return
 	var is_dark: bool = ThemeManager.get_color("bg").get_luminance() < 0.5
 	var surface: Color = ThemeManager.get_color("surface_elevated" if elevated else "surface")
+	var flat: bool = ThemeManager.current_theme_name == ThemeManager.THEME_AMOLED
+	_material.shader = _flat_shader if flat else _shader
 
 	# Frosted glass is lighter than what is behind it, so light themes tint toward white
 	if not is_dark:
