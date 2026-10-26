@@ -1,19 +1,56 @@
-# Just Sudoku
-
-**Sakin, odaklı bir Sudoku: reklam yok, hesap yok, internet yok, hiçbir veri toplanmıyor. Ücretsiz ve açık kaynak.**
-
-[![Tests](https://github.com/r0madeus/just-sudoku/actions/workflows/tests.yml/badge.svg)](https://github.com/r0madeus/just-sudoku/actions/workflows/tests.yml)
-[![Android APK](https://github.com/r0madeus/just-sudoku/actions/workflows/android.yml/badge.svg)](https://github.com/r0madeus/just-sudoku/actions/workflows/android.yml)
-[![Lisans: GPL v3](https://img.shields.io/badge/lisans-GPLv3-blue.svg)](LICENSE)
-
-[English](README.md)
-
-<p>
-  <img src="fastlane/metadata/android/tr-TR/images/phoneScreenshots/1_menu.jpg" width="200" alt="Ana menü">
-  <img src="fastlane/metadata/android/tr-TR/images/phoneScreenshots/2_game.jpg" width="200" alt="Notlar ve işaretlenmiş yanlış rakamla süren bir oyun">
-  <img src="fastlane/metadata/android/tr-TR/images/phoneScreenshots/5_result.jpg" width="200" alt="Bulmaca çözüldü, yeni başarımlar">
-  <img src="fastlane/metadata/android/tr-TR/images/phoneScreenshots/6_statistics.jpg" width="200" alt="İstatistikler">
+<p align="center">
+  <img src="assets/launcher/pwa_512x512.png" width="112" alt="Just Sudoku simgesi">
 </p>
+
+<h1 align="center">Just Sudoku</h1>
+
+<p align="center">
+  <b>Sakin, odaklı bir Sudoku.</b><br>
+  Reklam yok, hesap yok, internet yok, hiçbir veri toplanmıyor. Ücretsiz ve açık kaynak.
+</p>
+
+<p align="center">
+  <a href="https://r0madeus.github.io/just-sudoku/"><b>Tarayıcıda oyna</b></a> ·
+  <a href="#indirme">İndir</a> ·
+  <a href="CHANGELOG.md">Neler yeni</a> ·
+  <a href="README.md">English</a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/r0madeus/just-sudoku/actions/workflows/tests.yml"><img src="https://github.com/r0madeus/just-sudoku/actions/workflows/tests.yml/badge.svg" alt="Testler"></a>
+  <a href="https://github.com/r0madeus/just-sudoku/actions/workflows/android.yml"><img src="https://github.com/r0madeus/just-sudoku/actions/workflows/android.yml/badge.svg" alt="Android"></a>
+  <a href="https://github.com/r0madeus/just-sudoku/actions/workflows/windows.yml"><img src="https://github.com/r0madeus/just-sudoku/actions/workflows/windows.yml/badge.svg" alt="Windows"></a>
+  <a href="https://github.com/r0madeus/just-sudoku/actions/workflows/linux.yml"><img src="https://github.com/r0madeus/just-sudoku/actions/workflows/linux.yml/badge.svg" alt="Linux"></a>
+  <a href="https://github.com/r0madeus/just-sudoku/actions/workflows/web.yml"><img src="https://github.com/r0madeus/just-sudoku/actions/workflows/web.yml/badge.svg" alt="Web"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/lisans-GPLv3-blue.svg" alt="Lisans: GPL v3"></a>
+</p>
+
+<p align="center">
+  <img src="docs/images/hero_tr.jpg" alt="Ana menü, süren bir oyun, siyah AMOLED teması ve Ayarlar">
+</p>
+
+<a id="indirme"></a>
+
+## İndirme
+
+| | |
+|---|---|
+| **Tarayıcı** | Hemen oyna: **<https://r0madeus.github.io/just-sudoku/>**. Telefonda veya Chrome/Edge'de uygulama olarak yüklenebilir (tarayıcı menüsü → *Uygulamayı yükle* / *Ana ekrana ekle*), yüklenince çevrimdışı da çalışır. İlerleme tarayıcıda kalır; Ayarlar'dan dosyaya ya da panoya yedekle. |
+| **Android** | [Releases](https://github.com/r0madeus/just-sudoku/releases) sayfasında `JustSudoku-<sürüm>.apk`, SHA-256 özetiyle (Android 7.0 ve üstü, 64-bit ARM). F-Droid yolda ([docs/fdroid.md](docs/fdroid.md)). |
+| **Windows** | Releases'ta `JustSudoku-<sürüm>-windows-x64.zip`: tek exe, kurulum yok. İmzalı değil; SmartScreen bir kez sorar: *Ek bilgi* → *Yine de çalıştır*. |
+| **Linux** | Releases'ta: bir **AppImage** (tek dosya; `chmod +x` yapıp çalıştır), bir **tar.gz** (aç, `./JustSudoku`) ve bir **Flatpak** paketi (`flatpak install --user JustSudoku-<sürüm>.flatpak`). Hepsi 64-bit; nasıl yapıldıkları: [docs/linux.md](docs/linux.md). |
+
+Her sürümde neyin değiştiği: [CHANGELOG.md](CHANGELOG.md). Her değişikliğin deneme sürümü [Android](https://github.com/r0madeus/just-sudoku/actions/workflows/android.yml) çalıştırmalarının *Artifacts* bölümünde (test anahtarıyla imzalı); telefona kurulum ve denenecekler listesi: [docs/android.md](docs/android.md). Sürüm nasıl yayınlanır: [docs/release.md](docs/release.md).
+
+## Son değişiklikler
+
+- **Linux:** AppImage, tar.gz ve Flatpak; CI her değişiklikte derleyip başlatıp deniyor.
+- **Ayarlar:** onay kutuları yerine kayan açma/kapama anahtarları; *Cam efektleri* ayarı (kapalıyken kartlar düz çizilir, eski telefonda daha hafif); köşede bu sayfaya bir bağlantı.
+- **Tarayıcı:** dosyaya yedekleme ve dosyadan geri yükleme, oyunun adını gösteren yükleme ekranı ve ilerlemenin tarayıcıda kaldığını söyleyen bir not.
+- **Görünüm:** gerçekten siyah AMOLED teması, Notlar ve Renkler için yuvarlak açma/kapama düğmeleri, not için kalem, mavi düğmelerde temiz kenarlar, daha sade metinler ("dolu" yerine "tamamlandı").
+- **Düzeltildi:** dokunmatik ekranda sayı tuşuna basınca sayı girilip hemen siliniyordu.
+
+Tam liste [CHANGELOG.md](CHANGELOG.md) dosyasında.
 
 ## Özellikler
 
@@ -35,11 +72,11 @@
 - Her çözüme 100 üzerinden puan (süre, hata, ipucu). Her seviyedeki rekorun ve ortalamanla karşılaştırma.
 - Filtrelenebilir geçmiş, seviye bazında istatistikler ve 13 sade başarım.
 - Yarım kalan oyunlar sen oynarken kaydediliyor; birden fazla oyun yan yana tutulabiliyor.
-- Her şeyi (geçmiş, istatistikler, başarımlar, kayıtlı oyunlar, ayarlar) bir dosyaya ya da panoya yedekleyip yeni telefonunda geri yükleyebilirsin.
+- Her şeyi (geçmiş, istatistikler, başarımlar, kayıtlı oyunlar, ayarlar) bir dosyaya ya da panoya yedekleyip yeni cihazında geri yükleyebilirsin. Tarayıcıda dosya bir indirme olarak iner, geri yüklerken tarayıcının kendi dosya penceresi açılır.
 
 **Herkes için**
-- Beş tema (Koyu, AMOLED, Açık, Sepya, Orman) ve kendi renklerin; üç yazı tipi. AMOLED gerçekten siyah, yani pikselleri kapalı kalıyor.
-- Android'de, tarayıcıda (uygulama olarak yüklenebilir, çevrimdışı çalışır) ve Windows'ta oynanıyor.
+- Beş tema (Koyu, AMOLED, Açık, Sepya, Orman) ve kendi renklerin; üç yazı tipi. AMOLED gerçekten siyah, yani pikselleri kapalı kalıyor. *Cam efektleri* kapatılıp daha düz, çizmesi daha hafif kartlar elde edilebilir.
+- Android'de, tarayıcıda (uygulama olarak yüklenebilir, çevrimdışı çalışır), Windows'ta ve Linux'ta oynanıyor.
 - Kodla üretilen sakin sesler (ses dosyası yok): her rakama 1'den 9'a yükselen yumuşak bir marimba notası, notlar için daha hafif dokunuşlar, bir satır, sütun ya da kutu tamamlanınca çan sesi. İstersen kapatabilirsin.
 - **Erişilebilirlik:**
   - Yazı boyutu ayarı.
@@ -49,12 +86,12 @@
 - Türkçe ve İngilizce.
 - Telefon ve tablet düzenleri; yatay tablette yan yana düzenler.
 
-<p>
-  <img src="fastlane/metadata/android/tr-TR/images/phoneScreenshots/3_game_light.jpg" width="200" alt="Açık tema">
-  <img src="fastlane/metadata/android/tr-TR/images/phoneScreenshots/4_game_amoled.jpg" width="200" alt="AMOLED teması: baştan sona siyah">
-  <img src="fastlane/metadata/android/tr-TR/images/phoneScreenshots/7_settings.jpg" width="200" alt="Ayarlar">
+<p align="center">
+  <img src="docs/images/themes_tr.jpg" alt="Koyu, Açık ve AMOLED temaları">
 </p>
-<img src="fastlane/metadata/android/tr-TR/images/tenInchScreenshots/1_statistics.jpg" width="620" alt="Yatay tablette istatistikler">
+<p align="center">
+  <img src="docs/images/wide_tr.jpg" alt="Geniş pencerede istatistikler ve bir oyun">
+</p>
 
 ## Gizlilik
 
@@ -62,23 +99,14 @@ Just Sudoku titreşim dışında hiçbir izin istemiyor.
 - İnternet izni hiç yok; bu yüzden hiçbir yere bir şey gönderemez. Reklam, analiz aracı ya da hesap yok.
 - Oyunların, geçmişin ve ayarların cihazında kalıyor; Android yedeklemesi de kapalı.
 - Gizlilik notunun tamamı: [PRIVACY.md](PRIVACY.md).
+- Tarayıcı sürümü de verilerini tarayıcının kendi deposunda tutar ve hiçbir yere bir şey göndermez.
 - Başka bir cihaza geçerken Ayarlar → Veriler'den her şeyi yedekleyip orada geri yüklemen yeterli. Tek bir oyunu da dışa aktarıp içe aktarabilirsin.
-
-## İndirme
-
-Sürüm 1.1.0; Android 7.0 ve üstü (64-bit ARM).
-
-- **APK:** [Releases](https://github.com/r0madeus/just-sudoku/releases) sayfasından, SHA-256 özetiyle birlikte. Her sürümde neyin değiştiği: [CHANGELOG.md](CHANGELOG.md).
-- **Tarayıcıda:** `main`'in her sürümü GitHub Pages'te yayınlanır: <https://r0madeus.github.io/just-sudoku/> (aynı derleme, [Web](https://github.com/r0madeus/just-sudoku/actions/workflows/web.yml) çalıştırmalarının *Artifacts* bölümünde zip olarak durur; itch.io'ya HTML5 oyunu olarak yüklenebilir). Telefonda veya Chrome/Edge'de uygulama olarak yüklenebilir (tarayıcı menüsü → *Uygulamayı yükle* / *Ana ekrana ekle*); yüklenince çevrimdışı da çalışır. İlerleme tarayıcının kendi deposunda tutulur, site verisi silinirse gider; Yedekleme (Ayarlar'da) panoya kopyalayarak çalışır.
-- **Windows:** Releases sayfasında `JustSudoku-<sürüm>-windows-x64.zip` (64-bit, tek exe, kurulum yok). İmzalı değil; SmartScreen bir kez sorar: *Ek bilgi* → *Yine de çalıştır*.
-- **F-Droid:** yolda ([docs/fdroid.md](docs/fdroid.md)).
-- Her değişikliğin deneme sürümü [Android APK (slim engine)](https://github.com/r0madeus/just-sudoku/actions/workflows/android.yml) çalıştırmalarının *Artifacts* bölümünde (test anahtarıyla imzalı, denemek için). Telefona kurulum ve denenecekler listesi: [docs/android.md](docs/android.md). Sürüm nasıl yayınlanır: [docs/release.md](docs/release.md).
 
 ## Kaynak koddan derleme
 
 1. [Godot 4.7](https://godotengine.org/download/archive/) indir. Standart sürüm yeterli; proje Compatibility çiziciyi kullanıyor.
 2. `project.godot` dosyasını Godot'da açıp *Çalıştır*'a bas. Linux, Windows ve macOS'ta da çalışır, geliştirirken işe yarar.
-3. Android için *Proje → Dışa Aktar → Android* yolunu izle. Kurulum ve imzalama [docs/android.md](docs/android.md) dosyasında.
+3. Android için *Proje → Dışa Aktar → Android* yolunu izle. Kurulum ve imzalama [docs/android.md](docs/android.md) dosyasında. Windows, Linux ve Web için de ön ayarlar var (*Proje → Dışa Aktar*); Linux paketleri [docs/linux.md](docs/linux.md) dosyasında anlatılıyor.
 
 Android sürümü, yalnızca oyunun ihtiyaç duyduklarıyla derlenmiş bir Godot şablonu kullanıyor ([engine/custom.py](engine/custom.py)). İçinde 3D, fizik, Vulkan ve kullanılmayan modüller yok; bu sayede APK 28,2 MB'tan 14,5 MB'a iniyor. Şablonu ve APK'yı GitHub otomatik derliyor. Kendin derlemek istersen yol [docs/android.md](docs/android.md#küçültülmüş-motor-daha-küçük-apk) dosyasında.
 
@@ -88,9 +116,9 @@ Android sürümü, yalnızca oyunun ihtiyaç duyduklarıyla derlenmiş bir Godot
 GODOT=/godot/yolu tools/run_tests.sh
 ```
 
-58 test dosyasının hepsini dörder dörder, her birini kendi boş kayıt klasöründe çalıştırıyor (bir dakikadan kısa). Testler her PR'da da çalışıyor.
+68 test dosyasının hepsini dörder dörder, her birini kendi boş kayıt klasöründe çalıştırıyor (bir dakikadan kısa). Testler her PR'da da çalışıyor.
 
-Ayrıntılar [docs/testing.md](docs/testing.md) dosyasında. Orada `tools/mutation_audit.py` aracı da anlatılıyor: oyunun 102 davranışını tek tek bilerek bozup testlerin bunu yakalayıp yakalamadığını kontrol ediyor. Şu an 102'nin 102'si yakalanıyor.
+Ayrıntılar [docs/testing.md](docs/testing.md) dosyasında. Orada `tools/mutation_audit.py` aracı da anlatılıyor: oyunun 135 davranışını tek tek bilerek bozup testlerin bunu yakalayıp yakalamadığını kontrol ediyor. Şu an 135'inin 135'i yakalanıyor.
 
 ## Proje yapısı
 
@@ -102,10 +130,12 @@ Ayrıntılar [docs/testing.md](docs/testing.md) dosyasında. Orada `tools/mutati
 | `scripts/services/` | Tema, yazı tipleri, çeviriler, yerleşim, ses, paylaşım |
 | `scenes/` | Ekranlar ve arayüz bileşenleri (kodla kuruluyor) |
 | `assets/` | Yazı tipleri, simgeler, uygulama simgesi |
+| `packaging/` | Linux menü girdisi, mağaza açıklaması ve Flatpak tarifi |
+| `web/` | Tarayıcı sürümünün sayfası (yükleme ekranı) |
 | `tests/` | Test dosyaları |
 | `engine/` | Android için küçültülmüş Godot derleme profili |
-| `tools/` | Test çalıştırıcı, mutasyon denetimi, bulmaca bankası ve teknik örnekleri, ekran görüntüleri |
-| `docs/` | Android, testler, sürüm yayınlama, F-Droid |
+| `tools/` | Test çalıştırıcı, mutasyon denetimi, bulmaca bankası ve teknik örnekleri, ekran görüntüleri, Linux paketleri |
+| `docs/` | Android, Linux, testler, sürüm yayınlama, F-Droid ve bu README'deki resimler |
 | `fastlane/` | Mağaza metinleri, simge ve ekran görüntüleri (bu README de onları kullanıyor) |
 
 `Just Sudoku GDD.md` ilk tasarım belgesi; eski, oyunun bugünkü hâlini anlatmıyor. `addons/godot_mcp/` geliştirme sırasında kullanılan bir editör eklentisi, oyunun parçası değil.
@@ -123,4 +153,4 @@ Just Sudoku, [GNU Genel Kamu Lisansı v3.0](LICENSE) altında özgür yazılımd
 Kullandıkları:
 - [Godot Engine](https://godotengine.org) (MIT)
 - [Inter](https://rsms.me/inter/), [Nunito](https://github.com/googlefonts/nunito), [Source Serif 4](https://github.com/adobe-fonts/source-serif), [DM Serif Display](https://github.com/googlefonts/dm-fonts) ve [IBM Plex Mono](https://github.com/IBM/plex) yazı tipleri, SIL Open Font License ile ([assets/fonts/licenses](assets/fonts/licenses))
-- [Lucide](https://lucide.dev) simgeleri (ISC, [assets/icons/LICENSE-lucide.txt](assets/icons/LICENSE-lucide.txt))
+- [Lucide](https://lucide.dev) simgeleri (ISC) ve [Simple Icons](https://simpleicons.org)'tan GitHub işareti (CC0); ikisi de [assets/icons/LICENSE-lucide.txt](assets/icons/LICENSE-lucide.txt) dosyasında

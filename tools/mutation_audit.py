@@ -144,6 +144,7 @@ MUTATIONS = [
  ("M132", "packaging/linux/io.github.r0madeus.JustSudoku.metainfo.xml", "<project_license>GPL-3.0-only</project_license>", "<project_license>MIT</project_license>", "The store description names another licence than the project's"),
  ("M133", "packaging/linux/io.github.r0madeus.JustSudoku.desktop", "Exec=JustSudoku\n", "Exec=just-sudoku\n", "The menu entry starts a program that is not there"),
  ("M134", ".github/workflows/linux.yml", "flatpak build-bundle", "flatpak build-repo", "The Flatpak bundle is not made"),
+ ("M135", "README.md", "docs/images/hero_en.jpg", "docs/images/hero_gone.jpg", "The README's first picture is a broken link"),
 ]
 
 def main():
