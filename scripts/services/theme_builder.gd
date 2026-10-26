@@ -160,11 +160,12 @@ static func build_godot_theme() -> Theme:
 	# -------------------------------------------------------------------------
 	var highlight_border := Color(1.0, 1.0, 1.0, 0.22 if is_dark else 0.40)
 
-	# PrimaryButton (Prime reference: "Devam Et" filled accent capsule with subtle highlight & soft shadow)
+	# PrimaryButton (Prime reference: "Devam Et" filled accent capsule with a soft shadow). No border:
+	# a border over the anti-aliased edge of the fill shows as a dark ring with a speckled fringe.
 	theme.set_type_variation("PrimaryButton", "Button")
-	var sb_pri_norm := ThemeManager.create_flat_stylebox(accent_col, ThemeManager.RADIUS_CAPSULE, ThemeManager.BORDER_HAIRLINE, highlight_border, 20, 10, ThemeManager.get_shadow_color(0.14), 5, Vector2(0, 2))
-	var sb_pri_hov := ThemeManager.create_flat_stylebox(accent_col.lightened(0.08) if is_dark else accent_col.darkened(0.06), ThemeManager.RADIUS_CAPSULE, ThemeManager.BORDER_HAIRLINE, highlight_border.lightened(0.2), 20, 10, ThemeManager.get_shadow_color(0.18), 7, Vector2(0, 2))
-	var sb_pri_press := ThemeManager.create_flat_stylebox(accent_col.darkened(0.1), ThemeManager.RADIUS_CAPSULE, ThemeManager.BORDER_HAIRLINE, highlight_border.darkened(0.1), 20, 10, ThemeManager.get_shadow_color(0.08), 2, Vector2(0, 1))
+	var sb_pri_norm := ThemeManager.create_flat_stylebox(accent_col, ThemeManager.RADIUS_CAPSULE, ThemeManager.BORDER_NONE, Color.TRANSPARENT, 20, 10, ThemeManager.get_shadow_color(0.14), 5, Vector2(0, 2))
+	var sb_pri_hov := ThemeManager.create_flat_stylebox(accent_col.lightened(0.08) if is_dark else accent_col.darkened(0.06), ThemeManager.RADIUS_CAPSULE, ThemeManager.BORDER_NONE, Color.TRANSPARENT, 20, 10, ThemeManager.get_shadow_color(0.18), 7, Vector2(0, 2))
+	var sb_pri_press := ThemeManager.create_flat_stylebox(accent_col.darkened(0.1), ThemeManager.RADIUS_CAPSULE, ThemeManager.BORDER_NONE, Color.TRANSPARENT, 20, 10, ThemeManager.get_shadow_color(0.08), 2, Vector2(0, 1))
 	var sb_pri_dis := ThemeManager.create_flat_stylebox(bg_disabled, ThemeManager.RADIUS_CAPSULE, ThemeManager.BORDER_NONE, Color.TRANSPARENT, 20, 10)
 
 	theme.set_stylebox("normal", "PrimaryButton", sb_pri_norm)

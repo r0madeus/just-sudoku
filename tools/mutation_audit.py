@@ -120,6 +120,7 @@ MUTATIONS = [
  ("M108", "scenes/gameplay/game_screen.gd", "\tif active and not AppSettings.colors_hint_seen:\n", "\tif active:\n", "The Colours note opens every time"),
  ("M109", "scenes/gameplay/game_screen.gd", "\t\tAppSettings.colors_hint_seen = true\n\t\tAppSettings.save_config()\n", "", "The Colours note is never remembered as seen"),
  ("M110", "scripts/services/app_settings.gd", "\t\t\"colors_hint_seen\": colors_hint_seen,\n", "", "The Colours note is shown again on every start"),
+ ("M111", "scripts/services/theme_builder.gd", "ThemeManager.RADIUS_CAPSULE, ThemeManager.BORDER_NONE, Color.TRANSPARENT, 20, 10, ThemeManager.get_shadow_color(0.14)", "ThemeManager.RADIUS_CAPSULE, ThemeManager.BORDER_HAIRLINE, highlight_border, 20, 10, ThemeManager.get_shadow_color(0.14)", "The filled capsule buttons have a ring around their edge again"),
 ]
 
 def main():
