@@ -13,6 +13,7 @@ const ResponsiveManager = preload("res://scripts/services/responsive_manager.gd"
 const AppModal = preload("res://scenes/ui/app_modal.gd")
 const BackupManager = preload("res://scripts/data/backup_manager.gd")
 const PuzzleShareService = preload("res://scripts/services/puzzle_share_service.gd")
+const WebFiles = preload("res://scripts/services/web_files.gd")
 
 ## Saved data was replaced by a backup; whatever was open must not save over it
 signal data_restored()
@@ -35,7 +36,8 @@ var _choice: AppModal = null
 
 func _init() -> void:
 	add_theme_constant_override("separation", 8)
-	has_file_dialog = DisplayServer.has_feature(DisplayServer.FEATURE_NATIVE_DIALOG_FILE)
+	# In a browser a file is a download and the browser's own open window
+	has_file_dialog = DisplayServer.has_feature(DisplayServer.FEATURE_NATIVE_DIALOG_FILE) or WebFiles.available()
 	_build_ui()
 	_update_locale_texts()
 
@@ -140,12 +142,20 @@ func _ask_where(title_key: String, file_key: String, clip_key: String, on_file: 
 	else:
 		_choice.ok_button_text = LocalizationManager.translate(clip_key)
 		_choice.confirmed.connect(on_clip)
-	get_tree().root.add_child(_choice)
+	_modal_host().add_child(_choice)
 	_choice.visibility_changed.connect(func():
 		if not modal.visible:
 			modal.queue_free()
 	)
 	_choice.open_modal()
+
+## Dialogs belong to the outermost Control (the app root), which carries the app's theme; under
+## the bare window they come out in Godot's grey default look
+func _modal_host() -> Node:
+	var host: Node = self
+	while host.get_parent() is Control:
+		host = host.get_parent()
+	return host if host != self else get_tree().root
 
 func _on_backup_pressed() -> void:
 	_ask_where("SETTING_BACKUP", "BTN_SAVE_FILE", "BTN_COPY_CLIPBOARD", _backup_to_file, backup_to_clipboard)
@@ -158,6 +168,10 @@ func backup_to_clipboard() -> void:
 	_show_status("BACKUP_COPIED")
 
 func _backup_to_file() -> void:
+	if WebFiles.available():
+		WebFiles.download_text(BackupManager.file_name(), BackupManager.to_file_text())
+		_show_status("BACKUP_SAVED")
+		return
 	DisplayServer.file_dialog_show(LocalizationManager.translate("SETTING_BACKUP"), "", BackupManager.file_name(),
 		false, DisplayServer.FILE_DIALOG_MODE_SAVE_FILE, FILE_FILTERS,
 		func(ok: bool, paths: PackedStringArray, _filter: int):
@@ -169,6 +183,9 @@ func _backup_to_file() -> void:
 	)
 
 func _restore_from_file() -> void:
+	if WebFiles.available():
+		WebFiles.pick_text(restore_from_text)
+		return
 	DisplayServer.file_dialog_show(LocalizationManager.translate("SETTING_RESTORE"), "", "",
 		false, DisplayServer.FILE_DIALOG_MODE_OPEN_FILE, OPEN_FILTERS,
 		func(ok: bool, paths: PackedStringArray, _filter: int):
@@ -197,5 +214,5 @@ func restore_from_text(text: String) -> AppModal:
 			data_restored.emit()
 		else:
 			_show_status("BACKUP_ERR_WRITE", true)
-	return AppModal.ask(get_tree().root, LocalizationManager.translate("SETTING_RESTORE"), body,
+	return AppModal.ask(_modal_host(), LocalizationManager.translate("SETTING_RESTORE"), body,
 		LocalizationManager.translate("BTN_RESTORE"), on_restore, true)

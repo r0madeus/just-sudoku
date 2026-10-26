@@ -382,7 +382,7 @@ static func _screen_copy() -> BackBufferCopy:
 func _update_backdrop_material() -> void:
 	if backdrop == null:
 		return
-	if blur_background:
+	if blur_background and AppSettings.glass_effects:
 		if backdrop.material == null:
 			var shader_code: String = """
 shader_type canvas_item;
@@ -432,6 +432,7 @@ func _apply_base_theme_colors() -> void:
 		close_btn.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
 
 func _on_base_theme_changed() -> void:
+	_update_backdrop_material()
 	_apply_base_theme_colors()
 
 func _update_base_locale_texts() -> void:

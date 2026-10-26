@@ -69,6 +69,10 @@ static func set_theme(theme_name: String) -> void:
 	save_settings()
 	_notify_listeners()
 
+## Tells everything that draws from the theme to draw again (a setting that changes the look)
+static func notify_changed() -> void:
+	_notify_listeners()
+
 ## Following the phone, and it switched between light and dark while the app was away
 static func refresh_system_theme() -> void:
 	if follows_system and detect_system_theme() != current_theme_name:

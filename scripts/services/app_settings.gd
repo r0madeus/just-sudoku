@@ -24,6 +24,10 @@ static var smart_numpad_enabled: bool = true
 static var digit_first: bool = false
 ## Whether the one-time note on what the Colours button is for has been shown
 static var colors_hint_seen: bool = false
+## Whether the one-time note that the browser version keeps progress in the browser has been shown
+static var web_notice_seen: bool = false
+## Frosted, blurred glass cards. Off draws them as plain surfaces: flatter and lighter to draw.
+static var glass_effects: bool = true
 static var auto_remove_notes: bool = true
 static var smart_candidates_enabled: bool = false
 static var show_conflicts: bool = true
@@ -61,6 +65,8 @@ static func save_config() -> void:
 		"smart_numpad": smart_numpad_enabled,
 		"digit_first": digit_first,
 		"colors_hint_seen": colors_hint_seen,
+		"web_notice_seen": web_notice_seen,
+		"glass_effects": glass_effects,
 		"auto_notes": auto_remove_notes,
 		"smart_candidates": smart_candidates_enabled,
 		"show_conflicts": show_conflicts,
@@ -98,6 +104,8 @@ static func load_config() -> void:
 		smart_numpad_enabled = json.data.get("smart_numpad", true)
 		digit_first = json.data.get("digit_first", false)
 		colors_hint_seen = bool(json.data.get("colors_hint_seen", false))
+		web_notice_seen = bool(json.data.get("web_notice_seen", false))
+		glass_effects = bool(json.data.get("glass_effects", true))
 		auto_remove_notes = json.data.get("auto_notes", true)
 		smart_candidates_enabled = json.data.get("smart_candidates", false)
 		show_conflicts = json.data.get("show_conflicts", true)

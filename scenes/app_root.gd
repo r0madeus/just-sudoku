@@ -254,8 +254,37 @@ func _reveal() -> void:
 	if not is_inside_tree():
 		modulate.a = 1.0
 		return
+	_show_web_notice_later()
 	var tween := create_tween()
 	tween.tween_property(self, "modulate:a", 1.0, REVEAL_TIME).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+## A moment after the first frames, once the menu is on show
+func _show_web_notice_later() -> void:
+	if not OS.has_feature("web") or AppSettings.web_notice_seen:
+		return
+	await get_tree().create_timer(REVEAL_TIME + 0.6).timeout
+	_maybe_show_web_notice()
+
+## The browser version keeps progress in the browser, which a player may not expect: said once
+## (`as_web` lets a test ask for it outside a browser)
+func _maybe_show_web_notice(as_web: bool = false) -> AppModal:
+	if not (as_web or OS.has_feature("web")) or AppSettings.web_notice_seen or not is_inside_tree():
+		return null
+	AppSettings.web_notice_seen = true
+	AppSettings.save_config()
+	var note := AppModal.new()
+	note.title = LocalizationManager.translate("WEB_NOTICE_TITLE")
+	note.dialog_text = LocalizationManager.translate("WEB_NOTICE_BODY")
+	note.ok_button_text = LocalizationManager.translate("WEB_NOTICE_OK")
+	note.cancel_btn.visible = false
+	note.show_close_button = false
+	add_child(note)
+	note.visibility_changed.connect(func():
+		if not note.visible:
+			note.queue_free()
+	)
+	note.open_modal()
+	return note
 
 ## One step "back": closes the topmost modal, else leaves the current screen, else quits from the menu
 func handle_back() -> void:

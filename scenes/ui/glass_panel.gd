@@ -203,7 +203,8 @@ func _refresh() -> void:
 		return
 	var is_dark: bool = ThemeManager.get_color("bg").get_luminance() < 0.5
 	var surface: Color = ThemeManager.get_color("surface_elevated" if elevated else "surface")
-	var flat: bool = ThemeManager.current_theme_name == ThemeManager.THEME_AMOLED
+	# Over black there is nothing to blur; with Glass effects off the same plain surface is wanted
+	var flat: bool = ThemeManager.current_theme_name == ThemeManager.THEME_AMOLED or not AppSettings.glass_effects
 	_material.shader = _flat_shader if flat else _shader
 
 	# Frosted glass is lighter than what is behind it, so light themes tint toward white
