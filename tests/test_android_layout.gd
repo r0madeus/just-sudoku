@@ -50,6 +50,35 @@ func _run() -> void:
 	_check(dock.is_compact and dock.undo_btn.text == "" and dock.undo_btn.tooltip_text != "", "Dock turns icon-only (with tooltips) on a narrow screen")
 	_check(dock.get_combined_minimum_size().x <= 300.0, "Compact dock fits 300 px (min width %.0f)" % dock.get_combined_minimum_size().x)
 
+	# With the app's theme, turning notes or colours on must not change the dock's width: it chooses
+	# labels or icons by that width, and a 2 px difference used to flip it on every tap
+	var themed := Control.new()
+	themed.theme = ThemeManager.build_godot_theme()
+	win.add_child(themed)
+	var tdock := GameActionDock.new()
+	themed.add_child(tdock)
+	await _frames()
+	var widths: Array[float] = []
+	for state in [[false, false], [true, false], [false, true], [false, false]]:
+		tdock.set_notes_active(state[0])
+		tdock.set_color_active(state[1])
+		await _frames()
+		tdock._apply_compact(false)
+		widths.append(tdock.get_combined_minimum_size().x)
+	var steady := true
+	for w in widths:
+		steady = steady and is_equal_approx(w, widths[0])
+	_check(steady, "The dock is as wide with notes or colours on as off %s" % str(widths))
+	var edge := widths[0] - 0.5
+	var verdicts: Array[bool] = []
+	for state in [[false, false], [true, false], [false, true]]:
+		tdock.set_notes_active(state[0])
+		tdock.set_color_active(state[1])
+		tdock.fit_to_width(edge)
+		verdicts.append(tdock.is_compact)
+	_check(verdicts == [true, true, true], "so just under that width it is icon-only in every state %s" % str(verdicts))
+	themed.queue_free()
+
 	var app := AppRoot.new()
 	win.add_child(app)
 	app.size = Vector2(360, 640)

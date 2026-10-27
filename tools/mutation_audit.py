@@ -143,6 +143,7 @@ MUTATIONS = [
  ("M132", "packaging/linux/io.github.r0madeus.JustSudoku.metainfo.xml", "<project_license>GPL-3.0-only</project_license>", "<project_license>MIT</project_license>", "The store description names another licence than the project's"),
  ("M133", "packaging/linux/io.github.r0madeus.JustSudoku.desktop", "Exec=JustSudoku\n", "Exec=just-sudoku\n", "The menu entry starts a program that is not there"),
  ("M135", "README.md", "docs/images/hero_en.jpg", "docs/images/hero_gone.jpg", "The README's first picture is a broken link"),
+ ("M136", "scenes/ui/game_action_dock.gd", "Color.TRANSPARENT, 4, 4))", "Color.TRANSPARENT, 4 if on else 14, 4))", "Turning notes on makes the dock narrower, so it flips between labels and icons"),
 ]
 
 def main():
