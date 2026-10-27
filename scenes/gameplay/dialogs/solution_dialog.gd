@@ -26,7 +26,7 @@ var solved_board: SudokuBoard = null
 var current_step_idx: int = 0
 
 # UI Controls
-var mode_tabs: HBoxContainer
+var mode_tabs: SegmentedControl
 var btn_step_mode: Button
 var btn_full_mode: Button
 
@@ -80,29 +80,19 @@ func _build_ui() -> void:
 	# The X in the corner closes it; a second Close button at the bottom said the same thing
 	primary_btn.visible = false
 
-	# 1. Mode Selector Tabs
-	mode_tabs = HBoxContainer.new()
-	mode_tabs.add_theme_constant_override("separation", 6)
-	mode_tabs.alignment = BoxContainer.ALIGNMENT_CENTER
+	# 1. Mode selector: a pill slides between the two tabs
+	mode_tabs = SegmentedControl.new()
+	mode_tabs.add_segment("step", "")
+	mode_tabs.add_segment("full", "")
+	btn_step_mode = mode_tabs.buttons[0]
+	btn_full_mode = mode_tabs.buttons[1]
+	mode_tabs.select_index(0)
+	mode_tabs.item_selected.connect(func(id: String, _idx: int):
+		var mode: int = Mode.STEP_BY_STEP if id == "step" else Mode.FULL_SOLUTION
+		if mode != current_mode:
+			switch_view_mode(mode)
+	)
 	body_vbox.add_child(mode_tabs)
-
-	btn_step_mode = Button.new()
-	btn_step_mode.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	btn_step_mode.custom_minimum_size = Vector2(0, ResponsiveManager.HEIGHT_SEGMENT)
-	btn_step_mode.theme_type_variation = "PrimaryButton"
-	ThemeManager.set_font_size(btn_step_mode, 13)
-	btn_step_mode.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	btn_step_mode.pressed.connect(func(): switch_view_mode(Mode.STEP_BY_STEP))
-	mode_tabs.add_child(btn_step_mode)
-
-	btn_full_mode = Button.new()
-	btn_full_mode.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	btn_full_mode.custom_minimum_size = Vector2(0, ResponsiveManager.HEIGHT_SEGMENT)
-	btn_full_mode.theme_type_variation = "SecondaryButton"
-	ThemeManager.set_font_size(btn_full_mode, 13)
-	btn_full_mode.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	btn_full_mode.pressed.connect(func(): switch_view_mode(Mode.FULL_SOLUTION))
-	mode_tabs.add_child(btn_full_mode)
 
 	# 2. 9x9 Responsive Solution Grid
 	grid_aspect = AspectRatioContainer.new()
@@ -311,6 +301,7 @@ func open_solution(initial: SudokuBoard, current: SudokuBoard = null) -> void:
 	open_modal()
 
 func switch_view_mode(mode: int) -> void:
+	var changed: bool = mode != current_mode
 	current_mode = mode
 	var is_step := (mode == Mode.STEP_BY_STEP)
 
@@ -318,13 +309,19 @@ func switch_view_mode(mode: int) -> void:
 	step_info_panel.visible = is_step
 	full_info_panel.visible = not is_step
 
-	btn_step_mode.theme_type_variation = "PrimaryButton" if is_step else "SecondaryButton"
-	btn_full_mode.theme_type_variation = "SecondaryButton" if is_step else "PrimaryButton"
+	if mode_tabs != null and mode_tabs.get_selected_index() != (0 if is_step else 1):
+		mode_tabs.select_index(0 if is_step else 1)
 
 	if is_step:
 		set_step(current_step_idx)
 	else:
 		_render_full_solution()
+
+	# The panels that come in fade up while the pill slides, instead of the view jumping
+	if changed and is_visible_in_tree() and AppSettings.animations_enabled:
+		for panel in ([step_nav_bar, step_info_panel] if is_step else [full_info_panel]):
+			panel.modulate.a = 0.0
+			create_tween().tween_property(panel, "modulate:a", 1.0, 0.22).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 
 func set_step(idx: int) -> void:
 	current_step_idx = clampi(idx, 0, steps.size())
@@ -504,12 +501,6 @@ func _apply_theme_styles() -> void:
 		step_coord_badge.add_theme_color_override("font_color", ThemeManager.get_color("accent_blue"))
 	if full_unique_label != null:
 		full_unique_label.add_theme_color_override("font_color", ThemeManager.get_color("accent"))
-
-	var is_step := (current_mode == Mode.STEP_BY_STEP)
-	if btn_step_mode != null:
-		btn_step_mode.theme_type_variation = "PrimaryButton" if is_step else "SecondaryButton"
-	if btn_full_mode != null:
-		btn_full_mode.theme_type_variation = "SecondaryButton" if is_step else "PrimaryButton"
 
 	if initial_puzzle != null:
 		if current_mode == Mode.STEP_BY_STEP:

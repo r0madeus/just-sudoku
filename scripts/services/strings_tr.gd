@@ -239,6 +239,7 @@ const STRINGS: Dictionary = {
 	"SETTING_SHOW_WRONG": "Yanlış rakamları hemen göster",
 	"SETTING_DESC_SHOW_WRONG": "Çözümle uyuşmayan rakamı girer girmez işaretler; her biri hata sayılır",
 	"BTN_FILL_NOTES": "Notları doldur",
+	"BTN_CLEAR_NOTES": "Notları temizle",
 	"MONTH_1": "Ocak",
 	"MONTH_SHORT_1": "Oca",
 	"MONTH_2": "Şubat",

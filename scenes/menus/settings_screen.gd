@@ -122,6 +122,8 @@ func _init() -> void:
 func _ready() -> void:
 	set_anchors_preset(PRESET_FULL_RECT)
 	_apply_responsive_layout()
+	# In _init the buttons have no theme yet, so their text is measured in the default font
+	_equalize_controls.call_deferred()
 
 func _exit_tree() -> void:
 	LocalizationManager.remove_listener(_update_locale_texts)
@@ -331,6 +333,10 @@ func _build_ui() -> void:
 	glass_check.toggled.connect(func(v):
 		AppSettings.glass_effects = v
 		AppSettings.save_config()
+		# Redrawing every card at once takes a long frame, which swallows the knob's slide:
+		# the switch moves first, the screen follows
+		if AppSettings.animations_enabled and is_inside_tree():
+			await get_tree().create_timer(ToggleSwitch.SLIDE_TIME + 0.03).timeout
 		ThemeManager.notify_changed()
 	)
 	glass_row = SettingRow.new("", "", glass_check)
@@ -529,6 +535,7 @@ func _create_divider() -> HSeparator:
 	return div
 
 func _on_theme_changed() -> void:
+	_equalize_controls()
 	if bg != null:
 		bg.color = ThemeManager.get_color("bg")
 	_update_theme_option_selection()
@@ -573,9 +580,18 @@ static func _picker_width() -> float:
 	return roundf(PICKER_WIDTH * (1.0 + (ThemeManager.text_scale - 1.0) * 0.4))
 
 func _on_text_size_changed() -> void:
-	for opt in [lang_option, theme_option, font_option, text_size_option]:
-		if opt != null:
-			opt.custom_minimum_size.x = _picker_width()
+	_equalize_controls()
+
+## The four drop-downs and the Customize Theme button share one width, the widest any of them needs,
+## so the column of controls on the right reads as one even edge
+func _equalize_controls() -> void:
+	var width: float = _picker_width()
+	if custom_theme_btn != null:
+		custom_theme_btn.custom_minimum_size.x = 0.0
+		width = maxf(width, custom_theme_btn.get_minimum_size().x)
+	for ctl in [lang_option, theme_option, font_option, text_size_option, custom_theme_btn]:
+		if ctl != null:
+			ctl.custom_minimum_size.x = width
 
 func _on_text_size_selected(idx: int) -> void:
 	# Resizes what is on screen now, on every screen, not only on the next start
@@ -641,6 +657,7 @@ func _update_locale_texts() -> void:
 
 	if custom_theme_btn != null:
 		custom_theme_btn.text = LocalizationManager.translate("BTN_EDIT_CUSTOM_THEME")
+		_equalize_controls()
 
 	if font_row != null:
 		font_row.set_title(LocalizationManager.translate("SETTING_FONT"))

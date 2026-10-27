@@ -21,6 +21,8 @@ var notes_btn: Button
 var hint_btn: Button
 ## Icon button next to Notes, shown only in notes mode
 var fill_notes_btn: Button
+## On while every empty cell has notes: the button is a toggle, pressing it then takes them off
+var fill_notes_on: bool = false
 ## Icon button that turns the keys into cell colours
 var colors_btn: Button
 
@@ -218,6 +220,12 @@ func set_notes_active(active: bool) -> void:
 		if _available_width > 0.0:
 			fit_to_width(_available_width)
 
+func set_fill_notes_on(on: bool) -> void:
+	fill_notes_on = on
+	if fill_notes_btn != null:
+		_set_toggled_look(fill_notes_btn, on)
+		fill_notes_btn.tooltip_text = LocalizationManager.translate("BTN_CLEAR_NOTES" if on else "BTN_FILL_NOTES")
+
 func set_color_active(active: bool) -> void:
 	is_color_mode = active
 	_update_colors_visuals()
@@ -280,7 +288,7 @@ func _update_locale_texts() -> void:
 		hint_btn.text = "" if is_compact else LocalizationManager.translate("BTN_HINT")
 		hint_btn.tooltip_text = LocalizationManager.translate("BTN_HINT")
 	if fill_notes_btn != null:
-		fill_notes_btn.tooltip_text = LocalizationManager.translate("BTN_FILL_NOTES")
+		fill_notes_btn.tooltip_text = LocalizationManager.translate("BTN_CLEAR_NOTES" if fill_notes_on else "BTN_FILL_NOTES")
 	if colors_btn != null:
 		colors_btn.tooltip_text = LocalizationManager.translate("BTN_COLORS_TIP")
 	_update_notes_visuals()
@@ -297,7 +305,7 @@ func _apply_theme_style() -> void:
 	# The glass surface itself is GlassPanel's job; only the toggles depend on the theme here
 	_update_notes_visuals()
 	_update_colors_visuals()
-	_set_toggled_look(fill_notes_btn, false)
+	_set_toggled_look(fill_notes_btn, fill_notes_on)
 
 func _on_theme_changed() -> void:
 	_apply_theme_style()

@@ -697,7 +697,11 @@ func _on_notes_toggle_pressed() -> void:
 		_update_numpad_states()
 
 func _on_fill_notes_pressed() -> void:
-	if game_state != null and game_state.fill_notes():
+	# A toggle: with every empty cell already noted, the same press takes the notes off
+	if game_state == null:
+		return
+	var changed: bool = game_state.clear_notes() if game_state.all_notes_filled() else game_state.fill_notes()
+	if changed:
 		sudoku_grid.refresh_all_cells()
 		SoundManager.play_note()
 		Haptics.tap()
@@ -724,6 +728,8 @@ func _on_check_pressed() -> void:
 func _on_digit_completed(digit: int) -> void:
 	if sudoku_grid != null:
 		sudoku_grid.play_digit_completed_pulse(digit)
+	if numpad != null:
+		numpad.blink_digit(digit)
 
 func _on_units_completed(origin_idx: int, units: Array) -> void:
 	if sudoku_grid != null:
@@ -810,6 +816,7 @@ func _update_action_buttons() -> void:
 	if action_dock != null:
 		action_dock.set_can_undo(game_state.can_undo())
 		action_dock.set_can_redo(game_state.can_redo())
+		action_dock.set_fill_notes_on(game_state.all_notes_filled())
 	else:
 		if undo_btn != null:
 			undo_btn.disabled = not game_state.can_undo()

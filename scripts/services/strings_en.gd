@@ -242,6 +242,7 @@ const STRINGS: Dictionary = {
 	"SETTING_SHOW_WRONG": "Show wrong digits right away",
 	"SETTING_DESC_SHOW_WRONG": "Marks a digit that does not match the solution as soon as you place it; each one counts as a mistake",
 	"BTN_FILL_NOTES": "Fill notes",
+	"BTN_CLEAR_NOTES": "Clear notes",
 	"MONTH_1": "January",
 	"MONTH_SHORT_1": "Jan",
 	"MONTH_2": "February",
