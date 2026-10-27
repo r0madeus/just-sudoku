@@ -76,6 +76,12 @@
   </provides>
 
   <releases>
+    <release version="1.2.1" date="2026-10-27">
+      <description>
+        <p>A steadier toolbar, a sliding highlight on tabs, Fill notes as a switch, and a blink when all nine of a digit are placed.</p>
+      </description>
+      <url type="details">https://github.com/r0madeus/just-sudoku/releases/tag/v1.2.1</url>
+    </release>
     <release version="1.2.0" date="2026-10-26">
       <description>
         <p>Linux downloads, on/off switches that slide, a Glass effects setting, and backup to a file in the browser.</p>

@@ -1,0 +1,1 @@
+A steadier toolbar, Fill notes as a switch, a blink when all nine of a digit are placed, tabs that slide, a sliding Glass effects switch and sharper icons.

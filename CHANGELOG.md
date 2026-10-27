@@ -2,6 +2,23 @@
 
 All notable changes to Just Sudoku. Türkçesi aşağıda / Turkish below each version.
 
+## [1.2.1] - 2026-10-27
+
+A steadier toolbar, smoother tabs, and a few touches of motion.
+
+- Fixed: the game's toolbar jumped between labelled buttons (Undo, Redo, Hint) and icons only each time notes were turned on or off on a phone. It now keeps one look.
+- Fill notes is a switch: with every empty cell noted it shows as on, and pressing it again takes the notes off (Undo brings them back).
+- When all nine of a digit are placed, its cells and its key blink three times, so it is plain that digit is done.
+- Tabs (the solution viewer, the difficulty choice) slide a highlight to the chosen one and the content fades in, instead of switching at once.
+- Settings: the *Glass effects* switch slides like the others; the drop-downs and the Customize Theme button are one width; the GitHub, pencil and calendar icons are sharper.
+
+**Türkçe**
+- Düzeltildi: telefonda notlar açılıp kapanınca oyunun alt çubuğu etiketli (Geri al, Yinele, İpucu) ve yalnızca ikonlu görünüm arasında sıçrıyordu. Artık tek görünümde kalıyor.
+- Notları doldur bir anahtar: tüm boş hücrelerde not varken açık görünür, tekrar basınca notları siler (Geri al geri getirir).
+- Bir rakamın dokuzu da yerleşince o rakamın hücreleri ve tuşu üç kez yanıp sönüyor; rakamın bittiği belli oluyor.
+- Sekmeler (çözüm penceresi, zorluk seçimi) seçilene kayan bir vurgu gösteriyor, içerik yumuşakça beliriyor; artık bir anda değişmiyor.
+- Ayarlar: *Cam efektleri* anahtarı diğerleri gibi kayıyor; açılır listeler ve Temayı özelleştir düğmesi aynı genişlikte; GitHub, kalem ve takvim simgeleri daha keskin.
+
 ## [1.2.0] - 2026-10-26
 
 Linux, switches that slide, and a safer browser version.
