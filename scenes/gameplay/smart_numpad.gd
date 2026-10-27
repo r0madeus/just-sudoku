@@ -39,6 +39,19 @@ func _exit_tree() -> void:
 func _on_theme_changed() -> void:
 	_update_selected_visuals()
 
+## The key of a digit with all nine placed blinks three times: bright, a little larger
+func blink_digit(digit: int) -> void:
+	if not AppSettings.animations_enabled or digit < 1 or digit > num_buttons.size() or not is_inside_tree():
+		return
+	var btn: Button = num_buttons[digit - 1]
+	btn.pivot_offset = btn.size * 0.5
+	var tween := create_tween()
+	for blink in 3:
+		tween.tween_property(btn, "modulate", Color(1.9, 1.9, 2.4), 0.11).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		tween.parallel().tween_property(btn, "scale", Vector2(1.12, 1.12), 0.11).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		tween.tween_property(btn, "modulate", Color.WHITE, 0.15).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+		tween.parallel().tween_property(btn, "scale", Vector2.ONE, 0.15).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+
 func set_selected_digit(val: int) -> void:
 	if selected_digit == val:
 		return

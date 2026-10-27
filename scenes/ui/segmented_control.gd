@@ -15,6 +15,18 @@ var items: Array[Dictionary] = [] # Array of {"id": String, "text": String}
 var selected_id: String = ""
 var selected_index: int = -1
 
+const SLIDE_TIME: float = 0.22
+
+## The accent pill behind the chosen segment. It slides to the next one: 0 = where it was,
+## 1 = on the chosen segment (which it follows if the control is resized)
+var pill_t: float = 1.0 :
+	set(v):
+		pill_t = v
+		if hbox != null:
+			hbox.queue_redraw()
+var _pill_from: Rect2 = Rect2()
+var _tween: Tween = null
+
 func _init() -> void:
 	size_flags_horizontal = SIZE_EXPAND_FILL
 	theme_type_variation = "SegmentedDock"
@@ -24,6 +36,8 @@ func _init() -> void:
 
 func _exit_tree() -> void:
 	ThemeManager.remove_listener(_on_theme_changed)
+	if _tween != null:
+		_tween.kill()
 
 func _apply_theme_style() -> void:
 	var surface_col: Color = ThemeManager.get_color("surface")
@@ -42,6 +56,9 @@ func _build_ui() -> void:
 	hbox.size_flags_horizontal = SIZE_EXPAND_FILL
 	hbox.size_flags_vertical = SIZE_EXPAND_FILL
 	hbox.add_theme_constant_override("separation", ThemeManager.SPACE_2XS)
+	# Drawn before the buttons, so the pill sits behind their text
+	hbox.draw.connect(_draw_pill)
+	hbox.resized.connect(hbox.queue_redraw)
 	add_child(hbox)
 
 func clear_segments() -> void:
@@ -78,9 +95,13 @@ func select_id(id: String) -> void:
 func select_index(idx: int) -> void:
 	if idx < 0 or idx >= items.size():
 		return
+	var first: bool = selected_index < 0
+	if not first and idx != selected_index:
+		_pill_from = _pill_rect()
 	selected_index = idx
 	selected_id = items[idx]["id"]
 	_update_button_visuals()
+	_slide_pill(first or _pill_from.size == Vector2.ZERO)
 	item_selected.emit(selected_id, selected_index)
 
 func set_segment_text(id: String, text: String) -> void:
@@ -97,14 +118,49 @@ func get_selected_id() -> String:
 func get_selected_index() -> int:
 	return selected_index
 
+## Every segment is a plain button; the chosen one has white text over the pill that is drawn behind
 func _update_button_visuals() -> void:
 	for i in range(buttons.size()):
 		var btn: Button = buttons[i]
-		var is_active := (i == selected_index)
-		if is_active:
-			btn.theme_type_variation = "PrimaryButton"
-		else:
-			btn.theme_type_variation = "GhostButton"
+		btn.theme_type_variation = "GhostButton"
+		for c in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
+			if i == selected_index:
+				btn.add_theme_color_override(c, Color.WHITE)
+			else:
+				btn.remove_theme_color_override(c)
+	if hbox != null:
+		hbox.queue_redraw()
+
+func _slide_pill(instant: bool) -> void:
+	if _tween != null:
+		_tween.kill()
+		_tween = null
+	if instant or not is_inside_tree() or not is_visible_in_tree() or not AppSettings.animations_enabled:
+		pill_t = 1.0
+		return
+	pill_t = 0.0
+	_tween = create_tween()
+	_tween.tween_property(self, "pill_t", 1.0, SLIDE_TIME).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+
+## Where the pill is now: on the chosen segment, or part of the way from the previous one
+func _pill_rect() -> Rect2:
+	if selected_index < 0 or selected_index >= buttons.size():
+		return Rect2()
+	var target := Rect2(buttons[selected_index].position, buttons[selected_index].size)
+	if pill_t >= 1.0 or _pill_from.size == Vector2.ZERO:
+		return target
+	return Rect2(_pill_from.position.lerp(target.position, pill_t), _pill_from.size.lerp(target.size, pill_t))
+
+func _draw_pill() -> void:
+	var rect := _pill_rect()
+	if rect.size == Vector2.ZERO:
+		return
+	var style := StyleBoxFlat.new()
+	style.bg_color = ThemeManager.get_color("accent_blue", ThemeManager.get_color("accent"))
+	style.set_corner_radius_all(ThemeManager.RADIUS_CAPSULE)
+	style.anti_aliasing = true
+	style.anti_aliasing_size = ThemeManager.edge_aa()
+	hbox.draw_style_box(style, rect)
 
 func _on_theme_changed() -> void:
 	_apply_theme_style()

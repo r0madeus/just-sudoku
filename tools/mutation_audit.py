@@ -143,6 +143,12 @@ MUTATIONS = [
  ("M132", "packaging/linux/io.github.r0madeus.JustSudoku.metainfo.xml", "<project_license>GPL-3.0-only</project_license>", "<project_license>MIT</project_license>", "The store description names another licence than the project's"),
  ("M133", "packaging/linux/io.github.r0madeus.JustSudoku.desktop", "Exec=JustSudoku\n", "Exec=just-sudoku\n", "The menu entry starts a program that is not there"),
  ("M135", "README.md", "docs/images/hero_en.jpg", "docs/images/hero_gone.jpg", "The README's first picture is a broken link"),
+ ("M136", "scenes/ui/game_action_dock.gd", "Color.TRANSPARENT, 4, 4))", "Color.TRANSPARENT, 4 if on else 14, 4))", "Turning notes on makes the dock narrower, so it flips between labels and icons"),
+ ("M137", "scenes/gameplay/game_screen.gd", "game_state.clear_notes() if game_state.all_notes_filled() else game_state.fill_notes()", "game_state.fill_notes()", "Pressing Fill notes again does not take the notes off"),
+ ("M138", "scenes/gameplay/sudoku_cell.gd", "const DIGIT_BLINKS: int = 3", "const DIGIT_BLINKS: int = 1", "A completed digit blinks once instead of three times"),
+ ("M139", "scenes/menus/settings_screen.gd", "			await get_tree().create_timer(ToggleSwitch.SLIDE_TIME + 0.03).timeout\n", "			pass\n", "The Glass effects redraw swallows the switch's slide"),
+ ("M140", "scenes/menus/settings_screen.gd", "			ctl.custom_minimum_size.x = width\n", "			pass\n", "The Customize Theme button is not as wide as the drop-downs"),
+ ("M141", "scenes/ui/segmented_control.gd", "	pill_t = 0.0\n	_tween = create_tween()", "	pill_t = 1.0\n	_tween = create_tween()", "The tabs' pill does not slide, it jumps"),
 ]
 
 def main():

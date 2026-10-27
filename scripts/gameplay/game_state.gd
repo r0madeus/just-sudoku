@@ -367,6 +367,30 @@ func fill_notes() -> bool:
 	_push_cand_changes("fill_notes", changes)
 	return true
 
+## True when every empty cell has notes (the state "Fill notes" leaves the board in)
+func all_notes_filled() -> bool:
+	var empty := 0
+	for idx in range(SudokuBoard.CELL_COUNT):
+		if current_board.get_cell(idx) == 0:
+			empty += 1
+			if current_board.candidates[idx] == 0:
+				return false
+	return empty > 0
+
+## Takes every note off the board (the second press of the Fill notes toggle); one undo brings them back
+func clear_notes() -> bool:
+	if is_completed or is_paused:
+		return false
+	var changes: Dictionary = {}
+	for idx in range(SudokuBoard.CELL_COUNT):
+		if current_board.get_cell(idx) == 0 and current_board.candidates[idx] != 0:
+			changes[idx] = [current_board.candidates[idx], 0]
+			current_board.candidates[idx] = 0
+	if changes.is_empty():
+		return false
+	_push_cand_changes("clear_notes", changes)
+	return true
+
 ## Records a notes-only move ({idx: [prev, next]}) and shows the changed cells
 func _push_cand_changes(action: String, changes: Dictionary) -> void:
 	if changes.is_empty():

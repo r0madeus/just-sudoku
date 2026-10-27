@@ -72,7 +72,9 @@ func _test_toggles() -> void:
 		else:
 			dock.set_color_active(false)
 		await _frames(2)
-		_check("%s off: no outline of its own" % name, not btn.has_theme_stylebox_override("normal"))
+		var off_sb := btn.get_theme_stylebox("normal") as StyleBoxFlat
+		_check("%s off: no outline of its own, and nothing filled" % name,
+			off_sb != null and off_sb.border_width_left == 0 and off_sb.border_width_top == 0 and off_sb.bg_color.a == 0.0)
 		if name == "notes":
 			dock.set_notes_active(true)
 		else:

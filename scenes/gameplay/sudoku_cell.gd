@@ -204,6 +204,8 @@ const SELECT_TIME: float = 0.16
 const SHAKE_PX: float = 5.0
 const WAVE_SCALE: float = 1.16
 const WAVE_TIME: float = 0.22
+## How many times a cell blinks when its digit is complete
+const DIGIT_BLINKS: int = 3
 
 func animate_pop() -> void:
 	if not AppSettings.animations_enabled:
@@ -278,13 +280,7 @@ func animate_wave(delay: float) -> void:
 func animate_unit_completed(delay: float = 0.0) -> void:
 	if not AppSettings.animations_enabled or not is_inside_tree() or bg_panel == null:
 		return
-	if _flash_rect == null:
-		_flash_rect = ColorRect.new()
-		_flash_rect.set_anchors_preset(PRESET_FULL_RECT)
-		_flash_rect.mouse_filter = MOUSE_FILTER_IGNORE
-		add_child(_flash_rect)
-		# Above the cell background, below the digit and notes
-		move_child(_flash_rect, bg_panel.get_index() + 1)
+	_ensure_flash_rect()
 	_flash_rect.color = Color(ThemeManager.get_color("accent"), 0.0)
 	if _flash_tween != null and _flash_tween.is_valid():
 		_flash_tween.kill()
@@ -296,6 +292,17 @@ func animate_unit_completed(delay: float = 0.0) -> void:
 	_flash_tween.tween_property(_flash_rect, "color:a", 0.42, 0.14).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	_flash_tween.tween_property(_flash_rect, "color:a", 0.0, 0.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
 
+func _ensure_flash_rect() -> void:
+	if _flash_rect == null:
+		_flash_rect = ColorRect.new()
+		_flash_rect.set_anchors_preset(PRESET_FULL_RECT)
+		_flash_rect.mouse_filter = MOUSE_FILTER_IGNORE
+		add_child(_flash_rect)
+		# Above the cell background, below the digit and notes
+		move_child(_flash_rect, bg_panel.get_index() + 1)
+
+## All nine copies of a digit are on the board: the cell pops and its accent wash blinks three
+## times, hard enough to read at a glance as "that digit is done"
 func animate_digit_completed(delay: float = 0.0) -> void:
 	if not AppSettings.animations_enabled:
 		scale = Vector2.ONE
@@ -314,13 +321,18 @@ func animate_digit_completed(delay: float = 0.0) -> void:
 	_scale_tween.tween_property(self, "scale", Vector2(1.16, 1.16), 0.14).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	_scale_tween.tween_property(self, "scale", Vector2.ONE, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
-	if num_label != null:
-		var tint_tween := create_tween()
-		if tint_tween != null:
+	if bg_panel != null:
+		_ensure_flash_rect()
+		_flash_rect.color = Color(ThemeManager.get_color("accent"), 0.0)
+		if _flash_tween != null and _flash_tween.is_valid():
+			_flash_tween.kill()
+		_flash_tween = create_tween()
+		if _flash_tween != null:
 			if delay > 0.0:
-				tint_tween.tween_interval(delay)
-			tint_tween.tween_property(num_label, "modulate", Color(1.25, 1.25, 1.45), 0.10).set_trans(Tween.TRANS_SINE)
-			tint_tween.tween_property(num_label, "modulate", Color.WHITE, 0.14).set_trans(Tween.TRANS_SINE)
+				_flash_tween.tween_interval(delay)
+			for blink in DIGIT_BLINKS:
+				_flash_tween.tween_property(_flash_rect, "color:a", 0.6, 0.11).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+				_flash_tween.tween_property(_flash_rect, "color:a", 0.0, 0.15).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
 
 func _on_text_size_changed() -> void:
 	_shown_font_h = -1.0

@@ -190,15 +190,8 @@ func _select_difficulty(d: String) -> void:
 func _update_diff_buttons_state() -> void:
 	if diff_segmented != null and diff_segmented.get_selected_id() != current_difficulty:
 		diff_segmented.select_id(current_difficulty)
+	# The segmented control draws the chosen one itself (a pill that slides over)
 	for btn in diff_buttons:
-		var d: String = btn.get_meta("diff", "")
-		var is_cur := (d == current_difficulty)
-		if is_cur:
-			btn.theme_type_variation = "PrimaryButton"
-			btn.add_theme_color_override("font_color", Color.WHITE)
-		else:
-			btn.theme_type_variation = "SegmentButton"
-			btn.add_theme_color_override("font_color", ThemeManager.get_color("text_secondary"))
 		btn.disabled = false
 
 func _generate_preview(force_new_seed: bool = false) -> void:

@@ -21,6 +21,8 @@ var notes_btn: Button
 var hint_btn: Button
 ## Icon button next to Notes, shown only in notes mode
 var fill_notes_btn: Button
+## On while every empty cell has notes: the button is a toggle, pressing it then takes them off
+var fill_notes_on: bool = false
 ## Icon button that turns the keys into cell colours
 var colors_btn: Button
 
@@ -43,6 +45,7 @@ func _init() -> void:
 	custom_minimum_size = Vector2(310, ResponsiveManager.HEIGHT_ACTION_DOCK)
 	size_flags_horizontal = SIZE_SHRINK_CENTER
 	_build_ui()
+	_apply_theme_style()
 	_update_locale_texts()
 
 # Registered on enter (not _init) so re-parenting, which fires _exit_tree, keeps the listeners
@@ -217,6 +220,12 @@ func set_notes_active(active: bool) -> void:
 		if _available_width > 0.0:
 			fit_to_width(_available_width)
 
+func set_fill_notes_on(on: bool) -> void:
+	fill_notes_on = on
+	if fill_notes_btn != null:
+		_set_toggled_look(fill_notes_btn, on)
+		fill_notes_btn.tooltip_text = LocalizationManager.translate("BTN_CLEAR_NOTES" if on else "BTN_FILL_NOTES")
+
 func set_color_active(active: bool) -> void:
 	is_color_mode = active
 	_update_colors_visuals()
@@ -242,21 +251,31 @@ func _update_notes_visuals() -> void:
 
 ## A toggle that is on is a filled circle in the accent colour with a white icon; off, it is the
 ## plain button. No border: a border over the anti-aliased edge of the fill shows as a ring.
+## Both looks have the same padding, so switching one on or off does not change the button's
+## width: the dock chooses between labels and icons by its width, and a 2 px change flipped it.
 func _set_toggled_look(btn: Button, on: bool) -> void:
+	var accent: Color = ThemeManager.get_color("accent_blue", ThemeManager.get_color("accent"))
+	var fills: Array[Color] = []
 	if on:
-		var sb := ThemeManager.create_flat_stylebox(
-			ThemeManager.get_color("accent_blue", ThemeManager.get_color("accent")),
-			ThemeManager.RADIUS_CAPSULE, ThemeManager.BORDER_NONE, Color.TRANSPARENT, 4, 4
-		)
-		for state in ["normal", "hover", "pressed"]:
-			btn.add_theme_stylebox_override(state, sb)
-		for c in ["icon_normal_color", "icon_hover_color", "icon_pressed_color"]:
-			btn.add_theme_color_override(c, Color.WHITE)
+		fills.assign([accent, accent, accent])
 	else:
-		for state in ["normal", "hover", "pressed"]:
-			btn.remove_theme_stylebox_override(state)
-		for c in ["icon_normal_color", "icon_hover_color", "icon_pressed_color"]:
+		fills.assign([
+			Color.TRANSPARENT,
+			_with_alpha(ThemeManager.get_color("button_hover"), 0.45),
+			_with_alpha(ThemeManager.get_color("button_pressed"), 0.65),
+		])
+	var states: Array[String] = ["normal", "hover", "pressed"]
+	for i in states.size():
+		btn.add_theme_stylebox_override(states[i], ThemeManager.create_flat_stylebox(
+			fills[i], ThemeManager.RADIUS_CAPSULE, ThemeManager.BORDER_NONE, Color.TRANSPARENT, 4, 4))
+	for c in ["icon_normal_color", "icon_hover_color", "icon_pressed_color"]:
+		if on:
+			btn.add_theme_color_override(c, Color.WHITE)
+		else:
 			btn.remove_theme_color_override(c)
+
+func _with_alpha(c: Color, a: float) -> Color:
+	return Color(c.r, c.g, c.b, a)
 
 func _update_locale_texts() -> void:
 	if undo_btn != null:
@@ -269,7 +288,7 @@ func _update_locale_texts() -> void:
 		hint_btn.text = "" if is_compact else LocalizationManager.translate("BTN_HINT")
 		hint_btn.tooltip_text = LocalizationManager.translate("BTN_HINT")
 	if fill_notes_btn != null:
-		fill_notes_btn.tooltip_text = LocalizationManager.translate("BTN_FILL_NOTES")
+		fill_notes_btn.tooltip_text = LocalizationManager.translate("BTN_CLEAR_NOTES" if fill_notes_on else "BTN_FILL_NOTES")
 	if colors_btn != null:
 		colors_btn.tooltip_text = LocalizationManager.translate("BTN_COLORS_TIP")
 	_update_notes_visuals()
@@ -286,6 +305,7 @@ func _apply_theme_style() -> void:
 	# The glass surface itself is GlassPanel's job; only the toggles depend on the theme here
 	_update_notes_visuals()
 	_update_colors_visuals()
+	_set_toggled_look(fill_notes_btn, fill_notes_on)
 
 func _on_theme_changed() -> void:
 	_apply_theme_style()

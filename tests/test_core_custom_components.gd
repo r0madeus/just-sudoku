@@ -64,8 +64,9 @@ func test_segmented_control() -> void:
 	assert_true(seg.get_selected_id() == "opt2", "Selected ID is opt2")
 	assert_true(seg.get_selected_index() == 1, "Selected index is 1")
 	assert_true(res["id"] == "opt2" and res["idx"] == 1, "Signal item_selected emitted correctly")
-	assert_true(seg.buttons[1].theme_type_variation == "PrimaryButton", "Selected button has PrimaryButton style")
-	assert_true(seg.buttons[0].theme_type_variation == "GhostButton", "Unselected button has GhostButton style")
+	assert_true(seg.buttons[1].get_theme_color("font_color") == Color.WHITE, "Selected segment has white text, over the accent pill")
+	assert_true(not seg.buttons[0].has_theme_color_override("font_color"), "Unselected segment keeps the normal text colour")
+	assert_true(seg.buttons[0].theme_type_variation == "GhostButton" and seg.buttons[1].theme_type_variation == "GhostButton", "All segments are plain buttons: the pill is drawn behind")
 
 	seg.set_segment_text("opt2", "Option Two")
 	assert_true(seg.buttons[1].text == "Option Two", "Segment text updated via set_segment_text")
