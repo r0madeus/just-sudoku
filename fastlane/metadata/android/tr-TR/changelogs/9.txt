@@ -1,0 +1,1 @@
+Simge artık telefonun simge şeklini ve köşe ayarını izliyor, tarayıcı simgesi yuvarlak köşeli, çözüm penceresi sabit genişlikte ve sekme geçişi daha akıcı, geniş ana menüde kartlar aynı renkte.

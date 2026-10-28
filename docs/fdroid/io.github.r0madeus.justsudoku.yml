@@ -19,6 +19,10 @@ Builds:
   - versionName: 1.2.2
     versionCode: 8
     commit: v1.2.2
+
+  - versionName: 1.2.3
+    versionCode: 9
+    commit: v1.2.3
     sudo:
       - apt-get update
       - apt-get install -y scons pkg-config openjdk-17-jdk-headless
@@ -50,5 +54,5 @@ Builds:
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags ^v[0-9.]+$
-CurrentVersion: 1.2.2
-CurrentVersionCode: 8
+CurrentVersion: 1.2.3
+CurrentVersionCode: 9

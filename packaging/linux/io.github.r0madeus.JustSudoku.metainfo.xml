@@ -76,6 +76,12 @@
   </provides>
 
   <releases>
+    <release version="1.2.3" date="2026-10-28">
+      <description>
+        <p>The icon follows the phone's own shape, a rounded browser icon, a fixed-width solution window and matching cards on the wide main menu.</p>
+      </description>
+      <url type="details">https://github.com/r0madeus/just-sudoku/releases/tag/v1.2.3</url>
+    </release>
     <release version="1.2.2" date="2026-10-28">
       <description>
         <p>A new icon, a much smaller engine in the browser, Windows and Linux versions, and a toolbar that no longer hangs out of the screen. Linux now needs glibc 2.35 or newer.</p>

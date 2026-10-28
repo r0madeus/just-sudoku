@@ -2,6 +2,21 @@
 
 All notable changes to Just Sudoku. Türkçesi aşağıda / Turkish below each version.
 
+## [1.2.3] - 2026-10-28
+
+The icon follows the phone's own shape, plus the solution window and main menu fixes.
+
+- Android icon: the background now covers the whole icon, as Android's adaptive icon specification asks, so the launcher applies its own shape and corner rounding setting to it (it used to bring its own rounded tile, which the launcher could not reshape).
+- The browser version's icon and its launch screen show a rounded square instead of a hard-cornered one.
+- The solution window no longer changes size between its two tabs, and switching tabs animates smoothly: the labels change colour with the sliding pill, and the tabs sit on a capsule track.
+- On the wide main menu the resume card is the same glass and colour as the cards beside it.
+
+**Türkçe**
+- Android simgesi: arka plan artık Android'in uyarlanabilir simge standardının istediği gibi simgenin tamamını kaplıyor; başlatıcı kendi şeklini ve köşe yuvarlatma ayarını uygulayabiliyor (önceden kendi yuvarlak karosunu getiriyordu, başlatıcı onu yeniden şekillendiremiyordu).
+- Tarayıcı sürümünün simgesi ve açılış ekranı sert köşeli kare yerine yuvarlak köşeli kare gösteriyor.
+- Çözüm penceresi iki sekme arasında boyut değiştirmiyor, sekme geçişi akıcı: yazı renkleri kayan hapla birlikte değişiyor, sekmeler kapsül bir zeminde duruyor.
+- Geniş ana menüde devam kartı yanındaki kartlarla aynı cam ve renkte.
+
 ## [1.2.2] - 2026-10-28
 
 A new icon, a much smaller engine outside Android too, and a toolbar fix.
