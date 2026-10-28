@@ -13,6 +13,9 @@ name: Linux
 on:
   pull_request:
   push:
+    # main too: a cache made on a pull request is only seen by that pull request, so without a run on
+    # main every new pull request (and the release) would build the engine again, ten minutes each
+    branches: [main]
     tags: ["v*"]
   workflow_dispatch:
 

@@ -157,6 +157,7 @@ MUTATIONS = [
  ("M147", "export_presets.cfg", "application/modify_resources=true", "application/modify_resources=false", "The Windows exe shows Godot's robot instead of the app icon"),
  ("M148", "packaging/linux/io.github.r0madeus.JustSudoku.svg", "fill=\"#2563eb\"", "fill=\"#0e1117\"", "The Linux menu icon is not the app icon"),
  ("M149", "scenes/ui/game_action_dock.gd", "	minimum_size_changed.connect(_on_minimum_size_changed)\n", "", "A dock fitted before the fonts or theme settled stays labelled and hangs out of the screen"),
+ ("M150", ".github/workflows/windows.yml", "    branches: [main]\n    tags: [\"v*\"]", "    tags: [\"v*\"]", "The Windows engine is built again for every pull request and the release"),
 ]
 
 def main():

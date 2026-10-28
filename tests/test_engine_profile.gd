@@ -161,6 +161,11 @@ func _init() -> void:
 		"caches it by the profile's hash and points the Linux preset at it")
 	assert_true(linux_flow.contains("template:\n    runs-on: ubuntu-22.04"),
 		"on an older Ubuntu than the rest, so the game runs on more distributions (see docs/linux.md)")
+	# A cache made on a pull request is visible to that pull request only; the engine has to be built
+	# on main once for every other pull request and the release to find it
+	for flow in [web, windows, linux_flow]:
+		assert_true(flow.contains("    branches: [main]\n"),
+			"A workflow that caches an engine also runs on main, so the cache is there for the next pull request")
 	for flow in [web, windows, linux_flow]:
 		assert_true(flow.contains("Compare with the official template") and flow.contains("-lt"),
 			"Each build says how much smaller the slim engine is, and fails if it is not")
