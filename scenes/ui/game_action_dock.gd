@@ -32,6 +32,8 @@ var is_compact: bool = false
 ## Tablet scale (1 on phones, see ResponsiveManager.tablet_factor)
 var size_scale: float = 1.0
 var _available_width: float = 0.0
+## The dock's minimum width as the last fit left it, to tell when something changed it since
+var _fitted_min_x: float = -1.0
 
 func _init() -> void:
 	super()
@@ -46,6 +48,7 @@ func _init() -> void:
 	size_flags_horizontal = SIZE_SHRINK_CENTER
 	_build_ui()
 	_apply_theme_style()
+	minimum_size_changed.connect(_on_minimum_size_changed)
 	_update_locale_texts()
 
 # Registered on enter (not _init) so re-parenting, which fires _exit_tree, keeps the listeners
@@ -160,6 +163,14 @@ func fit_to_width(available_width: float) -> void:
 	_apply_compact(false)
 	var natural: float = get_combined_minimum_size().x
 	_apply_compact(natural > available_width)
+	_fitted_min_x = get_combined_minimum_size().x
+
+## The labels measure what the fonts and the theme say at the moment of the fit; when they say
+## something else later (a font that arrives late, a theme applied after the screen was built, a
+## new language), the labelled dock may no longer fit. Whatever changes its size, it is fitted again.
+func _on_minimum_size_changed() -> void:
+	if _available_width > 0.0 and absf(get_combined_minimum_size().x - _fitted_min_x) > 0.5:
+		fit_to_width.call_deferred(_available_width)
 
 func _apply_compact(compact: bool) -> void:
 	is_compact = compact
@@ -309,3 +320,6 @@ func _apply_theme_style() -> void:
 
 func _on_theme_changed() -> void:
 	_apply_theme_style()
+	# Text is measured with the new theme's fonts once it has been applied
+	if _available_width > 0.0:
+		fit_to_width.call_deferred(_available_width)
