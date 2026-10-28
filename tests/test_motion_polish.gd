@@ -93,6 +93,9 @@ func _test_segmented_pill() -> void:
 	holder.add_child(seg)
 	await _frames(3)
 	seg.select_index(0)
+	var track := seg.get_theme_stylebox("panel") as StyleBoxFlat
+	_check("The track is a capsule like the pill that slides in it, so their curves run side by side",
+		track != null and track.corner_radius_top_left >= 99 and track.content_margin_left == float(SegmentedControl.SEGMENT_GAP))
 	_check("The first choice puts the pill in place at once", is_equal_approx(seg.pill_t, 1.0))
 	seg.select_index(1)
 	_check("A later choice starts the slide (%.2f)" % seg.pill_t, seg.pill_t < 1.0)

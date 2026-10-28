@@ -16,6 +16,9 @@ var selected_id: String = ""
 var selected_index: int = -1
 
 const SLIDE_TIME: float = 0.22
+## Space between the track's edge and the pill. The track is a capsule like the pill, so the two
+## curves run side by side with this much between them all the way round.
+const SEGMENT_GAP: int = 4
 
 ## The accent pill behind the chosen segment. It slides to the next one: 0 = where it was,
 ## 1 = on the chosen segment (which it follows if the control is resized)
@@ -45,10 +48,10 @@ func _apply_theme_style() -> void:
 	var border_col: Color = ThemeManager.get_color("border_subtle")
 	var sb := ThemeManager.create_flat_stylebox(
 		surface_col,
-		ThemeManager.RADIUS_PILL_SM,
+		ThemeManager.RADIUS_CAPSULE,
 		ThemeManager.BORDER_HAIRLINE,
 		border_col,
-		3, 3
+		SEGMENT_GAP, SEGMENT_GAP
 	)
 	add_theme_stylebox_override("panel", sb)
 

@@ -160,6 +160,7 @@ MUTATIONS = [
  ("M150", ".github/workflows/windows.yml", "    branches: [main]\n    tags: [\"v*\"]", "    tags: [\"v*\"]", "The Windows engine is built again for every pull request and the release"),
  ("M151", "scenes/gameplay/dialogs/solution_dialog.gd", "	if natural > room:\n		_nav_compact = true", "	if false:\n		_nav_compact = true", "The solution viewer is wider on the step tab, in Turkish"),
  ("M152", "scenes/ui/segmented_control.gd", "(plain[c] as Color).lerp(Color.WHITE, cover)", "(plain[c] as Color)", "The tab labels do not change colour with the pill"),
+ ("M153", "scenes/ui/segmented_control.gd", "		ThemeManager.RADIUS_CAPSULE,\n		ThemeManager.BORDER_HAIRLINE,\n		border_col,", "		ThemeManager.RADIUS_PILL_SM,\n		ThemeManager.BORDER_HAIRLINE,\n		border_col,", "The tabs' track is a rounded rectangle around a capsule pill"),
 ]
 
 def main():
