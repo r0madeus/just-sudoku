@@ -98,7 +98,7 @@ Just Sudoku asks for no permission except vibration. It has no internet permissi
 2. Open `project.godot` in Godot and press *Run*. It runs on Linux, Windows and macOS as well, which is handy for development.
 3. For Android, export from *Project → Export → Android*; setup and signing are in [docs/android.md](docs/android.md). The Windows, Linux and Web exports have presets too (*Project → Export*); the Linux packages are described in [docs/linux.md](docs/linux.md).
 
-The Android build uses a Godot export template built with only what the game needs ([engine/custom.py](engine/custom.py)): no 3D, physics, Vulkan or unused modules. That halves the APK, from 28.2 MB to 14.5 MB. GitHub builds the template and the APK automatically; how to build it yourself is in [docs/android.md](docs/android.md#küçültülmüş-motor-daha-küçük-apk).
+The Android and browser builds use a Godot export template built with only what the game needs ([engine/custom.py](engine/custom.py)): no 3D, physics, Vulkan or unused modules. That halves the APK, from 28.2 MB to 14.5 MB, and the browser version loads a much smaller engine ([docs/web.md](docs/web.md)). GitHub builds the templates, the APK and the web build automatically; how to build the Android one yourself is in [docs/android.md](docs/android.md#küçültülmüş-motor-daha-küçük-apk).
 
 ## Tests
 
@@ -106,7 +106,7 @@ The Android build uses a Godot export template built with only what the game nee
 GODOT=/path/to/godot tools/run_tests.sh
 ```
 
-Runs all 69 test suites, four at a time, each with its own empty save folder (under a minute). They also run on every pull request. [docs/testing.md](docs/testing.md) explains them, and how `tools/mutation_audit.py` checks that the tests really catch mistakes: it breaks 139 behaviours one at a time and all 139 are caught.
+Runs all 69 test suites, four at a time, each with its own empty save folder (under a minute). They also run on every pull request. [docs/testing.md](docs/testing.md) explains them, and how `tools/mutation_audit.py` checks that the tests really catch mistakes: it breaks 141 behaviours one at a time and all 141 are caught.
 
 ## Project layout
 
@@ -121,9 +121,9 @@ Runs all 69 test suites, four at a time, each with its own empty save folder (un
 | `packaging/` | Linux menu entry, store description and icons |
 | `web/` | The browser version's page (its loading screen) |
 | `tests/` | The test suites |
-| `engine/` | The slimmed Godot build profile for Android |
+| `engine/` | The slimmed Godot build profile (Android and web) |
 | `tools/` | Test runner, mutation audit, puzzle bank and technique examples, screenshots, Linux packages |
-| `docs/` | Android, Linux, testing, releases, F-Droid, and the pictures in this README |
+| `docs/` | Android, web, Linux, testing, releases, F-Droid, and the pictures in this README |
 | `fastlane/` | Store texts, icon and screenshots (also used by this README) |
 
 `Just Sudoku GDD.md` is the first design document (in Turkish); it is out of date and does not describe the game as it is now.

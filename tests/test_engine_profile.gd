@@ -1,8 +1,8 @@
 extends SceneTree
 
-## The Android build uses a slimmed engine (engine/custom.py) without 3D, physics, navigation,
-## XR, Vulkan and most modules. This keeps the game honest about it: no game script may use a
-## class that build leaves out, and the game's files must only need the modules it keeps.
+## The Android and browser builds use a slimmed engine (engine/custom.py) without 3D, physics,
+## navigation, XR, Vulkan and most modules. This keeps the game honest about it: no game script may
+## use a class that build leaves out, and the game's files must only need the modules it keeps.
 
 var tests_passed: int = 0
 var tests_failed: int = 0
@@ -98,6 +98,26 @@ func _init() -> void:
 		if int(cfg.get_value("params", "compress/mode", 0)) != 0 and cfg.get_value("remap", "importer", "") == "texture":
 			bad.append("%s is not lossless" % path.get_file())
 	assert_true(bad.is_empty(), "Fonts and textures import in forms the kept modules read %s" % str(bad))
+
+	print("\n--- Test 4: The browser build is made on the same engine ---")
+	var web := FileAccess.get_file_as_string("res://.github/workflows/web.yml")
+	assert_true(web.contains("platform=web target=template_release threads=no arch=wasm32") and web.contains("profile=\"$GITHUB_WORKSPACE/engine/custom.py\""),
+		"The web workflow builds the single-threaded web template with the profile")
+	assert_true(web.contains("hashFiles('engine/custom.py')") and web.contains("actions/cache@v4"),
+		"and caches it by the profile's hash, so it is rebuilt only when the profile changes")
+	assert_true(web.contains("emscripten-core/setup-emsdk") and RegEx.create_from_string("EMSCRIPTEN_VERSION: \"4\\.\\d+\\.\\d+\"").search(web) != null,
+		"with a pinned Emscripten")
+	assert_true(web.contains("[preset.1.options]") and web.contains("custom_template/release"),
+		"The Web preset is pointed at it for the build (the committed preset keeps the official template)")
+	var presets := FileAccess.get_file_as_string("res://export_presets.cfg")
+	assert_true(presets.contains("name=\"Web\"") and not presets.contains("slim-web-template"),
+		"The committed export presets do not name a CI-only path")
+	assert_true(web.contains("tools/web_smoke.js") and FileAccess.file_exists("res://tools/web_smoke.js"),
+		"The result is started in Chrome before it is published")
+	assert_true(not profile.contains("javascript_eval = False"),
+		"The profile keeps JavaScript eval, which the browser's file backup (JavaScriptBridge) needs")
+	var web_files := FileAccess.get_file_as_string("res://scripts/services/web_files.gd")
+	assert_true(web_files.contains("JavaScriptBridge"), "and the game does use JavaScriptBridge there")
 
 	print("========================================")
 	print("🏁 RESULTS: %d Passed, %d Failed" % [tests_passed, tests_failed])

@@ -149,6 +149,8 @@ MUTATIONS = [
  ("M139", "scenes/menus/settings_screen.gd", "			await get_tree().create_timer(ToggleSwitch.SLIDE_TIME + 0.03).timeout\n", "			pass\n", "The Glass effects redraw swallows the switch's slide"),
  ("M140", "scenes/menus/settings_screen.gd", "			ctl.custom_minimum_size.x = width\n", "			pass\n", "The Customize Theme button is not as wide as the drop-downs"),
  ("M141", "scenes/ui/segmented_control.gd", "	pill_t = 0.0\n	_tween = create_tween()", "	pill_t = 1.0\n	_tween = create_tween()", "The tabs' pill does not slide, it jumps"),
+ ("M142", ".github/workflows/web.yml", "scons -j\"$(nproc)\" platform=web target=template_release threads=no arch=wasm32 \\\n            profile=\"$GITHUB_WORKSPACE/engine/custom.py\"", "scons -j\"$(nproc)\" platform=web target=template_release threads=no arch=wasm32", "The web template is built without the slim profile"),
+ ("M143", ".github/workflows/web.yml", "hashFiles('engine/custom.py')", "hashFiles('project.godot')", "The cached web template is not rebuilt when the profile changes"),
 ]
 
 def main():

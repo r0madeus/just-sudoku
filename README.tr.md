@@ -108,7 +108,7 @@ Just Sudoku titreşim dışında hiçbir izin istemiyor.
 2. `project.godot` dosyasını Godot'da açıp *Çalıştır*'a bas. Linux, Windows ve macOS'ta da çalışır, geliştirirken işe yarar.
 3. Android için *Proje → Dışa Aktar → Android* yolunu izle. Kurulum ve imzalama [docs/android.md](docs/android.md) dosyasında. Windows, Linux ve Web için de ön ayarlar var (*Proje → Dışa Aktar*); Linux paketleri [docs/linux.md](docs/linux.md) dosyasında anlatılıyor.
 
-Android sürümü, yalnızca oyunun ihtiyaç duyduklarıyla derlenmiş bir Godot şablonu kullanıyor ([engine/custom.py](engine/custom.py)). İçinde 3D, fizik, Vulkan ve kullanılmayan modüller yok; bu sayede APK 28,2 MB'tan 14,5 MB'a iniyor. Şablonu ve APK'yı GitHub otomatik derliyor. Kendin derlemek istersen yol [docs/android.md](docs/android.md#küçültülmüş-motor-daha-küçük-apk) dosyasında.
+Android ve tarayıcı sürümleri, yalnızca oyunun ihtiyaç duyduklarıyla derlenmiş bir Godot şablonu kullanıyor ([engine/custom.py](engine/custom.py)). İçinde 3D, fizik, Vulkan ve kullanılmayan modüller yok; bu sayede APK 28,2 MB'tan 14,5 MB'a iniyor, tarayıcı sürümü de çok daha küçük bir motor yüklüyor ([docs/web.md](docs/web.md)). Şablonları, APK'yı ve web derlemesini GitHub otomatik derliyor. Android şablonunu kendin derlemek istersen yol [docs/android.md](docs/android.md#küçültülmüş-motor-daha-küçük-apk) dosyasında.
 
 ## Testler
 
@@ -118,7 +118,7 @@ GODOT=/godot/yolu tools/run_tests.sh
 
 69 test dosyasının hepsini dörder dörder, her birini kendi boş kayıt klasöründe çalıştırıyor (bir dakikadan kısa). Testler her PR'da da çalışıyor.
 
-Ayrıntılar [docs/testing.md](docs/testing.md) dosyasında. Orada `tools/mutation_audit.py` aracı da anlatılıyor: oyunun 139 davranışını tek tek bilerek bozup testlerin bunu yakalayıp yakalamadığını kontrol ediyor. Şu an 139'inin 139'i yakalanıyor.
+Ayrıntılar [docs/testing.md](docs/testing.md) dosyasında. Orada `tools/mutation_audit.py` aracı da anlatılıyor: oyunun 141 davranışını tek tek bilerek bozup testlerin bunu yakalayıp yakalamadığını kontrol ediyor. Şu an 141'inin 141'i yakalanıyor.
 
 ## Proje yapısı
 
@@ -133,9 +133,9 @@ Ayrıntılar [docs/testing.md](docs/testing.md) dosyasında. Orada `tools/mutati
 | `packaging/` | Linux menü girdisi, mağaza açıklaması ve simgeler |
 | `web/` | Tarayıcı sürümünün sayfası (yükleme ekranı) |
 | `tests/` | Test dosyaları |
-| `engine/` | Android için küçültülmüş Godot derleme profili |
+| `engine/` | Küçültülmüş Godot derleme profili (Android ve web) |
 | `tools/` | Test çalıştırıcı, mutasyon denetimi, bulmaca bankası ve teknik örnekleri, ekran görüntüleri, Linux paketleri |
-| `docs/` | Android, Linux, testler, sürüm yayınlama, F-Droid ve bu README'deki resimler |
+| `docs/` | Android, web, Linux, testler, sürüm yayınlama, F-Droid ve bu README'deki resimler |
 | `fastlane/` | Mağaza metinleri, simge ve ekran görüntüleri (bu README de onları kullanıyor) |
 
 `Just Sudoku GDD.md` ilk tasarım belgesi; eski, oyunun bugünkü hâlini anlatmıyor.
