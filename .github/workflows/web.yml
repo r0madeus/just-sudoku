@@ -89,19 +89,7 @@ jobs:
           test -s "$RUNNER_TEMP/web-official/index.wasm"
 
       - name: Point the Web preset at the slim template
-        run: |
-          python3 - <<'PY'
-          import os
-          path = open("export_presets.cfg", encoding="utf-8").read()
-          start = path.index("[preset.1.options]")
-          end = path.index("[preset.2]")
-          section = path[start:end]
-          template = os.path.expanduser("~/slim-web-template/web_nothreads_release.zip")
-          assert os.path.exists(template), template
-          slim = section.replace('custom_template/release=""', 'custom_template/release="%s"' % template)
-          assert slim != section, "the Web preset has no custom_template/release line"
-          open("export_presets.cfg", "w", encoding="utf-8").write(path[:start] + slim + path[end:])
-          PY
+        run: python3 tools/use_slim_template.py 1 ~/slim-web-template/web_nothreads_release.zip
 
       - name: Export for the web
         run: |

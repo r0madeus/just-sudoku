@@ -36,7 +36,7 @@
 | **Browser** | Play now at **<https://r0madeus.github.io/just-sudoku/>**. On a phone or in Chrome/Edge it can be installed as an app (browser menu → *Install app* / *Add to Home screen*) and then works offline. Progress stays in the browser; back up in Settings to a file or the clipboard. |
 | **Android** | `JustSudoku-<version>.apk` on the [Releases](https://github.com/r0madeus/just-sudoku/releases) page, with its SHA-256 (Android 7.0 and up, 64-bit ARM). F-Droid is on its way ([docs/fdroid.md](docs/fdroid.md)). |
 | **Windows** | `JustSudoku-<version>-windows-x64.zip` on Releases: one exe, no install. It is not code-signed, so SmartScreen asks once: *More info* → *Run anyway*. |
-| **Linux** | On Releases: an **AppImage** (one file; `chmod +x` and run) and a **tar.gz** (unpack, `./JustSudoku`). Both 64-bit; how they are made: [docs/linux.md](docs/linux.md). |
+| **Linux** | On Releases: an **AppImage** (one file; `chmod +x` and run) and a **tar.gz** (unpack, `./JustSudoku`). Both 64-bit, for glibc 2.35 or newer (Ubuntu 22.04, Debian 12, Fedora 36); how they are made: [docs/linux.md](docs/linux.md). |
 
 What changed in each version: [CHANGELOG.md](CHANGELOG.md). Test builds of every change are under *Artifacts* in the [Android](https://github.com/r0madeus/just-sudoku/actions/workflows/android.yml) runs (signed with a test key); installing on a phone and a checklist of what to try: [docs/android.md](docs/android.md). How a release is made: [docs/release.md](docs/release.md).
 
@@ -98,7 +98,7 @@ Just Sudoku asks for no permission except vibration. It has no internet permissi
 2. Open `project.godot` in Godot and press *Run*. It runs on Linux, Windows and macOS as well, which is handy for development.
 3. For Android, export from *Project → Export → Android*; setup and signing are in [docs/android.md](docs/android.md). The Windows, Linux and Web exports have presets too (*Project → Export*); the Linux packages are described in [docs/linux.md](docs/linux.md).
 
-The Android and browser builds use a Godot export template built with only what the game needs ([engine/custom.py](engine/custom.py)): no 3D, physics, Vulkan or unused modules. That halves the APK, from 28.2 MB to 14.5 MB, and the browser version loads a much smaller engine ([docs/web.md](docs/web.md)). GitHub builds the templates, the APK and the web build automatically; how to build the Android one yourself is in [docs/android.md](docs/android.md#küçültülmüş-motor-daha-küçük-apk).
+Every build (Android, browser, Windows and Linux) uses a Godot export template built with only what the game needs ([engine/custom.py](engine/custom.py)): no 3D, physics, Vulkan or unused modules. That halves the APK, from 28.2 MB to 14.5 MB, and makes the other engines much smaller too. GitHub builds the templates and the games automatically, and each run says how much smaller the engine is than the official one; the details are in [docs/engine.md](docs/engine.md).
 
 ## Tests
 
@@ -106,7 +106,7 @@ The Android and browser builds use a Godot export template built with only what 
 GODOT=/path/to/godot tools/run_tests.sh
 ```
 
-Runs all 69 test suites, four at a time, each with its own empty save folder (under a minute). They also run on every pull request. [docs/testing.md](docs/testing.md) explains them, and how `tools/mutation_audit.py` checks that the tests really catch mistakes: it breaks 141 behaviours one at a time and all 141 are caught.
+Runs all 69 test suites, four at a time, each with its own empty save folder (under a minute). They also run on every pull request. [docs/testing.md](docs/testing.md) explains them, and how `tools/mutation_audit.py` checks that the tests really catch mistakes: it breaks 144 behaviours one at a time and all 144 are caught.
 
 ## Project layout
 
@@ -121,9 +121,9 @@ Runs all 69 test suites, four at a time, each with its own empty save folder (un
 | `packaging/` | Linux menu entry, store description and icons |
 | `web/` | The browser version's page (its loading screen) |
 | `tests/` | The test suites |
-| `engine/` | The slimmed Godot build profile (Android and web) |
+| `engine/` | The slimmed Godot build profile (used by every build) |
 | `tools/` | Test runner, mutation audit, puzzle bank and technique examples, screenshots, Linux packages |
-| `docs/` | Android, web, Linux, testing, releases, F-Droid, and the pictures in this README |
+| `docs/` | The engine, Android, web, Linux, testing, releases, F-Droid, and the pictures in this README |
 | `fastlane/` | Store texts, icon and screenshots (also used by this README) |
 
 `Just Sudoku GDD.md` is the first design document (in Turkish); it is out of date and does not describe the game as it is now.

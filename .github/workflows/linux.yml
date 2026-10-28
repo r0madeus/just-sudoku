@@ -1,9 +1,14 @@
 name: Linux
 
 # The game for Linux (64-bit): exported once, then packed two ways: a tar.gz and an AppImage
-# (packaging/linux). Every pull request builds and starts both, so a change that breaks a
-# package is seen before it is merged; a pushed version tag (v1.1.0) attaches the files, each with
-# its SHA-256, to that release.
+# (packaging/linux). The export runs on a slimmed engine: Godot's Linux export template built with
+# only what the game uses (engine/custom.py, the profile Android and the browser use too). It is
+# built on Ubuntu 22.04, so the game needs glibc 2.35 or newer (Ubuntu 22.04, Debian 12, Fedora 36),
+# and cached by the profile's hash, so it is only rebuilt when the profile or the Godot version
+# changes. Every pull request builds and starts the game, the AppImage and the tar.gz, so a change
+# that breaks a package is seen before it is merged, and notes in the run summary how much smaller
+# the engine is than the official template; a pushed version tag (v1.1.0) attaches the files, each
+# with its SHA-256, to that release.
 
 on:
   pull_request:
@@ -17,10 +22,63 @@ concurrency:
 
 env:
   GODOT_VERSION: "4.7-stable"
+  # Bumped by hand when the way the template is built here changes
+  TEMPLATE_REVISION: "1"
   APP_ID: io.github.r0madeus.JustSudoku
 
 jobs:
+  # The template is built on an older Ubuntu than the rest: a program needs the C library it was
+  # linked against, so the older that is, the more distributions the game runs on
+  template:
+    runs-on: ubuntu-22.04
+    # Most of it is the compile, done once per profile (about the first run only)
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # The template lives outside the project: Godot exports every file under the project folder
+      - name: Restore the slim Linux template
+        id: template-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/slim-linux-template
+          key: slim-linux-template-${{ env.GODOT_VERSION }}-r${{ env.TEMPLATE_REVISION }}-${{ hashFiles('engine/custom.py') }}
+
+      - name: Install the build tools and libraries
+        if: steps.template-cache.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq build-essential pkg-config libx11-dev libxcursor-dev libxinerama-dev \
+            libgl1-mesa-dev libglu-dev libasound2-dev libpulse-dev libudev-dev libxi-dev libxrandr-dev \
+            libwayland-dev libwayland-bin wayland-protocols libxkbcommon-dev libdbus-1-dev libfontconfig-dev > /dev/null
+
+      - name: Build the slim Linux template
+        if: steps.template-cache.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 --branch "$GODOT_VERSION" https://github.com/godotengine/godot "$RUNNER_TEMP/godot"
+          python -m pip install scons
+          cd "$RUNNER_TEMP/godot"
+          scons -j"$(nproc)" platform=linuxbsd target=template_release arch=x86_64 \
+            vulkan=no profile="$GITHUB_WORKSPACE/engine/custom.py"
+          mkdir -p ~/slim-linux-template
+          cp bin/godot.linuxbsd.template_release.x86_64 ~/slim-linux-template/linux_release.x86_64
+          ls -l ~/slim-linux-template
+
+      - name: Check which C library it needs
+        run: |
+          needed=$(objdump -T ~/slim-linux-template/linux_release.x86_64 | grep -o 'GLIBC_[0-9.]*' | sort -V -u | tail -1)
+          echo "The slim Linux template needs $needed" | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Hand the template on
+        uses: actions/upload-artifact@v4
+        with:
+          name: slim-linux-template
+          path: /home/runner/slim-linux-template/linux_release.x86_64
+          retention-days: 1
+
   build:
+    needs: template
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     permissions:
@@ -50,8 +108,8 @@ jobs:
           unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP"
           echo "GODOT=$RUNNER_TEMP/Godot_v${GODOT_VERSION}_linux.x86_64" >> "$GITHUB_ENV"
 
-      - name: Download the Linux export template
-        # Only the 64-bit release template is taken out of the full templates archive
+      - name: Download the official Linux export template
+        # For the size comparison. Only the 64-bit release template is taken out of the full archive
         run: |
           curl -fsSL -o "$RUNNER_TEMP/templates.tpz" \
             "https://github.com/godotengine/godot-builds/releases/download/$GODOT_VERSION/Godot_v${GODOT_VERSION}_export_templates.tpz"
@@ -63,11 +121,43 @@ jobs:
       - name: Import the project
         run: timeout 300 "$GODOT" --headless --path . --import > /dev/null 2>&1 || true
 
+      - name: Export with the official template, to compare sizes
+        run: |
+          mkdir -p "$RUNNER_TEMP/linux-official"
+          "$GODOT" --headless --path . --export-release Linux "$RUNNER_TEMP/linux-official/JustSudoku.x86_64"
+          test -s "$RUNNER_TEMP/linux-official/JustSudoku.x86_64"
+
+      - name: Fetch the slim template
+        uses: actions/download-artifact@v4
+        with:
+          name: slim-linux-template
+          path: ${{ runner.temp }}/slim-linux-template
+
+      - name: Point the Linux preset at the slim template
+        run: python3 tools/use_slim_template.py 3 "$RUNNER_TEMP/slim-linux-template/linux_release.x86_64"
+
       - name: Export for Linux
         run: |
           mkdir -p build/linux
           "$GODOT" --headless --path . --export-release Linux build/linux/JustSudoku.x86_64
           test -s build/linux/JustSudoku.x86_64
+
+      - name: Compare with the official template
+        run: |
+          official="$RUNNER_TEMP/linux-official/JustSudoku.x86_64"
+          slim=build/linux/JustSudoku.x86_64
+          size() { stat -c%s "$1"; }
+          mb() { awk -v b="$1" 'BEGIN { printf "%.1f MB", b / 1048576 }'; }
+          gz() { gzip -9 -c "$1" | wc -c; }
+          {
+            echo "### Linux engine size"
+            echo
+            echo "| | official template | slim template |"
+            echo "|---|---|---|"
+            echo "| JustSudoku.x86_64 | $(mb "$(size "$official")") | $(mb "$(size "$slim")") |"
+            echo "| gzip (as in the tar.gz) | $(mb "$(gz "$official")") | $(mb "$(gz "$slim")") |"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+          test "$(size "$slim")" -lt "$(size "$official")"
 
       - name: Start the exported game
         # A few hundred frames on the virtual display, then it quits by itself: a script error or a

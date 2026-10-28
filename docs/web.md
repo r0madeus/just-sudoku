@@ -4,7 +4,9 @@ Oyun tarayıcıda oynanır (<https://r0madeus.github.io/just-sudoku/>) ve uygula
 
 ## Küçültülmüş motor
 
-Resmi web şablonunun `index.wasm` dosyası yaklaşık 39 MB'tır (gzip'le sıkıştırılmış hâlde yaklaşık 10 MB); sayfa açılırken ilk indirilen budur. Android'deki gibi (bkz. [android.md](android.md#küçültülmüş-motor-daha-küçük-apk)) `engine/custom.py` ile yalnızca oyunun kullandıklarıyla derlenmiş bir şablon kullanılır: 3D, fizik, navigasyon, XR ve kullanılmayan modüller yok.
+(Dört platformun ortak çerçevesi: [engine.md](engine.md).)
+
+Resmi web şablonunun `index.wasm` dosyası 37,7 MB'tır (gzip'le 9,6 MB); sayfa açılırken ilk indirilen budur. Küçültülmüşünki 23,3 MB, gzip'le 5,8 MB (ölçüm: GitHub'daki ilk çalıştırma; her çalıştırmanın özetinde güncel değerler yazar). Android'deki gibi (bkz. [android.md](android.md#küçültülmüş-motor-daha-küçük-apk)) `engine/custom.py` ile yalnızca oyunun kullandıklarıyla derlenmiş bir şablon kullanılır: 3D, fizik, navigasyon, XR ve kullanılmayan modüller yok.
 
 Her şey `.github/workflows/web.yml` içinde:
 

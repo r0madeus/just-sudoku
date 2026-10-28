@@ -151,7 +151,9 @@ MUTATIONS = [
  ("M141", "scenes/ui/segmented_control.gd", "	pill_t = 0.0\n	_tween = create_tween()", "	pill_t = 1.0\n	_tween = create_tween()", "The tabs' pill does not slide, it jumps"),
  ("M142", ".github/workflows/web.yml", "scons -j\"$(nproc)\" platform=web target=template_release threads=no arch=wasm32 \\\n            profile=\"$GITHUB_WORKSPACE/engine/custom.py\"", "scons -j\"$(nproc)\" platform=web target=template_release threads=no arch=wasm32", "The web template is built without the slim profile"),
  ("M143", ".github/workflows/web.yml", "hashFiles('engine/custom.py')", "hashFiles('project.godot')", "The cached web template is not rebuilt when the profile changes"),
-]
+ ("M144", ".github/workflows/windows.yml", "platform=windows target=template_release arch=x86_64 use_mingw=yes", "platform=windows target=template_release arch=x86_64", "The Windows template is not cross-compiled with MinGW"),
+ ("M145", ".github/workflows/linux.yml", "template:\n    runs-on: ubuntu-22.04", "template:\n    runs-on: ubuntu-24.04", "The Linux template is built on a newer Ubuntu, so the game needs a newer glibc"),
+ ("M146", "tools/use_slim_template.py", "end = start + following.start() if following else len(text)", "end = len(text)", "The preset script changes the presets after the one it was told"),]
 
 def main():
     only = set(sys.argv[1:])
