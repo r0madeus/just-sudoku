@@ -1,0 +1,1 @@
+A new icon (a white serif 5 on blue), a much smaller engine in the browser, Windows and Linux versions, and a toolbar that no longer hangs out of the screen in the browser.

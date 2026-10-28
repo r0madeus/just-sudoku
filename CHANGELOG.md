@@ -2,6 +2,21 @@
 
 All notable changes to Just Sudoku. Türkçesi aşağıda / Turkish below each version.
 
+## [1.2.2] - 2026-10-28
+
+A new icon, a much smaller engine outside Android too, and a toolbar fix.
+
+- New icon: a white serif 5 on a flat blue tile, in the typeface and blue of the loading screen. It fills the slot on launchers that draw the whole icon, and is the same on every platform: the Windows program (which showed Godot's robot before) and the Linux menu and AppImage included.
+- Smaller engine: the browser, Windows and Linux versions now run on a Godot build with only what the game uses, as Android does. The browser downloads 5.8 MB of engine instead of 9.6 MB, the Windows zip is 11.8 MB instead of 37.7 MB, the Linux tar.gz about 11 MB instead of 29 MB.
+- **Linux now needs glibc 2.35 or newer** (Ubuntu 22.04, Debian 12, Fedora 36 and later); older systems cannot start it.
+- Fixed: in the browser on a phone the toolbar under the board could stay in its labelled form (Undo, Redo, Hint) and hang out of the screen when the text grew after it was laid out (a font or theme arriving late, another language). It now turns icon-only by itself.
+
+**Türkçe**
+- Yeni simge: yükleme ekranının yazı tipi ve mavisiyle, düz mavi karo üzerinde serifli beyaz bir 5. Simgeyi bütünüyle çizen başlatıcılarda alanı dolduruyor ve her platformda aynı: önceden Godot robotunu gösteren Windows programı ile Linux menüsü ve AppImage dahil.
+- Daha küçük motor: tarayıcı, Windows ve Linux sürümleri de Android gibi yalnızca oyunun kullandıklarıyla derlenmiş bir Godot ile çalışıyor. Tarayıcı 9,6 MB yerine 5,8 MB motor indiriyor, Windows zip'i 37,7 MB yerine 11,8 MB, Linux tar.gz'i yaklaşık 29 MB yerine 11 MB.
+- **Linux artık glibc 2.35 ya da yenisini istiyor** (Ubuntu 22.04, Debian 12, Fedora 36 ve sonrası); eski sistemlerde açılmaz.
+- Düzeltildi: telefonda tarayıcıda, tahtanın altındaki çubuk yerleşimden sonra yazılar genişleyince (geç gelen yazı tipi ya da tema, başka bir dil) etiketli hâlinde (Geri al, İleri al, İpucu) kalıp ekranın dışına taşabiliyordu. Artık kendiliğinden ikonlu hâle geçiyor.
+
 ## [1.2.1] - 2026-10-27
 
 A steadier toolbar, smoother tabs, and a few touches of motion.
