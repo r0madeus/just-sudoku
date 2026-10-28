@@ -1,60 +1,64 @@
 extends SceneTree
 
-## Draws the app icon and writes every file that carries it, from one drawing:
+## Draws the app icon and writes every file that carries it, from one drawing: a flat blue tile
+## with a white serif 5 on it, the typeface and the blue of the browser version's loading screen
+## ("Just Sudoku" in DM Serif Display with a blue square for a full stop). No gradient, no glow.
 ##  - assets/launcher/adaptive_{background,foreground,monochrome}(.svg, _432x432.png): the
 ##    Android adaptive icon layers. 108 dp canvas; launchers show the middle 72 dp through their
 ##    own mask (circle, squircle, teardrop...) and only the 66 dp circle in the middle is sure to
-##    show, so the board stays inside it (50 dp square, its rounded corners reach 32 dp from the centre).
+##    show, so the digit stays inside it (tests/test_release.gd checks it, pixel by pixel).
 ##    The background is a rounded tile with transparent margin, not a full-bleed square: some
 ##    launchers (seen on a real phone) draw the whole 108 dp canvas without cropping or
-##    masking it, and a full-bleed background then shows as a hard-cornered square with the board
+##    masking it, and a full-bleed background then shows as a hard-cornered square with the digit
 ##    lost in the middle. A masking launcher crops the tile to its own shape; the tile is larger
-##    than the visible 72 dp so no transparent edge shows.
-##    The monochrome layer is what Android 13+ tints for themed icons: outlines, not filled
-##    blocks, so it does not read as one big square.
+##    than the visible 72 dp so no transparent edge shows. A flat tile fills the slot on such a
+##    launcher as completely as full-art icons do.
+##    The monochrome layer is what Android 13+ tints for themed icons: the digit alone.
 ##  - assets/launcher/main(.svg, _192x192.png): the legacy icon, for launchers without adaptive
 ##    icons: the visible 72 dp on a rounded square.
 ##  - assets/launcher/pwa_{144,180,512}.png: the install icons of the browser version (full bleed).
-##  - icon.svg: the project icon (window, editor).
+##  - icon.svg: the project icon (window, editor, the browser version's tab icon, and the Windows exe,
+##    whose Windows preset embeds it).
+##  - packaging/linux/io.github.r0madeus.JustSudoku.{svg,png}: the Linux menu and AppImage icon.
 ##  - fastlane/metadata/android/*/images/icon.png: the 512 px store icon, full bleed (the stores
 ##    round the corners themselves).
-## The board: a rounded outline with the two box lines each way and the centre cell lit, holding
-## a 5. The digit is a drawn path, so no font is needed to render it.
+## The 5 is the glyph of DM Serif Display (assets/fonts, SIL OFL) as a drawn path, so no font is
+## needed to render it.
 ##   godot --headless --path . -s tools/make_launcher_icons.gd
 
 const LAUNCHER_DIR: String = "res://assets/launcher/"
 const STORE_LOCALES: Array[String] = ["en-US", "tr-TR"]
 
-const BG_FROM: String = "#0e1117"
-const BG_TO: String = "#17294a"
-const ACCENT: String = "#2563eb"
+const BLUE: String = "#2563eb"
+const INK: String = "#ffffff"
 
-## Board geometry in dp, on the 108 dp canvas
 const CENTRE: float = 54.0
-const BOARD: float = 50.0
-const BOARD_RADIUS: float = 9.0
-## The adaptive background tile: 88 dp, centred, corners rounded to 22%. It covers the whole
-## visible 72 dp square, corners included, for every mask (a teardrop has a square corner); a
-## bigger tile also fills more of the slot on a launcher that does not mask.
-const TILE: float = 88.0
+## The adaptive background tile: 98 dp, centred, corners rounded to 22%. It covers the whole
+## visible 72 dp square, corners included, for every mask (a teardrop has a square corner).
+const TILE: float = 98.0
+## The digit's height in dp on the 108 dp canvas: as large as the 66 dp safe circle allows
+const DIGIT_HEIGHT: float = 54.0
 
-## A 5 drawn in a 100-unit box (bbox x 27..80, y 14..92), stroked with round ends
-const FIVE_PATH: String = "M72 14 H34 L30 46 C38 41 46 40 54 40 C70 40 80 52 80 66 C80 82 68 92 52 92 C42 92 33 88 27 81"
+## The glyph "5" in font units (1000 per em; bounding box x 60..501, y -15..634, y up)
+const GLYPH_PATH: String = "M244 -15Q186 -15 140.5 -4.5Q95 6 60 30L67 156H77L123 74Q143 38 172.0 21.5Q201 5 236 5Q351 5 351 180Q351 259 320.5 300.0Q290 341 230 341Q202 341 174.5 333.5Q147 326 124 314L106 325L128 634H478V520H148L134 347Q157 364 196.0 379.0Q235 394 278 394Q343 394 393.5 371.0Q444 348 472.5 303.5Q501 259 501 194Q501 127 467.5 80.0Q434 33 376.0 9.0Q318 -15 244 -15Z"
+const GLYPH_BOX: Rect2 = Rect2(60.0, -15.0, 441.0, 649.0)
 
 func _init() -> void:
-	_write_layer("adaptive_background", _background(TILE, (108.0 - TILE) / 2.0, TILE * 0.22), 432)
-	_write_layer("adaptive_foreground", _glow() + _board(false), 432)
-	_write_layer("adaptive_monochrome", _board(true), 432)
-	var legacy := _background(72.0, 18.0, 72.0 * 0.22) + _glow() + _board(false)
+	_write_layer("adaptive_background", _tile(TILE, (108.0 - TILE) / 2.0, TILE * 0.22), 432)
+	_write_layer("adaptive_foreground", _digit(), 432)
+	_write_layer("adaptive_monochrome", _digit(), 432)
+	var legacy := _tile(72.0, 18.0, 72.0 * 0.22) + _digit()
 	_write("assets/launcher/main.svg", _svg(legacy, 192, 18.0, 72.0))
 	_render(_svg(legacy, 192, 18.0, 72.0), LAUNCHER_DIR + "main_192x192.png")
 	_write("icon.svg", _svg(legacy, 128, 18.0, 72.0))
-	var store := _svg(_background(72.0, 18.0, 0.0) + _glow() + _board(false), 512, 18.0, 72.0)
+	_write("packaging/linux/io.github.r0madeus.JustSudoku.svg", _svg(legacy, 128, 18.0, 72.0))
+	_render(_svg(legacy, 512, 18.0, 72.0), "res://packaging/linux/io.github.r0madeus.JustSudoku.png")
+	var store := _svg(_tile(72.0, 18.0, 0.0) + _digit(), 512, 18.0, 72.0)
 	for locale in STORE_LOCALES:
 		_render(store, "res://fastlane/metadata/android/%s/images/icon.png" % locale)
 	# The web app's install icons (the browser version can be installed like an app)
 	for px in [144, 180, 512]:
-		_render(_svg(_background(72.0, 18.0, 0.0) + _glow() + _board(false), px, 18.0, 72.0), LAUNCHER_DIR + "pwa_%dx%d.png" % [px, px])
+		_render(_svg(_tile(72.0, 18.0, 0.0) + _digit(), px, 18.0, 72.0), LAUNCHER_DIR + "pwa_%dx%d.png" % [px, px])
 	print("Launcher icons written")
 	quit()
 
@@ -66,38 +70,16 @@ func _write_layer(name: String, body: String, px: int) -> void:
 ## An SVG of `px` pixels showing the square of side `side` dp from (`origin`, `origin`)
 func _svg(body: String, px: int, origin: float, side: float) -> String:
 	return ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"%d\" height=\"%d\" viewBox=\"%s %s %s %s\">\n" % [px, px, _n(origin), _n(origin), _n(side), _n(side)]
-		+ "<defs>\n<linearGradient id=\"bg\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\">"
-		+ "<stop offset=\"0\" stop-color=\"%s\"/><stop offset=\"1\" stop-color=\"%s\"/></linearGradient>\n" % [BG_FROM, BG_TO]
-		+ "<radialGradient id=\"glow\" cx=\"0.5\" cy=\"0.5\" r=\"0.5\">"
-		+ "<stop offset=\"0\" stop-color=\"%s\" stop-opacity=\"0.45\"/><stop offset=\"1\" stop-color=\"%s\" stop-opacity=\"0\"/></radialGradient>\n</defs>\n" % [ACCENT, ACCENT]
 		+ body + "</svg>\n")
 
-func _background(side: float, origin: float, radius: float) -> String:
-	return "<rect x=\"%s\" y=\"%s\" width=\"%s\" height=\"%s\" rx=\"%s\" fill=\"url(#bg)\"/>\n" % [_n(origin), _n(origin), _n(side), _n(side), _n(radius)]
+func _tile(side: float, origin: float, radius: float) -> String:
+	return "<rect x=\"%s\" y=\"%s\" width=\"%s\" height=\"%s\" rx=\"%s\" fill=\"%s\"/>\n" % [_n(origin), _n(origin), _n(side), _n(side), _n(radius), BLUE]
 
-func _glow() -> String:
-	return "<circle cx=\"%s\" cy=\"%s\" r=\"32\" fill=\"url(#glow)\"/>\n" % [_n(CENTRE), _n(CENTRE)]
-
-## The board. `mono`: one opaque colour for the themed icon, the lit cell solid and no digit.
-func _board(mono: bool) -> String:
-	var x := CENTRE - BOARD / 2.0
-	var third := BOARD / 3.0
-	var out := ""
-	if not mono:
-		out += "<rect x=\"%s\" y=\"%s\" width=\"%s\" height=\"%s\" rx=\"%s\" fill=\"#ffffff\" fill-opacity=\"0.09\"/>\n" % [_n(x), _n(x), _n(BOARD), _n(BOARD), _n(BOARD_RADIUS)]
-	var cell := third - 2.4
-	out += "<rect x=\"%s\" y=\"%s\" width=\"%s\" height=\"%s\" rx=\"3\" fill=\"%s\"/>\n" % [_n(x + third + 1.2), _n(x + third + 1.2), _n(cell), _n(cell), "#ffffff" if mono else ACCENT]
-	var line_width := 1.4 if mono else 0.9
-	var line_opacity := 1.0 if mono else 0.43
-	for i in [1, 2]:
-		var p: float = x + third * i
-		for d in [[p, x + 3.0, p, x + BOARD - 3.0], [x + 3.0, p, x + BOARD - 3.0, p]]:
-			out += "<line x1=\"%s\" y1=\"%s\" x2=\"%s\" y2=\"%s\" stroke=\"#ffffff\" stroke-opacity=\"%s\" stroke-width=\"%s\"/>\n" % [_n(d[0]), _n(d[1]), _n(d[2]), _n(d[3]), _n(line_opacity), _n(line_width)]
-	var edge := 2.2
-	out += "<rect x=\"%s\" y=\"%s\" width=\"%s\" height=\"%s\" rx=\"%s\" fill=\"none\" stroke=\"#ffffff\" stroke-opacity=\"%s\" stroke-width=\"%s\"/>\n" % [_n(x + edge / 2.0), _n(x + edge / 2.0), _n(BOARD - edge), _n(BOARD - edge), _n(BOARD_RADIUS - edge / 2.0), "1" if mono else "0.86", _n(edge)]
-	if not mono:
-		out += "<path d=\"%s\" transform=\"translate(%s %s) scale(0.082) translate(-53.5 -53)\" fill=\"none\" stroke=\"#ffffff\" stroke-width=\"19\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n" % [FIVE_PATH, _n(CENTRE), _n(CENTRE)]
-	return out
+## The 5, centred on the canvas (the font's y axis points up, the SVG's down)
+func _digit() -> String:
+	var s: float = DIGIT_HEIGHT / GLYPH_BOX.size.y
+	var mid: Vector2 = GLYPH_BOX.get_center()
+	return "<path d=\"%s\" fill=\"%s\" transform=\"translate(%s %s) scale(%s %s) translate(%s %s)\"/>\n" % [GLYPH_PATH, INK, _n(CENTRE), _n(CENTRE), _n(s), _n(-s), _n(-mid.x), _n(-mid.y)]
 
 func _n(v: float) -> String:
 	return String.num(v, 3)

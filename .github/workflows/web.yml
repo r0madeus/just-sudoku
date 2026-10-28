@@ -1,9 +1,12 @@
 name: Web
 
 # The browser version: the game exported for the web (single-threaded, so it runs on any static
-# host without special headers). Every pull request builds it to prove the export still works;
-# a push to main also publishes it on GitHub Pages. The same build is attached as a zip that can
-# be uploaded to itch.io as an HTML5 game.
+# host without special headers) on a slimmed engine: Godot's web export template built with only
+# what the game uses (engine/custom.py, the same profile as Android's). The template is cached by
+# the profile's hash, so it is only rebuilt when the profile or the Godot version changes. Every
+# pull request builds it, starts the result in Chrome, and notes in the run summary how much
+# smaller it is than the official template; a push to main also publishes it on GitHub Pages. The
+# same build is attached as a zip that can be uploaded to itch.io as an HTML5 game.
 
 on:
   pull_request:
@@ -17,14 +20,46 @@ concurrency:
 
 env:
   GODOT_VERSION: "4.7-stable"
+  # The version Godot's own web builds use
+  EMSCRIPTEN_VERSION: "4.0.11"
+  # Bumped by hand when the way the template is built here changes
+  TEMPLATE_REVISION: "1"
 
 jobs:
   build:
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    # Most of it is the template, built once per profile (about the first run only)
+    timeout-minutes: 120
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      # The template lives outside the project: Godot exports every file under the project folder
+      - name: Restore the slim web template
+        id: template-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/slim-web-template
+          key: slim-web-template-${{ env.GODOT_VERSION }}-em${{ env.EMSCRIPTEN_VERSION }}-r${{ env.TEMPLATE_REVISION }}-${{ hashFiles('engine/custom.py') }}
+
+      - name: Set up Emscripten
+        if: steps.template-cache.outputs.cache-hit != 'true'
+        uses: emscripten-core/setup-emsdk@v16
+        with:
+          version: ${{ env.EMSCRIPTEN_VERSION }}
+          no-cache: true
+
+      - name: Build the slim web template
+        if: steps.template-cache.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 --branch "$GODOT_VERSION" https://github.com/godotengine/godot "$RUNNER_TEMP/godot"
+          python -m pip install scons
+          cd "$RUNNER_TEMP/godot"
+          scons -j"$(nproc)" platform=web target=template_release threads=no arch=wasm32 \
+            profile="$GITHUB_WORKSPACE/engine/custom.py"
+          mkdir -p ~/slim-web-template
+          cp bin/godot.web.template_release.wasm32.nothreads.zip ~/slim-web-template/web_nothreads_release.zip
+          ls -l ~/slim-web-template
 
       - name: Download the Godot editor
         run: |
@@ -33,8 +68,9 @@ jobs:
           unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP"
           echo "GODOT=$RUNNER_TEMP/Godot_v${GODOT_VERSION}_linux.x86_64" >> "$GITHUB_ENV"
 
-      - name: Download the web export template
-        # Only the single-threaded release template is taken out of the full templates archive
+      - name: Download the official web export template
+        # For the size comparison, and as the export's fallback. Only the single-threaded release
+        # template is taken out of the full templates archive
         run: |
           curl -fsSL -o "$RUNNER_TEMP/templates.tpz" \
             "https://github.com/godotengine/godot-builds/releases/download/$GODOT_VERSION/Godot_v${GODOT_VERSION}_export_templates.tpz"
@@ -46,11 +82,49 @@ jobs:
       - name: Import the project
         run: timeout 300 "$GODOT" --headless --path . --import > /dev/null 2>&1 || true
 
+      - name: Export with the official template, to compare sizes
+        run: |
+          mkdir -p "$RUNNER_TEMP/web-official"
+          "$GODOT" --headless --path . --export-release Web "$RUNNER_TEMP/web-official/index.html"
+          test -s "$RUNNER_TEMP/web-official/index.wasm"
+
+      - name: Point the Web preset at the slim template
+        run: python3 tools/use_slim_template.py 1 ~/slim-web-template/web_nothreads_release.zip
+
       - name: Export for the web
         run: |
           mkdir -p build/web
           "$GODOT" --headless --path . --export-release Web build/web/index.html
           test -s build/web/index.html && test -s build/web/index.wasm && test -s build/web/index.pck
+
+      - name: Compare with the official template
+        run: |
+          size() { stat -c%s "$1"; }
+          gz() { gzip -9 -c "$1" | wc -c; }
+          official="$RUNNER_TEMP/web-official/index.wasm"
+          slim=build/web/index.wasm
+          mb() { awk -v b="$1" 'BEGIN { printf "%.1f MB", b / 1048576 }'; }
+          {
+            echo "### Browser engine size"
+            echo
+            echo "| | official template | slim template |"
+            echo "|---|---|---|"
+            echo "| index.wasm | $(mb "$(size "$official")") | $(mb "$(size "$slim")") |"
+            echo "| index.wasm, gzip | $(mb "$(gz "$official")") | $(mb "$(gz "$slim")") |"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+          # The slim engine has to be the smaller one, or something is wrong with how it was built
+          test "$(size "$slim")" -lt "$(size "$official")"
+
+      - name: Start it in Chrome
+        run: |
+          npm install --prefix "$RUNNER_TEMP/pw" playwright-core@1.49.1 > /dev/null
+          NODE_PATH="$RUNNER_TEMP/pw/node_modules" node tools/web_smoke.js build/web "$RUNNER_TEMP/web-start.png"
+
+      - name: Keep the screenshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-start
+          path: ${{ runner.temp }}/web-start.png
 
       - name: Zip for itch.io
         run: cd build/web && zip -q -r ../just-sudoku-web.zip .

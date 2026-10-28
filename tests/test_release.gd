@@ -33,6 +33,7 @@ func _run() -> void:
 	_test_store(code)
 	_test_privacy(preset)
 	_test_launcher_icon(preset)
+	_test_one_icon_everywhere(preset)
 	_test_web_export()
 	_test_windows_export()
 	await _test_settings_label(version)
@@ -191,6 +192,51 @@ func _test_launcher_icon(preset: Dictionary) -> void:
 				solid += 1
 	var share := float(solid) / maxf(1.0, used.get_area())
 	_check("The themed icon is mostly outline, not one block (%d%% filled)" % int(share * 100.0), share < 0.45)
+
+## One icon on every platform: the project icon (window, browser tab, Windows exe), the Android
+## layers and legacy icon, the store and install icons, and the Linux menu icon all come from
+## tools/make_launcher_icons.gd; this fails when one of them is left behind or not used.
+func _test_one_icon_everywhere(android: Dictionary) -> void:
+	var cfg := ConfigFile.new()
+	cfg.load("res://export_presets.cfg")
+	var windows := ""
+	var web := ""
+	for section in cfg.get_sections():
+		if cfg.get_value(section, "platform", "") == "Windows Desktop":
+			windows = section
+		if cfg.get_value(section, "platform", "") == "Web":
+			web = section
+	_check("The project icon is icon.svg", ProjectSettings.get_setting("application/config/icon") == "res://icon.svg")
+	_check("The Windows exe carries it (the preset edits the exe's resources and names icon.svg; otherwise it shows Godot's robot)",
+		cfg.get_value(windows + ".options", "application/modify_resources", false) == true
+		and cfg.get_value(windows + ".options", "application/icon", "") == "res://icon.svg")
+	_check("The browser version's tab icon is made from it", cfg.get_value(web + ".options", "html/export_icon", false) == true)
+	var project_svg := FileAccess.get_file_as_string("res://icon.svg")
+	_check("The Linux menu icon (svg) is the same drawing", FileAccess.get_file_as_string("res://packaging/linux/io.github.r0madeus.JustSudoku.svg") == project_svg)
+	var linux_png := _png("res://packaging/linux/io.github.r0madeus.JustSudoku.png")
+	var legacy := _png(android.get("launcher_icons/main_192x192", ""))
+	var same_linux := false
+	if linux_png != null and legacy != null:
+		linux_png.resize(192, 192, Image.INTERPOLATE_LANCZOS)
+		same_linux = _mean_difference(linux_png, legacy) < 0.02
+	_check("and so is the Linux menu icon (png) and the AppImage's", same_linux)
+	var store := _png("res://fastlane/metadata/android/en-US/images/icon.png")
+	var pwa := _png("res://assets/launcher/pwa_512x512.png")
+	_check("The store icon and the browser's install icon are one drawing", store != null and pwa != null and _mean_difference(store, pwa) < 0.005)
+	var store_tr := _png("res://fastlane/metadata/android/tr-TR/images/icon.png")
+	_check("in both store languages", store != null and store_tr != null and _mean_difference(store, store_tr) < 0.005)
+
+## The mean per-channel difference of two images of one size, from 0 to 1
+func _mean_difference(a: Image, b: Image) -> float:
+	if a.get_size() != b.get_size():
+		return 1.0
+	var total := 0.0
+	for y in range(0, a.get_height(), 2):
+		for x in range(0, a.get_width(), 2):
+			var ca := a.get_pixel(x, y)
+			var cb := b.get_pixel(x, y)
+			total += absf(ca.r - cb.r) + absf(ca.g - cb.g) + absf(ca.b - cb.b)
+	return total / (3.0 * ceil(a.get_height() / 2.0) * ceil(a.get_width() / 2.0))
 
 func _test_settings_label(version: String) -> void:
 	var screen := SettingsScreen.new()

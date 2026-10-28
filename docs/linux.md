@@ -7,13 +7,16 @@ Oyun Linux'ta (64-bit) iki biçimde dağıtılır. İkisi de aynı dışa aktar�
 | `JustSudoku-<sürüm>-x86_64.AppImage` | çoğu dağıtımda tek dosya | `chmod +x` yap, çalıştır (FUSE yoksa `APPIMAGE_EXTRACT_AND_RUN=1`) |
 | `JustSudoku-<sürüm>-linux-x86_64.tar.gz` | kurulum istemeyenler | aç, `./JustSudoku` |
 
+**Gereken:** glibc 2.35 ya da yenisi (Ubuntu 22.04, Debian 12, Fedora 36 ve sonrası). Oyun küçültülmüş motorla gelir ([engine.md](engine.md)) ve bu motor Ubuntu 22.04'te derlenir; daha eski bir dağıtımda ("version `GLIBC_2.xx' not found") açılmaz. Resmi şablon glibc 2.28'e kadar iner, ama o şablonu kendi araç zinciriyle derleyen Godot ekibidir.
+
 Oyun OpenGL (GL Compatibility) ile çizer, Vulkan gerekmez. Kayıtlar `~/.local/share/godot/app_userdata/Just Sudoku` altında durur.
 
 ## Nasıl yapılıyor
 
 Her şey `.github/workflows/linux.yml` içinde; her pull request'te ve her `v*` etiketinde çalışır.
 
-1. **Dışa aktarma:** Godot düzenleyicisi ve yalnızca 64-bit Linux şablonu indirilir, `Linux` ön ayarıyla dışa aktarılır (`export_presets.cfg`).
+0. **Şablon:** küçültülmüş Linux şablonu ayrı bir işte, Ubuntu 22.04'te derlenir (bkz. [engine.md](engine.md)); aşağıdaki işe bir artifact olarak geçer.
+1. **Dışa aktarma:** Godot düzenleyicisi indirilir; oyun önce resmi şablonla (boyut karşılaştırması için), sonra küçültülmüş şablonla `Linux` ön ayarıyla dışa aktarılır (`export_presets.cfg`).
 2. **Denetim:** `desktop-file-validate` (menü girdisi) ve `appstreamcli validate` (mağaza açıklaması) çalışır.
 3. **Başlatma denemesi:** dışa aktarılan oyun sanal ekranda birkaç yüz kare çalışıp kendiliğinden kapanır (`--quit-after`); betik hatası ya da çökme varsa iş kırmızı olur. Aynısı AppImage ve tar.gz için de yapılır.
 4. **Paketleme:** `tools/build_linux_packages.sh` tar.gz ve AppImage'ı yapar. AppImage için `appimagetool` (sabitlenmiş sürüm, özeti denetlenerek) indirilip çalıştırılır.

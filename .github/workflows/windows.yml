@@ -1,9 +1,13 @@
 name: Windows
 
-# The game exported for Windows (64-bit, one .exe with the data inside), zipped. Every pull
-# request builds it to prove the export still works; a pushed version tag (v1.0.2) attaches the
-# zip, with its SHA-256 checksum, to that release next to the APK. The exe is not code-signed, so
-# Windows SmartScreen asks for a confirmation the first time ("More info" > "Run anyway").
+# The game exported for Windows (64-bit, one .exe with the data inside), zipped, on a slimmed
+# engine: Godot's Windows export template built with only what the game uses (engine/custom.py,
+# the profile Android and the browser use too), cross-compiled with MinGW. The template is cached
+# by the profile's hash, so it is only rebuilt when the profile or the Godot version changes.
+# Every pull request builds it, and notes in the run summary how much smaller it is than the
+# official template; a pushed version tag (v1.0.2) attaches the zip, with its SHA-256 checksum, to
+# that release next to the APK. The exe is not code-signed, so Windows SmartScreen asks for a
+# confirmation the first time ("More info" > "Run anyway").
 
 on:
   pull_request:
@@ -17,16 +21,49 @@ concurrency:
 
 env:
   GODOT_VERSION: "4.7-stable"
+  # Bumped by hand when the way the template is built here changes
+  TEMPLATE_REVISION: "1"
 
 jobs:
   build:
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    # Most of it is the template, built once per profile (about the first run only)
+    timeout-minutes: 120
     permissions:
       contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      # The template lives outside the project: Godot exports every file under the project folder
+      - name: Restore the slim Windows template
+        id: template-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/slim-windows-template
+          key: slim-windows-template-${{ env.GODOT_VERSION }}-r${{ env.TEMPLATE_REVISION }}-${{ hashFiles('engine/custom.py') }}
+
+      - name: Install the MinGW cross compiler
+        if: steps.template-cache.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq mingw-w64 > /dev/null
+          # Godot needs the POSIX threads flavour
+          sudo update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
+          sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
+
+      - name: Build the slim Windows template
+        if: steps.template-cache.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 --branch "$GODOT_VERSION" https://github.com/godotengine/godot "$RUNNER_TEMP/godot"
+          python -m pip install scons
+          cd "$RUNNER_TEMP/godot"
+          # Neither Vulkan nor Direct3D 12 is used: the game draws with the Compatibility (OpenGL) renderer
+          scons -j"$(nproc)" platform=windows target=template_release arch=x86_64 use_mingw=yes \
+            vulkan=no d3d12=no profile="$GITHUB_WORKSPACE/engine/custom.py"
+          mkdir -p ~/slim-windows-template
+          cp bin/godot.windows.template_release.x86_64.exe ~/slim-windows-template/windows_release_x86_64.exe
+          ls -l ~/slim-windows-template
 
       - name: Download the Godot editor
         run: |
@@ -35,7 +72,8 @@ jobs:
           unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP"
           echo "GODOT=$RUNNER_TEMP/Godot_v${GODOT_VERSION}_linux.x86_64" >> "$GITHUB_ENV"
 
-      - name: Download the Windows export template
+      - name: Download the official Windows export template
+        # For the size comparison. Only the 64-bit release template is taken out of the archive
         run: |
           curl -fsSL -o "$RUNNER_TEMP/templates.tpz" \
             "https://github.com/godotengine/godot-builds/releases/download/$GODOT_VERSION/Godot_v${GODOT_VERSION}_export_templates.tpz"
@@ -47,11 +85,39 @@ jobs:
       - name: Import the project
         run: timeout 300 "$GODOT" --headless --path . --import > /dev/null 2>&1 || true
 
+      - name: Export with the official template, to compare sizes
+        run: |
+          mkdir -p "$RUNNER_TEMP/windows-official"
+          "$GODOT" --headless --path . --export-release "Windows Desktop" "$RUNNER_TEMP/windows-official/JustSudoku.exe"
+          test -s "$RUNNER_TEMP/windows-official/JustSudoku.exe"
+
+      - name: Point the Windows preset at the slim template
+        run: python3 tools/use_slim_template.py 2 ~/slim-windows-template/windows_release_x86_64.exe
+
       - name: Export for Windows
         run: |
           mkdir -p build/windows
           "$GODOT" --headless --path . --export-release "Windows Desktop" build/windows/JustSudoku.exe
           test -s build/windows/JustSudoku.exe
+          # A 64-bit Windows program, not something that only looks like one
+          file build/windows/JustSudoku.exe | tee /dev/stderr | grep -q "PE32+ executable"
+
+      - name: Compare with the official template
+        run: |
+          official="$RUNNER_TEMP/windows-official/JustSudoku.exe"
+          slim=build/windows/JustSudoku.exe
+          size() { stat -c%s "$1"; }
+          mb() { awk -v b="$1" 'BEGIN { printf "%.1f MB", b / 1048576 }'; }
+          zipped() { (cd "$(dirname "$1")" && zip -q -9 - "$(basename "$1")" | wc -c); }
+          {
+            echo "### Windows engine size"
+            echo
+            echo "| | official template | slim template |"
+            echo "|---|---|---|"
+            echo "| JustSudoku.exe | $(mb "$(size "$official")") | $(mb "$(size "$slim")") |"
+            echo "| in the zip | $(mb "$(zipped "$official")") | $(mb "$(zipped "$slim")") |"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+          test "$(size "$slim")" -lt "$(size "$official")"
 
       - name: Zip
         run: |

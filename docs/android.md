@@ -97,6 +97,8 @@ Bu adımlar Android SDK'nın (Android Studio ile gelir) kurulu olduğu bir bilgi
 
 ## Küçültülmüş motor (daha küçük APK)
 
+(Aynı profil tarayıcı, Windows ve Linux sürümlerinin motorunu da küçültür: [docs/engine.md](engine.md).)
+
 Resmi Godot şablonu 3D, fizik, Vulkan ve oyunun kullanmadığı onlarca modülü içerir. `engine/custom.py` yalnızca oyunun kullandıklarıyla derlenmiş bir şablon tanımlar: APK 28,2 MB'tan 14,5 MB'a iner (motor kütüphanesi telefonda 71 MB yerine 31 MB yer kaplar).
 
 - **Hazır APK:** GitHub'da *Actions → Android APK (slim engine)* altındaki son başarılı çalıştırmanın *Artifacts* bölümünden `JustSudoku-slim-apk` indirilir. Bir test anahtarıyla imzalıdır: telefona kurup denemek içindir, Play Store'a yüklenmez.

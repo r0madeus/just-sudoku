@@ -38,7 +38,7 @@
 | **Tarayıcı** | Hemen oyna: **<https://r0madeus.github.io/just-sudoku/>**. Telefonda veya Chrome/Edge'de uygulama olarak yüklenebilir (tarayıcı menüsü → *Uygulamayı yükle* / *Ana ekrana ekle*), yüklenince çevrimdışı da çalışır. İlerleme tarayıcıda kalır; Ayarlar'dan dosyaya ya da panoya yedekle. |
 | **Android** | [Releases](https://github.com/r0madeus/just-sudoku/releases) sayfasında `JustSudoku-<sürüm>.apk`, SHA-256 özetiyle (Android 7.0 ve üstü, 64-bit ARM). F-Droid yolda ([docs/fdroid.md](docs/fdroid.md)). |
 | **Windows** | Releases'ta `JustSudoku-<sürüm>-windows-x64.zip`: tek exe, kurulum yok. İmzalı değil; SmartScreen bir kez sorar: *Ek bilgi* → *Yine de çalıştır*. |
-| **Linux** | Releases'ta: bir **AppImage** (tek dosya; `chmod +x` yapıp çalıştır) ve bir **tar.gz** (aç, `./JustSudoku`). İkisi de 64-bit; nasıl yapıldıkları: [docs/linux.md](docs/linux.md). |
+| **Linux** | Releases'ta: bir **AppImage** (tek dosya; `chmod +x` yapıp çalıştır) ve bir **tar.gz** (aç, `./JustSudoku`). İkisi de 64-bit, glibc 2.35 ya da yenisi için (Ubuntu 22.04, Debian 12, Fedora 36); nasıl yapıldıkları: [docs/linux.md](docs/linux.md). |
 
 Her sürümde neyin değiştiği: [CHANGELOG.md](CHANGELOG.md). Her değişikliğin deneme sürümü [Android](https://github.com/r0madeus/just-sudoku/actions/workflows/android.yml) çalıştırmalarının *Artifacts* bölümünde (test anahtarıyla imzalı); telefona kurulum ve denenecekler listesi: [docs/android.md](docs/android.md). Sürüm nasıl yayınlanır: [docs/release.md](docs/release.md).
 
@@ -108,7 +108,7 @@ Just Sudoku titreşim dışında hiçbir izin istemiyor.
 2. `project.godot` dosyasını Godot'da açıp *Çalıştır*'a bas. Linux, Windows ve macOS'ta da çalışır, geliştirirken işe yarar.
 3. Android için *Proje → Dışa Aktar → Android* yolunu izle. Kurulum ve imzalama [docs/android.md](docs/android.md) dosyasında. Windows, Linux ve Web için de ön ayarlar var (*Proje → Dışa Aktar*); Linux paketleri [docs/linux.md](docs/linux.md) dosyasında anlatılıyor.
 
-Android sürümü, yalnızca oyunun ihtiyaç duyduklarıyla derlenmiş bir Godot şablonu kullanıyor ([engine/custom.py](engine/custom.py)). İçinde 3D, fizik, Vulkan ve kullanılmayan modüller yok; bu sayede APK 28,2 MB'tan 14,5 MB'a iniyor. Şablonu ve APK'yı GitHub otomatik derliyor. Kendin derlemek istersen yol [docs/android.md](docs/android.md#küçültülmüş-motor-daha-küçük-apk) dosyasında.
+Her sürüm (Android, tarayıcı, Windows ve Linux), yalnızca oyunun ihtiyaç duyduklarıyla derlenmiş bir Godot şablonu kullanıyor ([engine/custom.py](engine/custom.py)). İçinde 3D, fizik, Vulkan ve kullanılmayan modüller yok; bu sayede APK 28,2 MB'tan 14,5 MB'a iniyor, diğer motorlar da çok daha küçük oluyor. Şablonları ve oyunları GitHub otomatik derliyor, her çalıştırma motorun resmî olandan ne kadar küçük olduğunu yazıyor; ayrıntılar [docs/engine.md](docs/engine.md) dosyasında.
 
 ## Testler
 
@@ -118,7 +118,7 @@ GODOT=/godot/yolu tools/run_tests.sh
 
 69 test dosyasının hepsini dörder dörder, her birini kendi boş kayıt klasöründe çalıştırıyor (bir dakikadan kısa). Testler her PR'da da çalışıyor.
 
-Ayrıntılar [docs/testing.md](docs/testing.md) dosyasında. Orada `tools/mutation_audit.py` aracı da anlatılıyor: oyunun 139 davranışını tek tek bilerek bozup testlerin bunu yakalayıp yakalamadığını kontrol ediyor. Şu an 139'inin 139'i yakalanıyor.
+Ayrıntılar [docs/testing.md](docs/testing.md) dosyasında. Orada `tools/mutation_audit.py` aracı da anlatılıyor: oyunun 146 davranışını tek tek bilerek bozup testlerin bunu yakalayıp yakalamadığını kontrol ediyor. Şu an 146'inin 146'i yakalanıyor.
 
 ## Proje yapısı
 
@@ -133,9 +133,9 @@ Ayrıntılar [docs/testing.md](docs/testing.md) dosyasında. Orada `tools/mutati
 | `packaging/` | Linux menü girdisi, mağaza açıklaması ve simgeler |
 | `web/` | Tarayıcı sürümünün sayfası (yükleme ekranı) |
 | `tests/` | Test dosyaları |
-| `engine/` | Android için küçültülmüş Godot derleme profili |
+| `engine/` | Küçültülmüş Godot derleme profili (her sürüm kullanır) |
 | `tools/` | Test çalıştırıcı, mutasyon denetimi, bulmaca bankası ve teknik örnekleri, ekran görüntüleri, Linux paketleri |
-| `docs/` | Android, Linux, testler, sürüm yayınlama, F-Droid ve bu README'deki resimler |
+| `docs/` | Motor, Android, web, Linux, testler, sürüm yayınlama, F-Droid ve bu README'deki resimler |
 | `fastlane/` | Mağaza metinleri, simge ve ekran görüntüleri (bu README de onları kullanıyor) |
 
 `Just Sudoku GDD.md` ilk tasarım belgesi; eski, oyunun bugünkü hâlini anlatmıyor.
