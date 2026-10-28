@@ -162,6 +162,8 @@ MUTATIONS = [
  ("M152", "scenes/ui/segmented_control.gd", "(plain[c] as Color).lerp(Color.WHITE, cover)", "(plain[c] as Color)", "The tab labels do not change colour with the pill"),
  ("M153", "scenes/ui/segmented_control.gd", "		ThemeManager.RADIUS_CAPSULE,\n		ThemeManager.BORDER_HAIRLINE,\n		border_col,", "		ThemeManager.RADIUS_PILL_SM,\n		ThemeManager.BORDER_HAIRLINE,\n		border_col,", "The tabs' track is a rounded rectangle around a capsule pill"),
  ("M154", "scenes/menus/resume_card.gd", "	elevated = false", "	elevated = true", "The resume card is a different colour from the cards beside it"),
+ ("M155", "scenes/menus/daily_calendar.gd", "	pop_scale = 0.86", "	pop_scale = 1.0", "The daily calendar does not dip when pressed"),
+ ("M156", "scripts/services/app_settings.gd", "static var glass_effects: bool = false", "static var glass_effects: bool = true", "Glass effects are on by default"),
 ]
 
 def main():

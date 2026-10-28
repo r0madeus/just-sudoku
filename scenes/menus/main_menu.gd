@@ -29,6 +29,7 @@ const AmbientBackdrop = preload("res://scenes/ui/ambient_backdrop.gd")
 const GlassPanel = preload("res://scenes/ui/glass_panel.gd")
 const SHADOW_PAD: int = 22
 const ResumeCard = preload("res://scenes/menus/resume_card.gd")
+const DailyCalendar = preload("res://scenes/menus/daily_calendar.gd")
 
 var bg: ColorRect
 var margin_container: MarginContainer
@@ -59,6 +60,7 @@ var new_game_btn: Button
 var daily_panel: PanelContainer
 ## Calendar icon at the start of the Daily strip; opens the archive
 var daily_archive_btn: Button
+var daily_calendar: DailyCalendar
 var daily_title_label: Label
 var daily_meta_label: Label
 var daily_btn: Button
@@ -111,6 +113,11 @@ func _notification(what: int) -> void:
 func _ready() -> void:
 	_apply_responsive_layout()
 	refresh_buttons()
+	visibility_changed.connect(_on_visibility_changed)
+
+func _on_visibility_changed() -> void:
+	if is_visible_in_tree() and daily_calendar != null:
+		daily_calendar.play_flip()
 
 func _apply_responsive_layout() -> void:
 	if margin_container == null:
@@ -262,6 +269,9 @@ func refresh_buttons() -> void:
 		daily_btn.text = LocalizationManager.translate("BTN_PLAY")
 		daily_btn.theme_type_variation = "CompactSecondaryButton"
 
+	if daily_calendar != null:
+		daily_calendar.show_today(DailyManager.get_today_dict(), is_daily_done)
+
 	var streak := DailyManager.get_current_streak()
 	if daily_meta_label != null:
 		# The name says what it is; the line under it is only there when there is a streak to show
@@ -376,13 +386,15 @@ func _build_ui() -> void:
 
 	daily_archive_btn = Button.new()
 	daily_archive_btn.theme_type_variation = "IconButton"
-	daily_archive_btn.icon = ThemeManager.get_icon("calendar")
-	daily_archive_btn.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	daily_archive_btn.add_theme_constant_override("icon_max_width", 20)
 	daily_archive_btn.custom_minimum_size = Vector2(ResponsiveManager.TOUCH_TARGET_MIN, ResponsiveManager.TOUCH_TARGET_MIN)
 	daily_archive_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	daily_archive_btn.pressed.connect(func(): daily_archive_requested.emit())
 	daily_hbox.add_child(daily_archive_btn)
+	# The calendar shows today's date and turns its page when the menu comes up
+	daily_calendar = DailyCalendar.new()
+	daily_calendar.set_anchors_preset(Control.PRESET_FULL_RECT)
+	daily_archive_btn.add_child(daily_calendar)
+	daily_archive_btn.button_down.connect(daily_calendar.play_pop)
 
 	var daily_info_vbox := VBoxContainer.new()
 	daily_info_vbox.size_flags_horizontal = SIZE_EXPAND_FILL

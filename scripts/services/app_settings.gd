@@ -27,7 +27,7 @@ static var colors_hint_seen: bool = false
 ## Whether the one-time note that the browser version keeps progress in the browser has been shown
 static var web_notice_seen: bool = false
 ## Frosted, blurred glass cards. Off draws them as plain surfaces: flatter and lighter to draw.
-static var glass_effects: bool = true
+static var glass_effects: bool = false
 static var auto_remove_notes: bool = true
 static var smart_candidates_enabled: bool = false
 static var show_conflicts: bool = true
@@ -105,7 +105,7 @@ static func load_config() -> void:
 		digit_first = json.data.get("digit_first", false)
 		colors_hint_seen = bool(json.data.get("colors_hint_seen", false))
 		web_notice_seen = bool(json.data.get("web_notice_seen", false))
-		glass_effects = bool(json.data.get("glass_effects", true))
+		glass_effects = bool(json.data.get("glass_effects", false))
 		auto_remove_notes = json.data.get("auto_notes", true)
 		smart_candidates_enabled = json.data.get("smart_candidates", false)
 		show_conflicts = json.data.get("show_conflicts", true)

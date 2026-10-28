@@ -30,6 +30,7 @@ func _run() -> void:
 	print("\n=== AMOLED ===")
 	AppSettings.auto_open_last_game = false
 	AppSettings.animations_enabled = false
+	AppSettings.glass_effects = true  # off by default; the glass is what this compares
 	var back := AmbientBackdrop.new()
 	var glass := GlassPanel.new()
 	root.add_child(back)

@@ -34,6 +34,7 @@ func _init() -> void:
 
 func _run() -> void:
 	print("--- GLASS COMPONENTS ---")
+	AppSettings.glass_effects = true  # the glass is what these test; it is off by default
 	ThemeManager.set_theme(ThemeManager.THEME_DARK)
 	var root := get_root()
 
