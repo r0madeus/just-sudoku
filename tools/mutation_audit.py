@@ -158,6 +158,8 @@ MUTATIONS = [
  ("M148", "packaging/linux/io.github.r0madeus.JustSudoku.svg", "fill=\"#2563eb\"", "fill=\"#0e1117\"", "The Linux menu icon is not the app icon"),
  ("M149", "scenes/ui/game_action_dock.gd", "	minimum_size_changed.connect(_on_minimum_size_changed)\n", "", "A dock fitted before the fonts or theme settled stays labelled and hangs out of the screen"),
  ("M150", ".github/workflows/windows.yml", "    branches: [main]\n    tags: [\"v*\"]", "    tags: [\"v*\"]", "The Windows engine is built again for every pull request and the release"),
+ ("M151", "scenes/gameplay/dialogs/solution_dialog.gd", "	if natural > room:\n		_nav_compact = true", "	if false:\n		_nav_compact = true", "The solution viewer is wider on the step tab, in Turkish"),
+ ("M152", "scenes/ui/segmented_control.gd", "(plain[c] as Color).lerp(Color.WHITE, cover)", "(plain[c] as Color)", "The tab labels do not change colour with the pill"),
 ]
 
 def main():

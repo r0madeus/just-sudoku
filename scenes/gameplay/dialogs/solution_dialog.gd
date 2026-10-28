@@ -204,6 +204,7 @@ func _build_ui() -> void:
 	btn_last.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	btn_last.pressed.connect(func(): set_step(steps.size()))
 	step_nav_bar.add_child(btn_last)
+	step_nav_bar.minimum_size_changed.connect(_on_nav_minimum_size_changed)
 
 	# 4. Step Info Card
 	step_info_panel = PanelContainer.new()
@@ -295,6 +296,7 @@ func open_solution(initial: SudokuBoard, current: SudokuBoard = null) -> void:
 	steps = sol_data["steps"]
 	snapshots = sol_data["snapshots"]
 	solved_board = sol_data["solved_board"]
+	_fit_nav()
 
 	switch_view_mode(Mode.STEP_BY_STEP)
 	set_step(0)
@@ -426,9 +428,12 @@ func _on_apply_solution_pressed() -> void:
 			solution_applied.emit(board),
 		true)
 
-## Narrower than this, Previous / Next show only their arrows so the step row fits a 360 dp phone
-const NAV_LABELS_MIN_WIDTH: float = 360.0
+## When the labelled step row (Previous / Next with words) is wider than the dialog's room, Previous /
+## Next show only their arrows. It is measured, not assumed: Turkish "Önceki / Sonraki" needs more
+## than English, and a row wider than the dialog made the dialog itself wider on that tab only.
 var _nav_compact: bool = false
+## The step row's minimum width as the last fit left it, to tell when something changed it since
+var _fitted_nav_min: float = -1.0
 
 ## Board side on a phone; a tablet's wider dialog shows it larger
 const GRID_MIN_SIDE: float = 230.0
@@ -439,11 +444,31 @@ func _apply_responsive_layout() -> void:
 		return
 	var side: float = roundf(GRID_MIN_SIDE * ResponsiveManager.tablet_factor(ResponsiveManager.get_viewport_size(self)))
 	grid_aspect.custom_minimum_size = Vector2(side, side)
-	var compact: bool = modal_panel.custom_minimum_size.x < NAV_LABELS_MIN_WIDTH
-	if compact != _nav_compact:
-		_nav_compact = compact
-		_update_nav_labels()
+	_fit_nav()
 	_fit_detail_height()
+
+func _fit_nav() -> void:
+	if modal_panel == null or btn_prev == null or step_nav_bar == null:
+		return
+	var room: float = modal_panel.custom_minimum_size.x - 2.0 * float((modal_panel as GlassPanel).pad_h)
+	# The counter always has room for its widest text ("Step 54 / 54"), so the row does not change
+	# width as the steps go by
+	var widest: String = LocalizationManager.translate("STEP_COUNTER") % [maxi(steps.size(), 9), maxi(steps.size(), 9)]
+	var font: Font = step_counter_label.get_theme_font("font")
+	step_counter_label.custom_minimum_size.x = ceilf(font.get_string_size(widest, HORIZONTAL_ALIGNMENT_LEFT, -1, step_counter_label.get_theme_font_size("font_size")).x)
+	_nav_compact = false
+	_update_nav_labels()
+	var natural: float = step_nav_bar.get_combined_minimum_size().x
+	if natural > room:
+		_nav_compact = true
+		_update_nav_labels()
+	_fitted_nav_min = step_nav_bar.get_combined_minimum_size().x
+
+## Fonts, themes and languages change what the labels measure after a fit was made; the row is
+## fitted again whenever its size says something else than it did at the last fit
+func _on_nav_minimum_size_changed() -> void:
+	if absf(step_nav_bar.get_combined_minimum_size().x - _fitted_nav_min) > 0.5:
+		_fit_nav.call_deferred()
 
 ## Lines of explanation shown at once
 const DESC_LINES: int = 5
@@ -459,6 +484,7 @@ func _fit_detail_height() -> void:
 	detail_box.custom_minimum_size.y = maxf(step_h, full_info_panel.get_combined_minimum_size().y)
 
 func _on_text_size_changed() -> void:
+	_fit_nav()
 	_fit_detail_height()
 
 func _update_nav_labels() -> void:
@@ -481,7 +507,7 @@ func _update_locale_texts() -> void:
 
 	btn_step_mode.text = LocalizationManager.translate("BTN_STEP_BY_STEP")
 	btn_full_mode.text = LocalizationManager.translate("BTN_FULL_SOLUTION")
-	_update_nav_labels()
+	_fit_nav()
 	apply_btn.text = LocalizationManager.translate("BTN_APPLY_SOLUTION")
 	apply_btn.icon = ThemeManager.get_icon("check")
 	apply_btn.add_theme_constant_override("icon_max_width", 16)

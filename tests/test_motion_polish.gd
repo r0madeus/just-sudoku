@@ -32,6 +32,7 @@ func _run() -> void:
 	await _test_settings_widths()
 	await _test_segmented_pill()
 	await _test_solution_tabs()
+	await _test_solution_width()
 	await _test_fill_notes_toggle()
 	await _test_digit_blink()
 	print("\n🏁 RESULTS: %d Passed, %d Failed" % [_passed, _failed])
@@ -100,6 +101,11 @@ func _test_segmented_pill() -> void:
 	seg.pill_t = 0.5
 	var mid := seg._pill_rect()
 	_check("halfway it is between the two", mid.position.x > seg.buttons[0].position.x and mid.position.x < target.position.x)
+	var between_a: Color = seg.buttons[0].get_theme_color("font_color")
+	var between_b: Color = seg.buttons[1].get_theme_color("font_color")
+	_check("and the labels are changing colour with it, neither dark on the pill nor white off it",
+		between_a != Color.WHITE and between_b != Color.WHITE
+			and between_a != ThemeManager.get_color("button_text") and between_b != ThemeManager.get_color("button_text"))
 	await create_timer(SegmentedControl.SLIDE_TIME + 0.5).timeout
 	_check("and it arrives", is_equal_approx(seg.pill_t, 1.0) and seg._pill_rect().position.is_equal_approx(target.position))
 	AppSettings.animations_enabled = false
@@ -125,6 +131,40 @@ func _test_solution_tabs() -> void:
 	_check("switching from code moves the tabs too", dialog.mode_tabs.get_selected_index() == 0)
 	dialog.queue_free()
 	await process_frame
+
+## The solution viewer is as wide on both of its tabs, in either language: the step row used to be
+## wider than the dialog in Turkish, which made the dialog wider on that tab only
+func _test_solution_width() -> void:
+	# On a phone-sized screen, where the room is tight
+	var win := get_root()
+	var old_mode := win.content_scale_mode
+	var old_size := win.size
+	win.content_scale_mode = Window.CONTENT_SCALE_MODE_DISABLED
+	win.size = Vector2i(390, 844)
+	await _frames(2)
+	for loc in ["tr", "en"]:
+		LocalizationManager.set_locale(loc)
+		var dialog := SolutionDialog.new()
+		root.add_child(dialog)
+		dialog.open_solution(SudokuGenerator.generate(5551212, DifficultyAnalyzer.LEVEL_EASY).puzzle)
+		await _frames(5)
+		var widths: Array[float] = []
+		for mode in [SolutionDialog.Mode.STEP_BY_STEP, SolutionDialog.Mode.FULL_SOLUTION, SolutionDialog.Mode.STEP_BY_STEP]:
+			dialog.switch_view_mode(mode)
+			await _frames(4)
+			widths.append(dialog.modal_panel.size.x)
+		_check("%s: the dialog is as wide on both tabs %s" % [loc, str(widths)], is_equal_approx(widths[0], widths[1]) and is_equal_approx(widths[1], widths[2]))
+		_check("%s: and no wider than the room it was given (%.0f of %.0f)" % [loc, dialog.modal_panel.size.x, dialog.modal_panel.custom_minimum_size.x], dialog.modal_panel.size.x <= dialog.modal_panel.custom_minimum_size.x + 0.5)
+		# the step counter has room for its longest text, so the row does not change as steps go by
+		var before: float = dialog.step_nav_bar.get_combined_minimum_size().x
+		dialog.set_step(dialog.steps.size())
+		await _frames(2)
+		_check("%s: the step row keeps its width from the first step to the last" % loc, is_equal_approx(dialog.step_nav_bar.get_combined_minimum_size().x, before))
+		dialog.queue_free()
+		await process_frame
+	LocalizationManager.set_locale("en")
+	win.content_scale_mode = old_mode
+	win.size = old_size
 
 func _new_state(seed_val: int) -> GameState:
 	var state := GameState.new()
