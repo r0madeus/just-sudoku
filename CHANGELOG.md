@@ -2,6 +2,19 @@
 
 All notable changes to Just Sudoku. Türkçesi aşağıda / Turkish below each version.
 
+## [1.3.0] - 2026-10-28
+
+Lighter by default, a nicer Daily Sudoku archive, and the Android icon fixed.
+
+- Glass effects are now off by default on every platform: cards and dialogs are plain surfaces, which are lighter to draw (the browser version in particular) and keep one colour across the main menu. They can be turned on in Settings; a setting you already saved is kept.
+- Daily Sudoku archive: round days and round month arrows, the days fade in one after another when the screen opens and when the month changes, and a tapped day lights up briefly. Nothing moves with animations off.
+- Android icon: the 1.2.3 icon showed as a hard-cornered square on launchers that draw the icon without masking it (seen on a Honor phone). It is a rounded square again, as in 1.2.2.
+
+**Türkçe**
+- Cam efektleri artık her platformda varsayılan olarak kapalı: kartlar ve pencereler düz yüzey; özellikle tarayıcı sürümünde daha hafif çiziliyor ve ana menüde tek renk kalıyor. Ayarlar'dan açılabilir; daha önce kaydettiğin ayar korunur.
+- Günün Sudokusu arşivi: yuvarlak günler ve ay okları, ekran açılırken ve ay değişirken günler sırayla beliriyor, dokunulan gün kısa süre parlıyor. Animasyonlar kapalıyken hiçbir şey hareket etmez.
+- Android simgesi: 1.2.3'teki simge, simgeyi maskelemeden çizen başlatıcılarda (bir Honor telefonda görüldü) sert köşeli kare çıkıyordu. 1.2.2'deki gibi yine yuvarlak köşeli kare.
+
 ## [1.2.3] - 2026-10-28
 
 The icon follows the phone's own shape, plus the solution window and main menu fixes.

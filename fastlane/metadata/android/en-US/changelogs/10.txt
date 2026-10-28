@@ -1,0 +1,1 @@
+Glass effects are off by default, the Daily Sudoku archive has round days and fades its days in, and the Android icon is a rounded square again.

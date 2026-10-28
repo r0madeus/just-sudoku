@@ -1,0 +1,1 @@
+Cam efektleri varsayılan olarak kapalı, Günün Sudokusu arşivinde günler yuvarlak ve sırayla beliriyor, Android simgesi yine yuvarlak köşeli kare.
