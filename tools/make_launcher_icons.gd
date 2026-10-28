@@ -17,7 +17,9 @@ extends SceneTree
 ##  - assets/launcher/main(.svg, _192x192.png): the legacy icon, for launchers without adaptive
 ##    icons: the visible 72 dp on a rounded square.
 ##  - assets/launcher/pwa_{144,180,512}.png: the install icons of the browser version (full bleed).
-##  - icon.svg: the project icon (window, editor).
+##  - icon.svg: the project icon (window, editor, the browser version's tab icon, and the Windows exe,
+##    whose Windows preset embeds it).
+##  - packaging/linux/io.github.r0madeus.JustSudoku.{svg,png}: the Linux menu and AppImage icon.
 ##  - fastlane/metadata/android/*/images/icon.png: the 512 px store icon, full bleed (the stores
 ##    round the corners themselves).
 ## The 5 is the glyph of DM Serif Display (assets/fonts, SIL OFL) as a drawn path, so no font is
@@ -49,6 +51,8 @@ func _init() -> void:
 	_write("assets/launcher/main.svg", _svg(legacy, 192, 18.0, 72.0))
 	_render(_svg(legacy, 192, 18.0, 72.0), LAUNCHER_DIR + "main_192x192.png")
 	_write("icon.svg", _svg(legacy, 128, 18.0, 72.0))
+	_write("packaging/linux/io.github.r0madeus.JustSudoku.svg", _svg(legacy, 128, 18.0, 72.0))
+	_render(_svg(legacy, 512, 18.0, 72.0), "res://packaging/linux/io.github.r0madeus.JustSudoku.png")
 	var store := _svg(_tile(72.0, 18.0, 0.0) + _digit(), 512, 18.0, 72.0)
 	for locale in STORE_LOCALES:
 		_render(store, "res://fastlane/metadata/android/%s/images/icon.png" % locale)

@@ -153,7 +153,10 @@ MUTATIONS = [
  ("M143", ".github/workflows/web.yml", "hashFiles('engine/custom.py')", "hashFiles('project.godot')", "The cached web template is not rebuilt when the profile changes"),
  ("M144", ".github/workflows/windows.yml", "platform=windows target=template_release arch=x86_64 use_mingw=yes", "platform=windows target=template_release arch=x86_64", "The Windows template is not cross-compiled with MinGW"),
  ("M145", ".github/workflows/linux.yml", "template:\n    runs-on: ubuntu-22.04", "template:\n    runs-on: ubuntu-24.04", "The Linux template is built on a newer Ubuntu, so the game needs a newer glibc"),
- ("M146", "tools/use_slim_template.py", "end = start + following.start() if following else len(text)", "end = len(text)", "The preset script changes the presets after the one it was told"),]
+ ("M146", "tools/use_slim_template.py", "end = start + following.start() if following else len(text)", "end = len(text)", "The preset script changes the presets after the one it was told"),
+ ("M147", "export_presets.cfg", "application/modify_resources=true", "application/modify_resources=false", "The Windows exe shows Godot's robot instead of the app icon"),
+ ("M148", "packaging/linux/io.github.r0madeus.JustSudoku.svg", "fill=\"#2563eb\"", "fill=\"#0e1117\"", "The Linux menu icon is not the app icon"),
+]
 
 def main():
     only = set(sys.argv[1:])
