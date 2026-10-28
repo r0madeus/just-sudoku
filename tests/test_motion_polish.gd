@@ -35,8 +35,12 @@ func _run() -> void:
 	await _test_solution_width()
 	await _test_fill_notes_toggle()
 	await _test_digit_blink()
+	await _test_glass_default()
 	print("\n🏁 RESULTS: %d Passed, %d Failed" % [_passed, _failed])
 	quit(1 if _failed > 0 else 0)
+
+func _test_glass_default() -> void:
+	_check("Glass effects are off until someone turns them on", AppSettings.glass_effects == false)
 
 func _test_glass_switch() -> void:
 	var screen := SettingsScreen.new()

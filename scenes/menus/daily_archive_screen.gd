@@ -44,6 +44,8 @@ var year: int = 0
 var month: int = 0
 var _dirty: bool = true
 var _started: bool = false
+## How many days the last month animation moved (for the tests)
+var _pop_count: int = 0
 
 func _init() -> void:
 	set_anchors_preset(PRESET_FULL_RECT)
@@ -88,6 +90,7 @@ func show_current_month() -> void:
 	year = today["year"]
 	month = today["month"]
 	refresh()
+	animate_month(0)
 
 func _build_ui() -> void:
 	var ambient_bg := AmbientBackdrop.new()
@@ -215,8 +218,18 @@ func _nav_button(icon: String, step: int) -> Button:
 	btn.add_theme_constant_override("icon_max_width", 18)
 	btn.custom_minimum_size = Vector2(44, 44)
 	btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	_round_nav_style(btn)
 	btn.pressed.connect(func(): change_month(step))
 	return btn
+
+## The month arrows are round, softly filled buttons
+func _round_nav_style(btn: Button) -> void:
+	var fill: Color = Color(ThemeManager.get_color("text_given"), 0.07)
+	for state in ["normal", "focus"]:
+		btn.add_theme_stylebox_override(state, ThemeManager.create_flat_stylebox(fill, ThemeManager.RADIUS_PILL, 0, Color.TRANSPARENT, 0, 0))
+	for state in ["hover", "pressed", "hover_pressed"]:
+		btn.add_theme_stylebox_override(state, ThemeManager.create_flat_stylebox(Color(fill, 0.16), ThemeManager.RADIUS_PILL, 0, Color.TRANSPARENT, 0, 0))
+	btn.add_theme_stylebox_override("disabled", ThemeManager.create_flat_stylebox(Color.TRANSPARENT, ThemeManager.RADIUS_PILL, 0, Color.TRANSPARENT, 0, 0))
 
 func _build_legend() -> void:
 	var vbox := VBoxContainer.new()
@@ -292,6 +305,7 @@ func change_month(step: int) -> void:
 	year = y
 	month = m
 	refresh()
+	animate_month(step)
 
 static func days_in_month(y: int, m: int) -> int:
 	if m == 2:
@@ -337,6 +351,33 @@ func refresh() -> void:
 	_style_swatch(legend_swatches[1], DailyManager.DayStatus.DONE_LATE)
 	_style_swatch(legend_swatches[2], DailyManager.DayStatus.IN_PROGRESS)
 
+## The days fade in one after another, sweeping in the direction of the month change (forward when
+## the screen opens); the month name fades in. (Not a scale: the grid resets its children's scale.) With animations off nothing moves.
+func animate_month(step: int) -> void:
+	if not AppSettings.animations_enabled or month_label == null or not is_inside_tree():
+		return
+	month_label.modulate.a = 0.0
+	month_label.create_tween().tween_property(month_label, "modulate:a", 1.0, 0.22)
+	var count := day_buttons.size()
+	var i := 0
+	var dates := day_buttons.keys()
+	dates.sort()
+	if step < 0:
+		dates.reverse()
+	for date in dates:
+		var btn: Button = day_buttons[date]
+		btn.modulate.a = 0.0
+		var delay := minf(float(i) * 0.014, 0.35)
+		btn.create_tween().tween_property(btn, "modulate:a", 1.0, 0.22).set_delay(delay)
+		i += 1
+	_pop_count = count
+
+func _press_dip(btn: Button) -> void:
+	if not AppSettings.animations_enabled:
+		return
+	btn.modulate.a = 0.45
+	btn.create_tween().tween_property(btn, "modulate:a", 1.0, 0.2)
+
 func _day_button(d: int, date: String, status: int, is_today: bool) -> Button:
 	var btn := Button.new()
 	btn.text = str(d)
@@ -370,6 +411,7 @@ func _day_button(d: int, date: String, status: int, is_today: bool) -> Button:
 	for c in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
 		btn.add_theme_color_override(c, text_col)
 	btn.add_theme_color_override("font_disabled_color", ThemeManager.get_color("button_text_disabled"))
+	btn.button_down.connect(func(): _press_dip(btn))
 	btn.pressed.connect(func(): day_requested.emit(date))
 	return btn
 
@@ -378,14 +420,14 @@ func _status_box(status: int) -> StyleBoxFlat:
 	var accent: Color = ThemeManager.get_color("accent")
 	match status:
 		DailyManager.DayStatus.DONE:
-			return ThemeManager.create_flat_stylebox(accent, ThemeManager.RADIUS_SM, 0, Color.TRANSPARENT, 0, 0)
+			return ThemeManager.create_flat_stylebox(accent, ThemeManager.RADIUS_PILL, 0, Color.TRANSPARENT, 0, 0)
 		DailyManager.DayStatus.DONE_LATE:
-			return ThemeManager.create_flat_stylebox(Color(accent, 0.12), ThemeManager.RADIUS_SM, 2, accent, 0, 0)
+			return ThemeManager.create_flat_stylebox(Color(accent, 0.12), ThemeManager.RADIUS_PILL, 2, accent, 0, 0)
 		DailyManager.DayStatus.IN_PROGRESS:
-			return ThemeManager.create_flat_stylebox(ThemeManager.get_color("cell_same_num"), ThemeManager.RADIUS_SM, 1, Color(accent, 0.35), 0, 0)
-	return ThemeManager.create_flat_stylebox(Color.TRANSPARENT, ThemeManager.RADIUS_SM, 0, Color.TRANSPARENT, 0, 0)
+			return ThemeManager.create_flat_stylebox(ThemeManager.get_color("cell_same_num"), ThemeManager.RADIUS_PILL, 1, Color(accent, 0.35), 0, 0)
+	return ThemeManager.create_flat_stylebox(Color.TRANSPARENT, ThemeManager.RADIUS_PILL, 0, Color.TRANSPARENT, 0, 0)
 
 func _style_swatch(swatch: Panel, status: int) -> void:
 	var sb := _status_box(status)
-	sb.set_corner_radius_all(4)
+	sb.set_corner_radius_all(8)
 	swatch.add_theme_stylebox_override("panel", sb)

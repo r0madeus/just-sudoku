@@ -170,15 +170,17 @@ func _test_launcher_icon(preset: Dictionary) -> void:
 		and mono.get_size() == Vector2i(432, 432) and bg.get_size() == Vector2i(432, 432) and legacy.get_size() == Vector2i(192, 192))
 	if fg == null or mono == null:
 		return
-	# The background is a flat opaque square over the whole canvas: the launcher shapes it
+	# The background is a rounded tile: opaque over the whole 72 dp every mask shows, corners
+	# included, but not full-bleed. Launchers (seen on a real phone, twice) that draw the 108 dp
+	# canvas without a mask show a full-bleed background as a hard-cornered square.
 	if bg != null:
-		var full := true
-		for y in range(0, 432, 4):
-			for x in range(0, 432, 4):
+		var covered := true
+		for y in range(72, 360, 3):
+			for x in range(72, 360, 3):
 				if bg.get_pixel(x, y).a < 0.99:
-					full = false
-		_check("The adaptive background is opaque over the whole canvas, for the launcher to shape", full)
-		_check("and one colour", bg.get_pixel(0, 0) == bg.get_pixel(216, 216) and bg.get_pixel(431, 431) == bg.get_pixel(0, 431))
+					covered = false
+		_check("The background covers everything a launcher's mask can show", covered)
+		_check("and is a rounded tile, not a full-bleed square", bg.get_pixel(0, 0).a < 0.05 and bg.get_pixel(432 - 1, 432 - 1).a < 0.05)
 	var safe_r := 33.0 * 4.0
 	var outside := 0
 	for layer in [fg, mono]:
