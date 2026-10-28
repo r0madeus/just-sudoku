@@ -77,6 +77,19 @@ func _run() -> void:
 		tdock.fit_to_width(edge)
 		verdicts.append(tdock.is_compact)
 	_check(verdicts == [true, true, true], "so just under that width it is icon-only in every state %s" % str(verdicts))
+
+	# A fit is only as good as the measure it was made with. When the text gets wider after it (a font
+	# or theme applied late, another language), the labelled dock must notice by itself and turn
+	# icon-only, or it hangs out of the screen (seen in the browser version on a phone)
+	tdock.set_notes_active(false)
+	tdock.set_color_active(false)
+	tdock.fit_to_width(widths[0] - 1.0 + 40.0)
+	await _frames(3)
+	_check(not tdock.is_compact, "Fitted with room to spare, it is labelled")
+	tdock.undo_btn.add_theme_font_size_override("font_size", 30)
+	await _frames(5)
+	_check(tdock.is_compact and tdock.get_combined_minimum_size().x <= widths[0] + 39.0,
+		"A larger font later turns it icon-only by itself (min width %.0f)" % tdock.get_combined_minimum_size().x)
 	themed.queue_free()
 
 	var app := AppRoot.new()

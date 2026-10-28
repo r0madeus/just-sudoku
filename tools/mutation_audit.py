@@ -156,6 +156,7 @@ MUTATIONS = [
  ("M146", "tools/use_slim_template.py", "end = start + following.start() if following else len(text)", "end = len(text)", "The preset script changes the presets after the one it was told"),
  ("M147", "export_presets.cfg", "application/modify_resources=true", "application/modify_resources=false", "The Windows exe shows Godot's robot instead of the app icon"),
  ("M148", "packaging/linux/io.github.r0madeus.JustSudoku.svg", "fill=\"#2563eb\"", "fill=\"#0e1117\"", "The Linux menu icon is not the app icon"),
+ ("M149", "scenes/ui/game_action_dock.gd", "	minimum_size_changed.connect(_on_minimum_size_changed)\n", "", "A dock fitted before the fonts or theme settled stays labelled and hangs out of the screen"),
 ]
 
 def main():
