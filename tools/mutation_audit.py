@@ -164,6 +164,8 @@ MUTATIONS = [
  ("M154", "scenes/menus/resume_card.gd", "	elevated = false", "	elevated = true", "The resume card is a different colour from the cards beside it"),
  ("M155", "scenes/menus/daily_calendar.gd", "	pop_scale = 0.86", "	pop_scale = 1.0", "The daily calendar does not dip when pressed"),
  ("M156", "scripts/services/app_settings.gd", "static var glass_effects: bool = false", "static var glass_effects: bool = true", "Glass effects are on by default"),
+ ("M157", "scenes/menus/daily_archive_screen.gd", "		btn.modulate.a = 0.0\n		var delay", "		btn.modulate.a = 1.0\n		var delay", "The archive's days do not fade in"),
+ ("M158", "scenes/menus/daily_archive_screen.gd", "	var fill: Color = Color(ThemeManager.get_color(\"text_given\"), 0.07)", "	var fill: Color = Color.TRANSPARENT", "The archive's month arrows have no fill"),
 ]
 
 def main():

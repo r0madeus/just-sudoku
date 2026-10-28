@@ -40,6 +40,7 @@ func _run() -> void:
 	_test_names()
 	await _test_play_past_day()
 	await _test_calendar()
+	await _test_calendar_motion()
 	await _test_app_flow()
 	print("\n🏁 RESULTS: %d Passed, %d Failed" % [_passed, _failed])
 	quit(1 if _failed > 0 else 0)
@@ -209,6 +210,36 @@ func _test_calendar() -> void:
 		_check("Days before the archive cannot be played", screen.day_buttons[too_old].disabled)
 	screen.change_month(1)
 	_check("and forward again", screen.year * 12 + screen.month == oldest.year * 12 + oldest.month + 1)
+	screen.queue_free()
+	await process_frame
+
+## The month's days fade in when the screen opens and when the month changes; the days are round
+func _test_calendar_motion() -> void:
+	var was: bool = AppSettings.animations_enabled
+	var screen := DailyArchiveScreen.new()
+	root.add_child(screen)
+	await process_frame
+	AppSettings.animations_enabled = true
+	screen.show_current_month()
+	await process_frame
+	await process_frame
+	var some: Button = screen.day_buttons.values()[0]
+	_check("Opening the archive fades its days in (they start see-through)", screen._pop_count == screen.day_buttons.size() and some.modulate.a < 1.0)
+	await create_timer(1.0).timeout
+	_check("and they end at full size", is_equal_approx(some.modulate.a, 1.0))
+	screen.change_month(-1)
+	await process_frame
+	await process_frame
+	var other: Button = screen.day_buttons.values()[0]
+	_check("Going to another month fades its days in too", other.modulate.a < 1.0 and screen._pop_count == screen.day_buttons.size())
+	_check("The days are round (a circle, not a rounded square)", (other.get_theme_stylebox("normal") as StyleBoxFlat).corner_radius_top_left >= 20)
+	var arrow := screen.prev_btn.get_theme_stylebox("normal") as StyleBoxFlat
+	_check("The month arrows are round, softly filled buttons", arrow != null and arrow.bg_color.a > 0.0 and arrow.corner_radius_top_left >= 20)
+	AppSettings.animations_enabled = false
+	screen.change_month(1)
+	await process_frame
+	_check("With animations off the days are simply there", (screen.day_buttons.values()[0] as Button).modulate.a == 1.0)
+	AppSettings.animations_enabled = was
 	screen.queue_free()
 	await process_frame
 

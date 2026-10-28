@@ -106,7 +106,7 @@ Every build (Android, browser, Windows and Linux) uses a Godot export template b
 GODOT=/path/to/godot tools/run_tests.sh
 ```
 
-Runs all 69 test suites, four at a time, each with its own empty save folder (under a minute). They also run on every pull request. [docs/testing.md](docs/testing.md) explains them, and how `tools/mutation_audit.py` checks that the tests really catch mistakes: it breaks 154 behaviours one at a time and all 154 are caught.
+Runs all 69 test suites, four at a time, each with its own empty save folder (under a minute). They also run on every pull request. [docs/testing.md](docs/testing.md) explains them, and how `tools/mutation_audit.py` checks that the tests really catch mistakes: it breaks 156 behaviours one at a time and all 156 are caught.
 
 ## Project layout
 
