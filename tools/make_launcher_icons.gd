@@ -7,16 +7,15 @@ extends SceneTree
 ##    Android adaptive icon layers. 108 dp canvas; launchers show the middle 72 dp through their
 ##    own mask (circle, squircle, teardrop...) and only the 66 dp circle in the middle is sure to
 ##    show, so the digit stays inside it (tests/test_release.gd checks it, pixel by pixel).
-##    The background is a rounded tile with transparent margin, not a full-bleed square: some
-##    launchers (seen on a real phone) draw the whole 108 dp canvas without cropping or
-##    masking it, and a full-bleed background then shows as a hard-cornered square with the digit
-##    lost in the middle. A masking launcher crops the tile to its own shape; the tile is larger
-##    than the visible 72 dp so no transparent edge shows. A flat tile fills the slot on such a
-##    launcher as completely as full-art icons do.
+##    The background is a flat, opaque square over the whole canvas, as Android's adaptive icon
+##    specification asks: the launcher (Honor, Samsung, Pixel...) applies its own shape and its
+##    own corner rounding setting to it. A background with transparent margin or rounded corners
+##    of its own is what a launcher cannot reshape.
 ##    The monochrome layer is what Android 13+ tints for themed icons: the digit alone.
 ##  - assets/launcher/main(.svg, _192x192.png): the legacy icon, for launchers without adaptive
 ##    icons: the visible 72 dp on a rounded square.
-##  - assets/launcher/pwa_{144,180,512}.png: the install icons of the browser version (full bleed).
+##  - assets/launcher/pwa_{144,180,512}.png: the install icons of the browser version: a rounded square with transparent corners
+##    (the browser draws the icon as it is on its launch screen; the manifest lists them as "any").
 ##  - icon.svg: the project icon (window, editor, the browser version's tab icon, and the Windows exe,
 ##    whose Windows preset embeds it).
 ##  - packaging/linux/io.github.r0madeus.JustSudoku.{svg,png}: the Linux menu and AppImage icon.
@@ -33,9 +32,8 @@ const BLUE: String = "#2563eb"
 const INK: String = "#ffffff"
 
 const CENTRE: float = 54.0
-## The adaptive background tile: 98 dp, centred, corners rounded to 22%. It covers the whole
-## visible 72 dp square, corners included, for every mask (a teardrop has a square corner).
-const TILE: float = 98.0
+## The adaptive background covers the whole 108 dp canvas
+const TILE: float = 108.0
 ## The digit's height in dp on the 108 dp canvas: as large as the 66 dp safe circle allows
 const DIGIT_HEIGHT: float = 54.0
 
@@ -44,7 +42,7 @@ const GLYPH_PATH: String = "M244 -15Q186 -15 140.5 -4.5Q95 6 60 30L67 156H77L123
 const GLYPH_BOX: Rect2 = Rect2(60.0, -15.0, 441.0, 649.0)
 
 func _init() -> void:
-	_write_layer("adaptive_background", _tile(TILE, (108.0 - TILE) / 2.0, TILE * 0.22), 432)
+	_write_layer("adaptive_background", _tile(TILE, 0.0, 0.0), 432)
 	_write_layer("adaptive_foreground", _digit(), 432)
 	_write_layer("adaptive_monochrome", _digit(), 432)
 	var legacy := _tile(72.0, 18.0, 72.0 * 0.22) + _digit()
@@ -58,7 +56,7 @@ func _init() -> void:
 		_render(store, "res://fastlane/metadata/android/%s/images/icon.png" % locale)
 	# The web app's install icons (the browser version can be installed like an app)
 	for px in [144, 180, 512]:
-		_render(_svg(_tile(72.0, 18.0, 0.0) + _digit(), px, 18.0, 72.0), LAUNCHER_DIR + "pwa_%dx%d.png" % [px, px])
+		_render(_svg(legacy, px, 18.0, 72.0), LAUNCHER_DIR + "pwa_%dx%d.png" % [px, px])
 	print("Launcher icons written")
 	quit()
 

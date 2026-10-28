@@ -98,6 +98,11 @@ func _test_windows_export() -> void:
 	_check("Its workflow builds it for every pull request and attaches the zip to a release",
 		flow.contains("pull_request:") and flow.contains("--export-release \"Windows Desktop\"") and flow.contains("action-gh-release"))
 
+func _scaled(img: Image, px: int) -> Image:
+	var copy := img.duplicate() as Image
+	copy.resize(px, px, Image.INTERPOLATE_LANCZOS)
+	return copy
+
 func _text(path: String) -> String:
 	return FileAccess.get_file_as_string(path).strip_edges()
 
@@ -165,17 +170,15 @@ func _test_launcher_icon(preset: Dictionary) -> void:
 		and mono.get_size() == Vector2i(432, 432) and bg.get_size() == Vector2i(432, 432) and legacy.get_size() == Vector2i(192, 192))
 	if fg == null or mono == null:
 		return
-	# The background is a rounded tile: opaque over the whole 72 dp every mask shows, corners
-	# included, but not full-bleed. Some launchers draw the 108 dp canvas without a mask, and a
-	# full-bleed background then shows as a hard-cornered square.
+	# The background is a flat opaque square over the whole canvas: the launcher shapes it
 	if bg != null:
-		var covered := true
-		for y in range(72, 360, 3):
-			for x in range(72, 360, 3):
+		var full := true
+		for y in range(0, 432, 4):
+			for x in range(0, 432, 4):
 				if bg.get_pixel(x, y).a < 0.99:
-					covered = false
-		_check("The background covers everything a launcher's mask can show", covered)
-		_check("and is a rounded tile, not a full-bleed square", bg.get_pixel(0, 0).a < 0.05 and bg.get_pixel(432 - 1, 432 - 1).a < 0.05)
+					full = false
+		_check("The adaptive background is opaque over the whole canvas, for the launcher to shape", full)
+		_check("and one colour", bg.get_pixel(0, 0) == bg.get_pixel(216, 216) and bg.get_pixel(431, 431) == bg.get_pixel(0, 431))
 	var safe_r := 33.0 * 4.0
 	var outside := 0
 	for layer in [fg, mono]:
@@ -222,7 +225,10 @@ func _test_one_icon_everywhere(android: Dictionary) -> void:
 	_check("and so is the Linux menu icon (png) and the AppImage's", same_linux)
 	var store := _png("res://fastlane/metadata/android/en-US/images/icon.png")
 	var pwa := _png("res://assets/launcher/pwa_512x512.png")
-	_check("The store icon and the browser's install icon are one drawing", store != null and pwa != null and _mean_difference(store, pwa) < 0.005)
+	_check("The browser's install icon is the legacy drawing: a rounded square, transparent corners",
+		pwa != null and legacy != null and pwa.get_pixel(0, 0).a < 0.05 and pwa.get_pixel(256, 256).a > 0.99
+		and _mean_difference(_scaled(pwa, 192), legacy) < 0.02)
+	_check("The store icon is full bleed (the stores round it)", store != null and store.get_pixel(0, 0).a > 0.99)
 	var store_tr := _png("res://fastlane/metadata/android/tr-TR/images/icon.png")
 	_check("in both store languages", store != null and store_tr != null and _mean_difference(store, store_tr) < 0.005)
 
