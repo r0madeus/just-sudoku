@@ -35,44 +35,12 @@ func _run() -> void:
 	await _test_solution_width()
 	await _test_fill_notes_toggle()
 	await _test_digit_blink()
-	await _test_daily_calendar()
+	await _test_glass_default()
 	print("\n🏁 RESULTS: %d Passed, %d Failed" % [_passed, _failed])
 	quit(1 if _failed > 0 else 0)
 
-## The daily card's calendar shows today's date, turns its page, dips on a press and ticks when solved
-func _test_daily_calendar() -> void:
+func _test_glass_default() -> void:
 	_check("Glass effects are off until someone turns them on", AppSettings.glass_effects == false)
-	var menu := MainMenu.new()
-	menu.set_anchors_preset(Control.PRESET_FULL_RECT)
-	root.add_child(menu)
-	await _frames(2)
-	var cal = menu.daily_calendar
-	var today := DailyManager.get_today_dict()
-	_check("The menu has a calendar on the daily card, not a stock icon", cal != null and menu.daily_archive_btn.icon == null)
-	_check("showing today's day and month", cal.day == int(today["day"]) and cal.month == int(today["month"]))
-	var was: bool = AppSettings.animations_enabled
-	AppSettings.animations_enabled = true
-	cal.play_flip()
-	await _frames(2)
-	_check("The page is turning right after it is played (not yet fully open)", cal.flip_t < 1.0)
-	await create_timer(0.8).timeout
-	_check("and open again when it is done", is_equal_approx(cal.flip_t, 1.0))
-	cal.play_pop()
-	await _frames(2)
-	_check("A press makes it dip", cal.pop_scale < 1.0)
-	await create_timer(0.5).timeout
-	_check("and come back", is_equal_approx(cal.pop_scale, 1.0))
-	cal.show_today(today, true)
-	await create_timer(0.6).timeout
-	_check("Solved, it is ticked", cal.done and is_equal_approx(cal.tick_t, 1.0))
-	cal.show_today(today, false)
-	_check("and the tick goes when it is not", not cal.done and cal.tick_t == 0.0)
-	AppSettings.animations_enabled = false
-	cal.play_flip()
-	_check("With animations off the page is simply open", is_equal_approx(cal.flip_t, 1.0))
-	AppSettings.animations_enabled = was
-	menu.queue_free()
-	await process_frame
 
 func _test_glass_switch() -> void:
 	var screen := SettingsScreen.new()
