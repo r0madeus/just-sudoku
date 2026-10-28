@@ -47,6 +47,6 @@ static func calculate_score(
 
 	# Perfect clean solve bonus (no mistakes, no hints)
 	if mistakes == 0 and hints == 0 and hint_cost == 0:
-		raw_score += 0.0
+		raw_score += 5.0
 
 	return clampi(int(round(raw_score)), 0, 100)
