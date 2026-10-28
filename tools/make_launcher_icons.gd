@@ -4,10 +4,10 @@ extends SceneTree
 ##  - assets/launcher/adaptive_{background,foreground,monochrome}(.svg, _432x432.png): the
 ##    Android adaptive icon layers. 108 dp canvas; launchers show the middle 72 dp through their
 ##    own mask (circle, squircle, teardrop...) and only the 66 dp circle in the middle is sure to
-##    show, so the board stays inside it (60 dp square, its rounded corners reach 36.6 dp from the centre:
-##    right at the edge of a 72 dp mask, beyond the 66 dp sure circle by the tips of the corners only).
-##    The board is as large as that allows: a smaller one made the icon look small next to full-art
-##    icons on a real phone, where the launcher draws the whole canvas and the board is half of it.
+##    show, so the board stays inside it (54 dp square with generously rounded corners, which reach 32.4 dp from the centre).
+##    That is as large as the safe circle allows (tests/test_release.gd checks it). To read bigger on a
+##    launcher that draws the whole canvas, where the board is half of it, the tile is nearly the whole
+##    canvas and the lit cell, the digit and the frame are bolder.
 ##    The background is a rounded tile with transparent margin, not a full-bleed square: some
 ##    launchers (seen on a real phone) draw the whole 108 dp canvas without cropping or
 ##    masking it, and a full-bleed background then shows as a hard-cornered square with the board
@@ -34,7 +34,7 @@ const ACCENT: String = "#2563eb"
 
 ## Board geometry in dp, on the 108 dp canvas
 const CENTRE: float = 54.0
-const BOARD: float = 60.0
+const BOARD: float = 54.0
 const BOARD_RADIUS: float = 14.0
 ## The adaptive background tile: 88 dp, centred, corners rounded to 22%. It covers the whole
 ## visible 72 dp square, corners included, for every mask (a teardrop has a square corner); a
@@ -79,7 +79,7 @@ func _background(side: float, origin: float, radius: float) -> String:
 	return "<rect x=\"%s\" y=\"%s\" width=\"%s\" height=\"%s\" rx=\"%s\" fill=\"url(#bg)\"/>\n" % [_n(origin), _n(origin), _n(side), _n(side), _n(radius)]
 
 func _glow() -> String:
-	return "<circle cx=\"%s\" cy=\"%s\" r=\"38\" fill=\"url(#glow)\"/>\n" % [_n(CENTRE), _n(CENTRE)]
+	return "<circle cx=\"%s\" cy=\"%s\" r=\"32\" fill=\"url(#glow)\"/>\n" % [_n(CENTRE), _n(CENTRE)]
 
 ## The board. `mono`: one opaque colour for the themed icon, the lit cell solid and no digit.
 func _board(mono: bool) -> String:
@@ -96,10 +96,10 @@ func _board(mono: bool) -> String:
 		var p: float = x + third * i
 		for d in [[p, x + 3.0, p, x + BOARD - 3.0], [x + 3.0, p, x + BOARD - 3.0, p]]:
 			out += "<line x1=\"%s\" y1=\"%s\" x2=\"%s\" y2=\"%s\" stroke=\"#ffffff\" stroke-opacity=\"%s\" stroke-width=\"%s\"/>\n" % [_n(d[0]), _n(d[1]), _n(d[2]), _n(d[3]), _n(line_opacity), _n(line_width)]
-	var edge := 2.2
+	var edge := 2.8
 	out += "<rect x=\"%s\" y=\"%s\" width=\"%s\" height=\"%s\" rx=\"%s\" fill=\"none\" stroke=\"#ffffff\" stroke-opacity=\"%s\" stroke-width=\"%s\"/>\n" % [_n(x + edge / 2.0), _n(x + edge / 2.0), _n(BOARD - edge), _n(BOARD - edge), _n(BOARD_RADIUS - edge / 2.0), "1" if mono else "0.86", _n(edge)]
 	if not mono:
-		out += "<path d=\"%s\" transform=\"translate(%s %s) scale(0.0984) translate(-53.5 -53)\" fill=\"none\" stroke=\"#ffffff\" stroke-width=\"19\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n" % [FIVE_PATH, _n(CENTRE), _n(CENTRE)]
+		out += "<path d=\"%s\" transform=\"translate(%s %s) scale(0.105) translate(-53.5 -53)\" fill=\"none\" stroke=\"#ffffff\" stroke-width=\"19\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n" % [FIVE_PATH, _n(CENTRE), _n(CENTRE)]
 	return out
 
 func _n(v: float) -> String:
