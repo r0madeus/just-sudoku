@@ -9,6 +9,15 @@ Resmi Godot şablonu 3D, fizik, navigasyon, XR, Vulkan ve oyunun kullanmadığı
 | Windows | `windows.yml` | `scons platform=windows target=template_release arch=x86_64 use_mingw=yes vulkan=no d3d12=no` (MinGW ile çapraz derleme) | aşağıda |
 | Linux | `linux.yml` | `scons platform=linuxbsd target=template_release arch=x86_64 vulkan=no`, Ubuntu 22.04'te | [linux.md](linux.md) |
 
+Ölçülen boyutlar (GitHub'daki ilk çalıştırmalar; her çalıştırmanın özetinde güncel değerler yazar):
+
+| Sürüm | resmi şablonla | küçültülmüş şablonla |
+|---|---|---|
+| Android APK | 28,2 MB | 14,5 MB |
+| Tarayıcı `index.wasm` (gzip) | 37,7 MB (9,6 MB) | 23,3 MB (5,8 MB) |
+| Windows `JustSudoku.exe` (zip içinde) | 105,9 MB (37,7 MB) | 30,7 MB (11,8 MB) |
+| Linux `JustSudoku.x86_64` (gzip) | 71,8 MB (28,6 MB) | 26,5 MB (10,6 MB) |
+
 Hepsinde `profile=<oyun>/engine/custom.py` verilir. Web, Windows ve Linux çalıştırmalarının özetinde, oyunun resmi şablonla ve küçültülmüş şablonla dışa aktarılmış hâlinin boyutları yan yana yazılır; küçültülmüş olan daha küçük değilse iş kırmızı olur.
 
 ## Windows
