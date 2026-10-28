@@ -22,7 +22,7 @@ var has_game: bool = false
 
 func _init() -> void:
 	super()
-	elevated = true
+	elevated = false
 	corner_radius = 24.0
 	pad_h = 16
 	pad_v = 16

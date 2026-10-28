@@ -16,6 +16,9 @@ var selected_id: String = ""
 var selected_index: int = -1
 
 const SLIDE_TIME: float = 0.22
+## Space between the track's edge and the pill. The track is a capsule like the pill, so the two
+## curves run side by side with this much between them all the way round.
+const SEGMENT_GAP: int = 4
 
 ## The accent pill behind the chosen segment. It slides to the next one: 0 = where it was,
 ## 1 = on the chosen segment (which it follows if the control is resized)
@@ -24,6 +27,7 @@ var pill_t: float = 1.0 :
 		pill_t = v
 		if hbox != null:
 			hbox.queue_redraw()
+			_update_text_colors()
 var _pill_from: Rect2 = Rect2()
 var _tween: Tween = null
 
@@ -44,10 +48,10 @@ func _apply_theme_style() -> void:
 	var border_col: Color = ThemeManager.get_color("border_subtle")
 	var sb := ThemeManager.create_flat_stylebox(
 		surface_col,
-		ThemeManager.RADIUS_PILL_SM,
+		ThemeManager.RADIUS_CAPSULE,
 		ThemeManager.BORDER_HAIRLINE,
 		border_col,
-		3, 3
+		SEGMENT_GAP, SEGMENT_GAP
 	)
 	add_theme_stylebox_override("panel", sb)
 
@@ -118,18 +122,36 @@ func get_selected_id() -> String:
 func get_selected_index() -> int:
 	return selected_index
 
-## Every segment is a plain button; the chosen one has white text over the pill that is drawn behind
+## Every segment is a plain button; the one the pill is over has white text, and the text turns
+## white or back as the pill slides across it, so no label is ever dark on blue or white on dark
 func _update_button_visuals() -> void:
-	for i in range(buttons.size()):
-		var btn: Button = buttons[i]
+	for btn in buttons:
 		btn.theme_type_variation = "GhostButton"
-		for c in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
-			if i == selected_index:
-				btn.add_theme_color_override(c, Color.WHITE)
-			else:
-				btn.remove_theme_color_override(c)
+	_update_text_colors()
 	if hbox != null:
 		hbox.queue_redraw()
+
+func _update_text_colors() -> void:
+	var pill := _pill_rect()
+	var plain := {
+		"font_color": ThemeManager.get_color("button_text"),
+		"font_hover_color": ThemeManager.get_color("text_primary"),
+		"font_pressed_color": ThemeManager.get_color("text_primary"),
+		"font_focus_color": ThemeManager.get_color("button_text"),
+	}
+	for i in range(buttons.size()):
+		var btn: Button = buttons[i]
+		var cover: float
+		if btn.size.x <= 0.0:
+			cover = 1.0 if i == selected_index else 0.0
+		else:
+			var overlap: float = minf(pill.end.x, btn.position.x + btn.size.x) - maxf(pill.position.x, btn.position.x)
+			cover = clampf(overlap / btn.size.x, 0.0, 1.0)
+		for c in plain:
+			if cover <= 0.001:
+				btn.remove_theme_color_override(c)
+			else:
+				btn.add_theme_color_override(c, (plain[c] as Color).lerp(Color.WHITE, cover))
 
 func _slide_pill(instant: bool) -> void:
 	if _tween != null:

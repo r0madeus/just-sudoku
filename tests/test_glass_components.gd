@@ -68,6 +68,12 @@ func _run() -> void:
 	_check(dock is GlassPanel and dock.glass_rect != null, "GameActionDock is a GlassPanel with a glass layer")
 	_check(is_equal_approx(dock.corner_radius, 26.0) and not dock.elevated, "Dock uses the light capsule glass settings")
 
+	# The resume card and the action cards beside it are the same glass, so they are one colour
+	var resume := ResumeCard.new()
+	root.add_child(resume)
+	_check(resume.elevated == GlassPanel.card().elevated, "The resume card is the same glass as the cards next to it")
+	resume.queue_free()
+
 	# Modals sit on glass; ambient replaces the scrim when requested
 	var modal := AppModal.new()
 	root.add_child(modal)

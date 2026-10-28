@@ -494,7 +494,7 @@ static func build_godot_theme() -> Theme:
 	theme.set_stylebox("panel", "ModalPanel", sb_modal)
 
 	# SegmentedDock (Capsule outer container for segmented controls)
-	var sb_seg_dock := ThemeManager.create_flat_stylebox(surface_col, ThemeManager.RADIUS_PILL_SM, ThemeManager.BORDER_HAIRLINE, border, 3, 3, Color.TRANSPARENT, 0)
+	var sb_seg_dock := ThemeManager.create_flat_stylebox(surface_col, ThemeManager.RADIUS_CAPSULE, ThemeManager.BORDER_HAIRLINE, border, 4, 4, Color.TRANSPARENT, 0)
 	for seg_name in ["SegmentedDock", "SegmentedControl"]:
 		theme.set_type_variation(seg_name, "PanelContainer")
 		theme.set_stylebox("panel", seg_name, sb_seg_dock)
